@@ -41,27 +41,6 @@ Results are presented through a **Web Platform (Dashboard + Chatbot)** enabling 
 
 UniLake AI follows a **Modular Monolith** architecture — the entire backend (API, Data Pipeline, Data Governance, AI Engine) runs inside a single Python/FastAPI application, organized into clearly bounded internal modules.
 
-```mermaid
-graph TD
-    A[Web Dashboard - Next.js] --> B[FastAPI Modular Monolith]
-    B --> C[Auth Module - JWT/RBAC]
-    B --> D[Ingest Module]
-    B --> E[Pipeline Module]
-    B --> F[Governance Module]
-    B --> G[Query Module]
-    B --> H[AI Engine Module]
-    
-    D --> I[(MinIO - Bronze Layer)]
-    E --> J[(PostgreSQL - Silver Layer)]
-    E --> K[(Data Mart - Gold Layer)]
-    F --> L[Data Catalog + Lineage + DQ Check]
-    H --> M[Text-to-SQL - LangChain]
-    H --> N[Constraint Optimization - OR-Tools]
-    
-    style B fill:#009688,color:#fff
-    style H fill:#FF6B35,color:#fff
-```
-
 ### Layers
 
 | Layer | Component | Function |

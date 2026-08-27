@@ -23,20 +23,6 @@ Results are presented through a **Web Platform (Dashboard + Chatbot)** enabling 
 
 ---
 
-## 🎯 Key Features
-
-| ID | Feature | Description |
-|----|---------|-------------|
-| KF01 | **Multi-source Ingestion** | Ingest data from 4 domains into Bronze – Silver – Gold layers |
-| KF02 | **Data Catalog & Lineage** | Track data ownership, source, and update frequency |
-| KF03 | **Text-to-SQL** | Natural-language querying (Vietnamese/English) → SQL + results |
-| KF04 | **What-If Analysis** | Simulate management scenarios using Constraint Optimization |
-| KF05 | **Executive Dashboard** | Visualize analytics & compare scenarios side-by-side |
-| KF06 | **AI Chatbot** | Query, explain terms, and suggest related questions |
-| KF07 | **RBAC** | Role-based access control for different user types |
-
----
-
 ## 🏗️ System Architecture
 
 UniLake AI follows a **Modular Monolith** architecture — the entire backend (API, Data Pipeline, Data Governance, AI Engine) runs inside a single Python/FastAPI application, organized into clearly bounded internal modules.

@@ -1,0 +1,88 @@
+name: Auto-fill PR Description
+
+on:
+  pull_request:
+    types: [opened]
+
+# Cấp quyền cho Actions có thể sửa nội dung PR
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  auto-fill-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get commit messages
+        id: commits
+        run: |
+          COMMITS=$(git log ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} --pretty=format:"- %s" | grep -v "^- Merge" || echo "- No new commits")
+          echo "commits<<EOF" >> $GITHUB_OUTPUT
+          echo "$COMMITS" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Update PR Body
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const branchName = context.payload.pull_request.head.ref;
+            const commits = process.env.COMMITS;
+
+            // Tự động detect module dựa trên tên nhánh (theo quy ước của team)
+            let modules = [];
+            if (branchName.includes('auth')) modules.push('🔐 auth');
+            if (branchName.includes('ingest') || branchName.includes('bronze')) modules.push('📥 ingest');
+            if (branchName.includes('pipeline') || branchName.includes('silver') || branchName.includes('gold')) modules.push('🔄 pipeline');
+            if (branchName.includes('governance') || branchName.includes('catalog')) modules.push('🛡️ governance');
+            if (branchName.includes('query') || branchName.includes('dashboard')) modules.push(' query');
+            if (branchName.includes('ai') || branchName.includes('ml') || branchName.includes('sql') || branchName.includes('or-tools')) modules.push('🤖 ai_engine');
+            if (branchName.includes('fe') || branchName.includes('frontend') || branchName.includes('next')) modules.push('🎨 frontend');
+            if (branchName.includes('infra') || branchName.includes('docker') || branchName.includes('ci') || branchName.includes('devops')) modules.push('🐳 infra');
+            if (modules.length === 0) modules.push('📦 General / Docs');
+
+            const description = `##  Summary
+            Auto-generated from branch \`${branchName}\`. 
+            *(Vui lòng cập nhật lại phần này với mô tả ngắn gọn về thay đổi của bạn)*
+
+            ## 🔗 Related Issue
+            Closes #
+
+            ## 📦 Affected Module(s)
+            ${modules.map(m => `- [x] ${m}`).join('\n')}
+
+            ## 🧩 Type of Change
+            - [ ] ✨ New feature
+            - [ ] 🐛 Bug fix
+            - [ ] 🔨 Refactor
+            - [ ] 📚 Documentation
+            - [ ] 🔧 Chore
+
+            ## 🧪 How Has This Been Tested?
+            <!-- Mô tả cách bạn đã test -->
+            - [ ] Unit tests
+            - [ ] Manual testing
+
+            ## 📝 Commits in this PR
+            ${commits}
+
+            ## ✅ Checklist
+            - [ ] Code follows project style (Ruff/ESLint)
+            - [ ] Self-review completed
+            - [ ] No sensitive data (.env, API keys) committed
+            `;
+
+            // Cập nhật nội dung PR
+            await github.rest.pulls.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+              body: description
+            });
+        env:
+          COMMITS: ${{ steps.commits.outputs.commits }}

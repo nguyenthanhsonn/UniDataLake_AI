@@ -1,11 +1,11 @@
-blank_issues_enabled: false
+blank_issues_enabled: true
 contact_links:
-  - name: 📚 Documentation
-    url: https://github.com/<your-org>/unilake-ai/tree/main/docs
-    about: Check our documentation first
-  - name: 💬 Questions & Discussions
-    url: https://github.com/<your-org>/unilake-ai/discussions
-    about: Ask questions or discuss ideas
-  - name: 🆘 Get Help
-    url: mailto:nguyensonn2805@gmail.com
-    about: Contact Scrum Master for urgent issues
+  - name:  Đọc tài liệu dự án
+    url: https://github.com/nguyenthanhsonn/UniDataLake_AI/tree/developer/docs
+    about: Vui lòng kiểm tra tài liệu kỹ thuật và kiến trúc hệ thống trước khi tạo issue.
+  - name: 💬 Thảo luận & Hỏi đáp
+    url: https://github.com/nguyenthanhsonn/UniDataLake_AI/discussions
+    about: Sử dụng Discussions để thảo luận ý tưởng hoặc hỏi đáp chung.
+  - name: 🆘 Hỗ trợ khẩn cấp
+    url: mailto:nguyenthanhsonn@gmail.com
+    about: Liên hệ Scrum Master (Sơn) nếu gặp vấn đề nghiêm trọng cần xử lý ngay.

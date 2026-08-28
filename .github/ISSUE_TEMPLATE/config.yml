@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📚 Documentation
+    url: https://github.com/<your-org>/unilake-ai/tree/main/docs
+    about: Check our documentation first
+  - name: 💬 Questions & Discussions
+    url: https://github.com/<your-org>/unilake-ai/discussions
+    about: Ask questions or discuss ideas
+  - name: 🆘 Get Help
+    url: mailto:nguyensonn2805@gmail.com
+    about: Contact Scrum Master for urgent issues

@@ -47,7 +47,7 @@ jobs:
             if (modules.length === 0) modules.push('📦 General / Docs');
 
             const description = `##  Summary
-            Auto-generated from branch \`${branchName}\`. 
+            Auto-generated from branch \`${branchName}\`.
             *(Vui lòng cập nhật lại phần này với mô tả ngắn gọn về thay đổi của bạn)*
 
             ## 🔗 Related Issue

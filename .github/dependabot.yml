@@ -1,0 +1,97 @@
+version: 2
+
+updates:
+  - package-ecosystem: "pip"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "02:00"
+      timezone: "Asia/Ho_Chi_Minh"
+    open-pull-requests-limit: 10
+    versioning-strategy: increase
+    labels:
+      - "dependencies"
+      - "area/backend"
+      - "python"
+    commit-message:
+      prefix: "chore(backend)"
+      include: "scope"
+    groups:
+      fastapi-stack:
+        patterns:
+          - "fastapi*"
+          - "uvicorn"
+          - "pydantic*"
+          - "starlette"
+      data-stack:
+        patterns:
+          - "duckdb"
+          - "sqlalchemy*"
+          - "minio"
+      dev-tools:
+        dependency-type: "development"
+        patterns:
+          - "ruff"
+          - "mypy"
+          - "pytest*"
+          - "pre-commit"
+
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "02:30"
+      timezone: "Asia/Ho_Chi_Minh"
+    open-pull-requests-limit: 10
+    versioning-strategy: increase
+    labels:
+      - "dependencies"
+      - "area/frontend"
+      - "javascript"
+    commit-message:
+      prefix: "chore(frontend)"
+      include: "scope"
+    groups:
+      nextjs-stack:
+        patterns:
+          - "next"
+          - "react"
+          - "react-dom"
+          - "@next/*"
+          - "@types/react*"
+      lint-format-stack:
+        dependency-type: "development"
+        patterns:
+          - "eslint*"
+          - "@eslint/*"
+          - "typescript-eslint"
+          - "prettier*"
+          - "@next/eslint-plugin-next"
+      test-stack:
+        dependency-type: "development"
+        patterns:
+          - "vitest"
+          - "@playwright/*"
+          - "@testing-library/*"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "03:00"
+      timezone: "Asia/Ho_Chi_Minh"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "area/devops"
+      - "ci-cd"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    groups:
+      actions-all:
+        patterns:
+          - "*"

@@ -31,21 +31,10 @@ Chúng ta làm việc với tinh thần **tôn trọng, hợp tác và học h�
 - ✅ Không commit file nhạy cảm (`.env`, credentials, API keys).
 - ✅ Tuân thủ quy tắc sử dụng AI có kiểm soát (theo Section 13 của Proposal).
 
----
 
-## 👥 Team & Roles
-
-| Member | Role | Primary Focus |
-|--------|------|---------------|
-| **Nguyễn Thanh Sơn** | Scrum Master / Backend Lead | Kiến trúc Modular Monolith, Auth, API Contract |
-| **Hoàng Lâm Bảo Toàn** | Backend — Data Engineering | Data Pipeline, Bronze–Silver–Gold, Data Governance |
-| **Nguyễn Thị Tố Loan** | Frontend Developer | Next.js Dashboard, Chatbot UI |
-| **Đặng Trần Trí Đức** | AI/ML Developer | Text-to-SQL, Constraint Optimization (OR-Tools) |
-| **Trương Đình Đạt** | DevOps & QA | Docker, CI/CD, Testing |
 
 > 📌 **Mọi thay đổi lớn về kiến trúc** phải được **Sơn (Backend Lead)** review trước khi merge.
 
----
 
 ## 💻 Development Setup
 
@@ -55,7 +44,7 @@ Chúng ta làm việc với tinh thần **tôn trọng, hợp tác và học h�
 - **Node.js** 20+ (LTS)
 - **Docker** & **Docker Compose**
 - **Git** (with SSH key configured)
-- **VSCode** (recommended) + extensions: Python, Pylance, ESLint, Prettier, Tailwind CSS IntelliSense
+- **IDE bất kỳ** có hỗ trợ EditorConfig, ESLint/Prettier và Python/TypeScript tooling. VS Code, Antigravity, Cursor, WebStorm/PyCharm đều dùng được.
 
 ### 1. Clone the repository
 
@@ -73,24 +62,27 @@ docker compose up -d   # PostgreSQL, MinIO, Redis
 ### 3. Backend setup
 
 ```bash
-cd backend
-python -m venv .venv
+# Tạo môi trường ảo tại root dự án
+python3 -m venv .venv
 source .venv/bin/activate        # Linux/macOS
 # .venv\Scripts\activate         # Windows
 
-pip install -e ".[dev]"
+# Cài đặt dependencies + dev tools + pre-commit hooks
+pip install -e "backend[dev]"
+pre-commit install               # Setup git pre-commit hook
+pre-commit install --hook-type commit-msg # Setup commit message hook
 cp .env.example .env             # Edit với credentials của bạn
-pre-commit install               # Setup git hooks
 
-uvicorn app.main:app --reload --port 8000
+# Chạy server Uvicorn từ root
+uvicorn app.main:app --app-dir backend --reload --port 8000
 ```
 
 ### 4. Frontend setup
 
 ```bash
 cd frontend
-npm install
-npm run dev                      # http://localhost:3000
+pnpm install
+pnpm dev                         # http://localhost:3000
 ```
 
 ### 5. Verify setup
@@ -98,6 +90,16 @@ npm run dev                      # http://localhost:3000
 - Backend API docs: http://localhost:8000/docs
 - Frontend: http://localhost:3000
 - MinIO Console: http://localhost:9001
+
+### 6. Database migrations
+
+```bash
+make db-upgrade
+make db-migrate MSG="add users table"
+make db-current
+```
+
+Migration files are stored in `backend/alembic/versions/` and must be committed.
 
 ---
 
@@ -207,8 +209,9 @@ Closes #42
 ### 1. Before creating PR
 
 - [ ] Rebase từ `develop` mới nhất: `git pull --rebase origin develop`
-- [ ] Chạy test local: `make test` (backend) / `npm test` (frontend)
-- [ ] Chạy linter: `make lint` / `npm run lint`
+- [ ] Chạy test local: `cd backend && pytest` (backend) / `pnpm test` (frontend)
+- [ ] Chạy linter: `ruff check backend` / `pnpm lint`
+- [ ] Nếu sửa model/database schema, tạo và test Alembic migration
 - [ ] Đảm bảo CI passes (GitHub Actions sẽ tự chạy)
 
 ### 2. Create PR
@@ -266,7 +269,7 @@ Closes #<issue-number>
 
 | Tool | Mục đích | Config |
 |------|----------|--------|
-| **Ruff** | Linter + formatter | `pyproject.toml` |
+| **Ruff** | Linter + formatter | `backend/pyproject.toml` |
 | **Black** | Code formatter | Line length: 100 |
 | **isort** | Import sorting | Compatible with Black |
 | **mypy** | Type checking | Strict mode |
@@ -274,9 +277,9 @@ Closes #<issue-number>
 
 ```bash
 # Chạy manual
-make lint        # ruff check + black --check
-make format      # black + isort + ruff --fix
-make type-check  # mypy
+ruff check backend
+ruff format backend
+mypy --config-file backend/pyproject.toml backend/app
 ```
 
 ### JavaScript/TypeScript (Frontend)
@@ -288,9 +291,9 @@ make type-check  # mypy
 | **TypeScript** | Type checking (strict mode) |
 
 ```bash
-npm run lint
-npm run format
-npm run type-check
+pnpm lint
+pnpm format
+pnpm type-check
 ```
 
 ### General Rules
@@ -335,6 +338,7 @@ async def test_login_success(client: AsyncClient):
 
 ```bash
 # Chạy tests
+cd backend
 pytest                              # Tất cả
 pytest tests/modules/auth/          # Một module
 pytest -v --cov=app                 # Với coverage
@@ -344,9 +348,9 @@ pytest -k "test_login"              # Filter by name
 ### Frontend Testing (Jest + React Testing Library)
 
 ```bash
-npm test                 # Watch mode
-npm run test:ci          # CI mode
-npm run test:coverage    # Coverage report
+pnpm test                # CI mode
+pnpm test:watch          # Watch mode
+pnpm test:coverage       # Coverage report
 ```
 
 ### Data Quality Tests (Great Expectations)

@@ -1,7 +1,7 @@
 blank_issues_enabled: true
 contact_links:
   - name:  Đọc tài liệu dự án
-    url: https://github.com/nguyenthanhsonn/UniDataLake_AI/tree/developer/docs
+    url: https://github.com/nguyenthanhsonn/UniDataLake_AI/tree/main/docs
     about: Vui lòng kiểm tra tài liệu kỹ thuật và kiến trúc hệ thống trước khi tạo issue.
   - name: 💬 Thảo luận & Hỏi đáp
     url: https://github.com/nguyenthanhsonn/UniDataLake_AI/discussions

@@ -1,11 +1,3 @@
----
-name: Pull Request
-about: Gửi yêu cầu hợp nhất mã (Pull Request) vào UniLake AI
-title: '<type>(<scope>): <mô tả ngắn gọn>'
-labels: ''
-assignees: ''
----
-
 ## 🎯 Tóm tắt
 
 <!-- Mô tả ngắn gọn (2-3 câu) về những gì PR này thực hiện. -->
@@ -13,41 +5,48 @@ assignees: ''
 
 ## 🔗 Vấn đề (Issue) liên quan
 
-<!-- Link đến issue liên quan. Dùng từ khóa "Closes" để tự động đóng issue khi merge. -->
+<!-- Link đến issue liên quan. Dùng từ khóa "Closes #123" để tự động đóng issue khi merge. -->
 
-Closes #<!-- số issue -->
-Related to #<!-- số issue nếu có -->
+- Closes #
+- Related to #
 
 ## 📦 Module bị ảnh hưởng
-
-<!-- Đánh dấu (x) các module bị ảnh hưởng bởi PR này. -->
 
 - [ ] 🔐 `auth` — Xác thực, JWT, RBAC
 - [ ] 📥 `ingest` — Tiếp nhận dữ liệu (Tầng Bronze)
 - [ ] 🔄 `pipeline` — ETL/ELT (Bronze → Silver → Gold)
 - [ ] 🛡️ `governance` — Data Catalog, Lineage, DQ Check
 - [ ] 🔍 `query` — API Dashboard, xuất dữ liệu
-- [ ]  `ai_engine` — Text-to-SQL, OR-Tools, LLM
+- [ ] 🤖 `ai_engine` — Text-to-SQL, OR-Tools, LLM
 - [ ] 🎨 `frontend` — Next.js Dashboard / Chatbot
 - [ ] 🐳 `infra` — Docker, CI/CD, triển khai
 - [ ] 📚 `docs` — Tài liệu
-- [ ]  `tests` — Bộ kiểm thử
+- [ ] 🧪 `tests` — Bộ kiểm thử
 - [ ] 🗄️ `data` — Dữ liệu mẫu, schemas, migrations
 
 ## 🧩 Loại thay đổi
 
-<!-- Đánh dấu (x) vào loại thay đổi phù hợp. -->
+- [ ] ✨ **Tính năng mới** (Feature - không breaking change)
+- [ ] 🐛 **Sửa lỗi** (Bugfix - không breaking change)
+- [ ] 🔨 **Tái cấu trúc** (Refactor - không thay đổi logic)
+- [ ] ⚡ **Tối ưu hiệu năng** (Performance Improvement)
+- [ ] 📚 **Tài liệu** (Documentation update)
+- [ ] 🎨 **Style / Formatting** (Chỉ sửa format, không đổi logic)
+- [ ] 🧪 **Kiểm thử** (Adding or updating tests)
+- [ ] 🧹 **Chore** (Build tools, dependencies, CI/CD)
+- [ ] ⚠️ **Breaking change** (Thay đổi có thể làm hỏng API/behavior cũ)
 
-- [ ] ✨ **Tính năng mới** — (Không phá vỡ tương thích)
-- [ ] 🐛 **Sửa lỗi** — (Không phá vỡ tương thích)
-- [ ] 🔨 **Tái cấu trúc (Refactor)** — (Không thay đổi chức năng)
-- [ ] ⚡ **Tối ưu hiệu năng**
-- [ ]  **Tài liệu**
-- [ ]  **Định dạng (Style)** — Format, white-space, missing semi-colons, etc.
-- [ ] 🧪 **Kiểm thử (Tests)**
-- [ ]  **Chore** — Build process, tooling, dependencies
-- [ ] ⚠️ **Breaking change** — Thay đổi có thể ảnh hưởng đến API/behavior hiện tại
+## 🏗️ Tác động đến kiến trúc
 
-## ️ Tác động đến kiến trúc
+<!-- PR này có thay đổi database schema, API contract, hoặc luồng dữ liệu chính không? -->
 
-<!-- PR này có
+- [ ] Có thay đổi Database Schema (đã kèm Alembic migration)
+- [ ] Có thay đổi API Contract (đã cập nhật docs/OpenAPI)
+- [ ] Không ảnh hưởng đến kiến trúc hiện tại
+
+## 🧪 Danh sách kiểm tra (Checklist)
+
+- [ ] Code tuân thủ quy chuẩn của dự án (đã chạy `ruff check .` và `mypy`).
+- [ ] Đã chạy thành công unit test ở local (`pytest` / `pnpm test`).
+- [ ] Đã kiểm tra pre-commit hooks passed.
+- [ ] Đã cập nhật tài liệu tương ứng (nếu có).

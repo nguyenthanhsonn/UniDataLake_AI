@@ -10,9 +10,9 @@ permissions:
 
 jobs:
   auto-merge:
-    name: Auto-merge Safe Dependabot PRs
+    name: Auto-merge Safe Dependabot PRs (developer branch only)
     runs-on: ubuntu-latest
-    if: github.actor == 'dependabot[bot]'
+    if: github.actor == 'dependabot[bot]' && github.event.pull_request.base.ref == 'developer'
     steps:
       - name: Fetch Dependabot Metadata
         id: metadata

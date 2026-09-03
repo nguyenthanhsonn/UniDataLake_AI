@@ -21,7 +21,7 @@ dependencies = [
     "langchain>=0.3",
     "duckdb>=1.1",
     "minio>=7.2",
-    "great-expectations>=1.2",
+    "great-expectations>=1.22.0",
     "ortools>=9.15.6755",
 ]
 

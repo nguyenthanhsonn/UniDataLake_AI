@@ -1,0 +1,68 @@
+# Pre-commit hooks - chạy tự động trước mỗi git commit
+# Cài đặt: pip install pre-commit && pre-commit install
+# Chạy thủ công cho toàn repo: pre-commit run --all-files
+
+repos:
+  # ===== Code formatting & linting =====
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.6
+    hooks:
+      - id: ruff          # Linter
+        args: [--fix, --exit-non-zero-on-fix]
+      - id: ruff-format   # Formatter (thay black)
+
+  # ===== Type checking =====
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.13.0
+    hooks:
+      - id: mypy
+        args: [--config-file=backend/pyproject.toml, backend/app]
+        additional_dependencies:
+          - alembic>=1.14
+          - asyncpg>=0.30
+          - pydantic>=2.9
+          - pydantic-settings>=2.6
+          - fastapi>=0.115
+          - sqlalchemy>=2.0
+          - types-requests
+        pass_filenames: false  # check toàn bộ app/
+
+  # ===== Commit message validation =====
+  - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
+    rev: v9.18.0
+    hooks:
+      - id: commitlint
+        stages: [commit-msg]
+        additional_dependencies: ["@commitlint/config-conventional"]
+
+  # ===== Generic file checks =====
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: check-added-large-files
+        args: [--maxkb=1000]  # chặn file > 1MB (tránh commit data vào git)
+      - id: check-merge-conflict
+      - id: debug-statements  # phát hiện print()/breakpoint() còn sót
+
+  # ===== Frontend: ESLint + Prettier =====
+  - repo: local
+    hooks:
+      - id: eslint-frontend
+        name: ESLint (Frontend)
+        entry: bash -c 'cd frontend && pnpm lint'
+        language: system
+        types_or: [javascript, jsx, ts, tsx]
+        files: ^frontend/
+        pass_filenames: false
+
+      - id: prettier-frontend
+        name: Prettier (Frontend)
+        entry: bash -c 'cd frontend && pnpm format'
+        language: system
+        types_or: [javascript, jsx, ts, tsx, json, css, markdown]
+        files: ^frontend/
+        pass_filenames: false

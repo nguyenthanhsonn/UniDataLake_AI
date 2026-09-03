@@ -1,0 +1,60 @@
+# Virtual env
+.venv/
+venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+!frontend/.vscode/
+!frontend/.vscode/settings.json
+!frontend/.vscode/extensions.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+backend/alembic/versions/__pycache__/
+backend/alembic/*.pyc
+
+# Node
+node_modules/
+.next/
+out/
+dist/
+build/
+*.tsbuildinfo
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+
+# Data (KHÔNG commit data vào git)
+data/bronze/
+data/raw/
+data/processed/
+*.parquet
+*.duckdb
+*.db
+*.sqlite
+
+# Environment
+.env
+.env.local
+.env*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Lighthouse CI
+.lighthouseci/
+frontend/.lighthouseci/

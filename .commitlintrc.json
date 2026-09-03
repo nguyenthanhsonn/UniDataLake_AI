@@ -1,0 +1,36 @@
+{
+  "extends": ["@commitlint/config-conventional"],
+  "rules": {
+    "type-enum": [
+      2,
+      "always",
+      [
+        "feat",
+        "fix",
+        "docs",
+        "style",
+        "refactor",
+        "test",
+        "chore",
+        "data",
+        "ai"
+      ]
+    ],
+    "scope-enum": [
+      1,
+      "always",
+      [
+        "auth",
+        "ingest",
+        "pipeline",
+        "governance",
+        "query",
+        "ai_engine",
+        "core",
+        "frontend",
+        "devops"
+      ]
+    ],
+    "subject-max-length": [2, "always", 72]
+  }
+}

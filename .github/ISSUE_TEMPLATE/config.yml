@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name:  Đọc tài liệu dự án
+    url: https://github.com/nguyenthanhsonn/UniDataLake_AI/tree/developer/docs
+    about: Vui lòng kiểm tra tài liệu kỹ thuật và kiến trúc hệ thống trước khi tạo issue.
+  - name: 💬 Thảo luận & Hỏi đáp
+    url: https://github.com/nguyenthanhsonn/UniDataLake_AI/discussions
+    about: Sử dụng Discussions để thảo luận ý tưởng hoặc hỏi đáp chung.
+  - name: 🆘 Hỗ trợ khẩn cấp
+    url: mailto:nguyenthanhsonn@gmail.com
+    about: Liên hệ Scrum Master (Sơn) nếu gặp vấn đề nghiêm trọng cần xử lý ngay.

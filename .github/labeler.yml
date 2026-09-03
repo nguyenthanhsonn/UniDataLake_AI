@@ -1,0 +1,97 @@
+# Limit automatic area labels on very large PRs to avoid noisy labeling.
+changed-files-labels-limit: 8
+max-files-changed: 100
+
+area/backend:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "backend/**"
+          - "backend/pyproject.toml"
+          - "backend/requirements*.txt"
+
+area/frontend:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "frontend/**"
+
+area/devops:
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/**"
+          - ".pre-commit-config.yaml"
+          - ".commitlintrc.json"
+          - ".editorconfig"
+          - "Dockerfile"
+          - "**/Dockerfile"
+          - "docker-compose*.yml"
+          - "infra/**"
+
+area/data:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "data/**"
+          - "notebooks/**"
+
+area/docs:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "docs/**"
+          - "*.md"
+          - ".github/ISSUE_TEMPLATE/**"
+          - ".github/PULL_REQUEST_TEMPLATE.md"
+
+tests:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "**/tests/**"
+          - "**/*test*.py"
+          - "**/*.test.*"
+          - "**/*.spec.*"
+
+dependencies:
+  - changed-files:
+      - any-glob-to-any-file:
+          - "backend/pyproject.toml"
+          - "backend/requirements*.txt"
+          - "uv.lock"
+          - "poetry.lock"
+          - "frontend/package.json"
+          - "frontend/package-lock.json"
+          - "frontend/pnpm-lock.yaml"
+          - "frontend/yarn.lock"
+          - ".github/dependabot.yml"
+  - head-branch:
+      - "^dependabot/"
+
+ci-cd:
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/workflows/**"
+
+security:
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/dependabot.yml"
+          - ".github/workflows/code-quality.yml"
+          - "SECURITY.md"
+  - head-branch:
+      - "security"
+      - "dependabot/.*/security"
+
+feature:
+  - head-branch:
+      - "^feature/"
+      - "^feat/"
+
+bug:
+  - head-branch:
+      - "^bugfix/"
+      - "^fix/"
+      - "bug"
+
+chore:
+  - head-branch:
+      - "^chore/"
+      - "^ci/"
+      - "^docs/"
+      - "^refactor/"

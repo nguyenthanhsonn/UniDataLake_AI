@@ -34,7 +34,7 @@ dev = [
     "pytest-cov>=6.0",
     "pytest-asyncio>=0.24",
     "httpx>=0.28.1",
-    "commitlint>=1.0",
+    "commitlint>=2.0.0",
 ]
 
 [project.scripts]

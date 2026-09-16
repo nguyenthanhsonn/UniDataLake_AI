@@ -34,6 +34,12 @@ def test_module_model_imports_register_with_base() -> None:
         "app.modules.governance.models",
         "app.modules.query.models",
         "app.modules.ai_engine.models",
+        "app.modules.users.models",
+        "app.modules.datasources.models",
+        "app.modules.ingestion.models",
+        "app.modules.nlq.models",
+        "app.modules.dashboard.models",
+        "app.modules.query_history.models",
     )
 
     for module_path in module_paths:

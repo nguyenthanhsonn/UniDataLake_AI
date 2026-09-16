@@ -34,14 +34,25 @@ backend/
 ├── app/
 │   ├── core/
 │   │   ├── config.py
-│   │   └── database.py
+│   │   ├── database.py
+│   │   ├── deps.py
+│   │   ├── exceptions.py
+│   │   ├── logging.py
+│   │   └── security.py
+│   ├── infra/
+│   │   ├── db/
+│   │   ├── duckdb/
+│   │   ├── llm/
+│   │   └── minio/
 │   ├── modules/
 │   │   ├── auth/
-│   │   ├── ingest/
-│   │   ├── pipeline/
+│   │   ├── users/
+│   │   ├── datasources/
+│   │   ├── ingestion/
 │   │   ├── governance/
-│   │   ├── query/
-│   │   └── ai_engine/
+│   │   ├── nlq/
+│   │   ├── dashboard/
+│   │   └── query_history/
 │   ├── shared/
 │   └── main.py
 ├── tests/
@@ -61,6 +72,16 @@ app/modules/<module_name>/
 ```
 
 Chưa cần tạo đủ các file nếu module chưa dùng tới. Nhưng khi có table database, model phải đặt trong `models.py` và kế thừa `Base` từ `app.core.database`.
+
+Các module cũ `ingest`, `pipeline`, `query`, `ai_engine` được giữ như compatibility layer trong giai đoạn chuyển đổi. Khi viết feature mới, ưu tiên các module mới:
+
+| Module mới | Thay cho | Mục đích |
+| :--- | :--- | :--- |
+| `datasources` | một phần `ingest` | Quản lý nguồn dữ liệu |
+| `ingestion` | `pipeline` / một phần `ingest` | Trigger pipeline, theo dõi job ingest |
+| `nlq` | `ai_engine` | Natural Language Query: intent, schema retrieval, SQL generation, validation, execution |
+| `dashboard` | một phần `query` | KPI aggregate và API dashboard |
+| `query_history` | một phần `query` | Lưu lịch sử truy vấn |
 
 ---
 

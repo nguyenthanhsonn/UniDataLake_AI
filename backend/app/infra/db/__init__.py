@@ -1,7 +1,4 @@
-"""Backward-compatible database exports.
-
-Runtime database infrastructure lives in :mod:`app.infra.db.session`.
-"""
+"""Database infrastructure."""
 
 from __future__ import annotations
 

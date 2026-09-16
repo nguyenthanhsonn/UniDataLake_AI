@@ -326,11 +326,11 @@ pnpm type-check
 import pytest
 from httpx import AsyncClient
 
+
 @pytest.mark.asyncio
 async def test_login_success(client: AsyncClient):
     response = await client.post(
-        "/api/v1/auth/login",
-        json={"email": "admin@unilake.ai", "password": "test123"}
+        "/api/v1/auth/login", json={"email": "admin@unilake.ai", "password": "test123"}
     )
     assert response.status_code == 200
     assert "access_token" in response.json()

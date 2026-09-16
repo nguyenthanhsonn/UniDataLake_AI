@@ -1,7 +1,7 @@
-"""SQLAlchemy models for the AI engine module."""
+"""Backward-compatible SQLAlchemy model exports for the old AI engine module."""
 
 from __future__ import annotations
 
-from app.core.database import Base
+from app.modules.nlq.models import Base
 
 __all__ = ["Base"]

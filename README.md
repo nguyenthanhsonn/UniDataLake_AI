@@ -115,11 +115,14 @@ unilake-ai/
 │   │   ├── core/             # Config, security, dependencies
 │   │   ├── modules/
 │   │   │   ├── auth/         # JWT / OAuth2 / RBAC
-│   │   │   ├── ingest/       # Thu thập dữ liệu vào Bronze
-│   │   │   ├── pipeline/     # ETL / ELT (Bronze -> Silver -> Gold)
+│   │   │   ├── users/        # Hồ sơ người dùng, vai trò
+│   │   │   ├── datasources/  # Quản lý nguồn dữ liệu
+│   │   │   ├── ingestion/    # Trigger pipeline, theo dõi job ingest
 │   │   │   ├── governance/   # Catalog, Lineage, DQ Check
-│   │   │   ├── query/        # Dashboard API, export
-│   │   │   └── ai_engine/    # Text-to-SQL + OR-Tools
+│   │   │   ├── nlq/          # Text-to-SQL, Intent Parser, SQL validation
+│   │   │   ├── dashboard/    # Dashboard API, KPI aggregate
+│   │   │   └── query_history/# Lịch sử truy vấn
+│   │   ├── infra/            # DB, DuckDB, MinIO, LLM adapters
 │   │   └── shared/           # Utils, models, schemas
 │   ├── tests/
 │   └── pyproject.toml       # Dependencies và config Python backend

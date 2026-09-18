@@ -19,11 +19,14 @@ if TYPE_CHECKING:
 
 MODULE_MODEL_PATHS = (
     "app.modules.auth.models",
-    "app.modules.ingest.models",
+    "app.modules.users.models",
+    "app.modules.datasources.models",
+    "app.modules.ingestion.models",
     "app.modules.pipeline.models",
     "app.modules.governance.models",
-    "app.modules.query.models",
-    "app.modules.ai_engine.models",
+    "app.modules.nlq.models",
+    "app.modules.dashboard.models",
+    "app.modules.query_history.models",
 )
 
 for module_path in MODULE_MODEL_PATHS:

@@ -1,7 +1,9 @@
-"""Backward-compatible pipeline API exports."""
+"""Pipeline API routes."""
 
 from __future__ import annotations
 
-from app.modules.ingestion.router import router
+from fastapi import APIRouter
+
+router = APIRouter(prefix="/pipeline", tags=["pipeline"])
 
 __all__ = ["router"]

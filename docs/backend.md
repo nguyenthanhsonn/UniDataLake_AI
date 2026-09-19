@@ -13,8 +13,8 @@ Các module chính:
 | Module | Mục đích |
 | :--- | :--- |
 | `auth` | Xác thực, phân quyền, JWT, RBAC |
-| `ingest` | Thu thập dữ liệu vào lớp Bronze |
-| `pipeline` | ETL/ELT từ Bronze sang Silver/Gold |
+| `ingestion` | Thu thập dữ liệu từ nguồn vào lớp Bronze |
+| `pipeline` | Điều phối ETL/ELT từ Bronze sang Silver/Gold |
 | `governance` | Data Catalog, Lineage, Data Quality |
 | `query` | API truy vấn dashboard, export dữ liệu |
 | `ai_engine` | Text-to-SQL, Intent Parser, What-If, OR-Tools |
@@ -49,10 +49,15 @@ backend/
 │   │   ├── users/
 │   │   ├── datasources/
 │   │   ├── ingestion/
+│   │   ├── pipeline/
 │   │   ├── governance/
 │   │   ├── nlq/
 │   │   ├── dashboard/
 │   │   └── query_history/
+│   ├── domains/
+│   │   ├── base.py
+│   │   ├── registry.py
+│   │   └── demo/
 │   ├── shared/
 │   └── main.py
 ├── tests/
@@ -73,15 +78,20 @@ app/modules/<module_name>/
 
 Chưa cần tạo đủ các file nếu module chưa dùng tới. Nhưng khi có table database, model phải đặt trong `models.py` và kế thừa `Base` từ `app.core.database`.
 
-Các module cũ `ingest`, `pipeline`, `query`, `ai_engine` được giữ như compatibility layer trong giai đoạn chuyển đổi. Khi viết feature mới, ưu tiên các module mới:
+Các module cũ `query`, `ai_engine` được giữ như compatibility layer trong giai đoạn chuyển đổi. `pipeline` là module độc lập cho Bronze -> Silver -> Gold. Khi viết feature mới, ưu tiên các module mới:
 
 | Module mới | Thay cho | Mục đích |
 | :--- | :--- | :--- |
-| `datasources` | một phần `ingest` | Quản lý nguồn dữ liệu |
-| `ingestion` | `pipeline` / một phần `ingest` | Trigger pipeline, theo dõi job ingest |
+| `datasources` | source management cũ | Quản lý nguồn dữ liệu |
+| `ingestion` | ingest flow cũ | Source -> Bronze, theo dõi job ingest |
+| `pipeline` | khôi phục từ compatibility layer cũ | Bronze -> Silver -> Gold orchestration |
 | `nlq` | `ai_engine` | Natural Language Query: intent, schema retrieval, SQL generation, validation, execution |
 | `dashboard` | một phần `query` | KPI aggregate và API dashboard |
 | `query_history` | một phần `query` | Lưu lịch sử truy vấn |
+
+Logic thay đổi theo nghiệp vụ phải đặt trong `app/domains/<domain_id>/`, không đặt nhánh
+`if/elif` theo domain trong ingestion, pipeline, governance hoặc NLQ. Xem
+[`docs/domain-extension-guide.md`](domain-extension-guide.md) để thêm domain mới.
 
 ---
 

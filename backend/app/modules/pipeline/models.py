@@ -1,7 +1,7 @@
-"""Backward-compatible SQLAlchemy model exports for the old pipeline module."""
+"""SQLAlchemy model exports for the pipeline module."""
 
 from __future__ import annotations
 
-from app.modules.ingestion.models import Base
+from app.core.database import Base
 
 __all__ = ["Base"]

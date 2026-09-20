@@ -3,7 +3,7 @@ from __future__ import annotations
 import importlib
 
 from app.core.config import Settings, settings
-from app.core.database import Base, async_session_factory, engine
+from app.infra.db import Base, async_session_factory, engine
 
 
 def test_settings_build_database_urls() -> None:

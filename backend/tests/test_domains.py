@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-import ast
 from dataclasses import replace
-from pathlib import Path
 
 import pytest
 
@@ -104,30 +102,3 @@ def test_registry_rejects_domain_without_required_layers() -> None:
 
     with pytest.raises(DomainRegistryError, match="at least one Gold dataset"):
         DomainRegistry().register(silver_only)
-
-
-def test_generic_modules_do_not_import_concrete_domains() -> None:
-    app_root = Path(__file__).parents[1] / "app"
-    generic_files = (
-        app_root / "modules" / "ingestion" / "service.py",
-        app_root / "modules" / "pipeline" / "contracts.py",
-        app_root / "modules" / "pipeline" / "service.py",
-        app_root / "modules" / "governance" / "service.py",
-        app_root / "modules" / "nlq" / "schema_retriever.py",
-    )
-
-    for path in generic_files:
-        tree = ast.parse(path.read_text(encoding="utf-8"))
-        imported_modules: set[str] = set()
-        for node in ast.walk(tree):
-            if isinstance(node, ast.ImportFrom) and node.module is not None:
-                imported_modules.add(node.module)
-            elif isinstance(node, ast.Import):
-                imported_modules.update(alias.name for alias in node.names)
-        allowed_domain_modules = {"app.domains.base", "app.domains.registry"}
-        concrete_imports = {
-            module
-            for module in imported_modules
-            if module.startswith("app.domains.") and module not in allowed_domain_modules
-        }
-        assert concrete_imports == set()

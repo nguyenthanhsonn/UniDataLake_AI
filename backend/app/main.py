@@ -10,10 +10,12 @@ from app.modules.dashboard.router import router as dashboard_router
 from app.modules.datasources.router import router as datasources_router
 from app.modules.governance.router import router as governance_router
 from app.modules.ingestion.router import router as ingestion_router
+from app.modules.nlq.dependencies import get_nlq_service
 from app.modules.nlq.router import router as nlq_router
 from app.modules.pipeline.router import router as pipeline_router
 from app.modules.query_history.router import router as query_history_router
 from app.modules.users.router import router as users_router
+from app.providers import provide_nlq_service
 
 
 def create_app() -> FastAPI:
@@ -27,6 +29,7 @@ def create_app() -> FastAPI:
 
     application.middleware("http")(request_id_middleware)
     application.add_exception_handler(AppException, app_exception_handler)
+    application.dependency_overrides[get_nlq_service] = provide_nlq_service
 
     api_prefix = "/api/v1"
     application.include_router(auth_router, prefix=api_prefix)

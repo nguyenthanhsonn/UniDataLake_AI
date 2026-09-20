@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
     from app.domains.base import QualityRule
     from app.domains.registry import DomainRegistry
-    from app.modules.ingestion.service import BronzeBatch
+    from app.modules.ingestion.contracts import BronzeBatch
     from app.modules.pipeline.contracts import LayerPublisher, PipelineEventSink
 
 

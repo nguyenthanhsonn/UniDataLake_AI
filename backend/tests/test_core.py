@@ -3,7 +3,7 @@ from __future__ import annotations
 import importlib
 
 from app.core.config import Settings, settings
-from app.core.database import Base, async_session_factory, engine
+from app.infra.db import Base, async_session_factory, engine
 
 
 def test_settings_build_database_urls() -> None:
@@ -29,11 +29,14 @@ def test_database_engine_uses_settings_url() -> None:
 def test_module_model_imports_register_with_base() -> None:
     module_paths = (
         "app.modules.auth.models",
-        "app.modules.ingest.models",
+        "app.modules.users.models",
+        "app.modules.datasources.models",
+        "app.modules.ingestion.models",
         "app.modules.pipeline.models",
         "app.modules.governance.models",
-        "app.modules.query.models",
-        "app.modules.ai_engine.models",
+        "app.modules.nlq.models",
+        "app.modules.dashboard.models",
+        "app.modules.query_history.models",
     )
 
     for module_path in module_paths:

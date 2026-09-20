@@ -13,11 +13,12 @@ Các module chính:
 | Module | Mục đích |
 | :--- | :--- |
 | `auth` | Xác thực, phân quyền, JWT, RBAC |
-| `ingest` | Thu thập dữ liệu vào lớp Bronze |
-| `pipeline` | ETL/ELT từ Bronze sang Silver/Gold |
+| `ingestion` | Thu thập dữ liệu từ nguồn vào lớp Bronze |
+| `pipeline` | Điều phối ETL/ELT từ Bronze sang Silver/Gold |
 | `governance` | Data Catalog, Lineage, Data Quality |
-| `query` | API truy vấn dashboard, export dữ liệu |
-| `ai_engine` | Text-to-SQL, Intent Parser, What-If, OR-Tools |
+| `dashboard` | KPI aggregate và API dữ liệu tổng hợp |
+| `nlq` | Intent, schema retrieval, SQL generation, validation và execution |
+| `query_history` | Lịch sử và audit truy vấn |
 
 ---
 
@@ -34,15 +35,31 @@ backend/
 ├── app/
 │   ├── core/
 │   │   ├── config.py
-│   │   └── database.py
+│   │   ├── deps.py
+│   │   ├── exceptions.py
+│   │   ├── logging.py
+│   │   └── security.py
+│   ├── infra/
+│   │   ├── db/
+│   │   ├── duckdb/
+│   │   ├── llm/
+│   │   └── minio/
 │   ├── modules/
 │   │   ├── auth/
-│   │   ├── ingest/
+│   │   ├── users/
+│   │   ├── datasources/
+│   │   ├── ingestion/
 │   │   ├── pipeline/
 │   │   ├── governance/
-│   │   ├── query/
-│   │   └── ai_engine/
+│   │   ├── nlq/
+│   │   ├── dashboard/
+│   │   └── query_history/
+│   ├── domains/
+│   │   ├── base.py
+│   │   ├── registry.py
+│   │   └── demo/
 │   ├── shared/
+│   ├── providers.py
 │   └── main.py
 ├── tests/
 └── pyproject.toml
@@ -60,7 +77,33 @@ app/modules/<module_name>/
 └── router.py      # FastAPI routes
 ```
 
-Chưa cần tạo đủ các file nếu module chưa dùng tới. Nhưng khi có table database, model phải đặt trong `models.py` và kế thừa `Base` từ `app.core.database`.
+Chưa cần tạo đủ các file nếu module chưa dùng tới. Nhưng khi có table database, model phải đặt trong `models.py` và kế thừa `Base` từ `app.infra.db.base`.
+
+Các module legacy `query`, `ai_engine` đã được loại bỏ sau khi xác nhận không còn consumer. Các capability canonical hiện tại là:
+
+| Module mới | Thay cho | Mục đích |
+| :--- | :--- | :--- |
+| `datasources` | Source ownership | Quản lý nguồn dữ liệu |
+| `ingestion` | Ingestion ownership | Source -> Bronze, theo dõi job ingest |
+| `pipeline` | Pipeline ownership | Bronze -> Silver -> Gold orchestration |
+| `nlq` | AI query ownership | Natural Language Query: intent, schema retrieval, SQL generation, validation, execution |
+| `dashboard` | Read presentation ownership | KPI aggregate và API dashboard |
+| `query_history` | Query audit ownership | Lưu lịch sử truy vấn |
+
+Logic thay đổi theo nghiệp vụ phải đặt trong `app/domains/<domain_id>/`, không đặt nhánh
+`if/elif` theo domain trong ingestion, pipeline, governance hoặc NLQ. Xem
+[`docs/domain-extension-guide.md`](domain-extension-guide.md) để thêm domain mới.
+
+Ownership, dependency direction và ranh giới chi tiết của từng module được chốt tại
+[`docs/backend-module-responsibilities.md`](backend-module-responsibilities.md).
+Cách giao tiếp đồng bộ, command, event và read contract giữa các module được chốt tại
+[`docs/backend-module-communication.md`](backend-module-communication.md).
+Hướng dependency và ma trận import được phép được chốt tại
+[`docs/backend-dependency-direction.md`](backend-dependency-direction.md).
+Các câu hỏi, quyết định và trạng thái hoàn thành của task Module Boundary được tổng hợp tại
+[`docs/module-boundary-questions-and-decisions.md`](module-boundary-questions-and-decisions.md).
+Báo cáo hoàn thành và evidence theo Acceptance Criteria nằm tại
+[`docs/module-boundary-task-summary.md`](module-boundary-task-summary.md).
 
 ---
 
@@ -139,7 +182,8 @@ Các endpoint mặc định:
 File chính:
 
 - `backend/app/core/config.py`: settings và database URL.
-- `backend/app/core/database.py`: async engine, session factory, `Base`.
+- `backend/app/infra/db/base.py`: SQLAlchemy declarative `Base`.
+- `backend/app/infra/db/session.py`: async engine, session factory và `get_db`.
 
 Khi viết model:
 
@@ -148,7 +192,7 @@ from __future__ import annotations
 
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.core.database import Base
+from app.infra.db.base import Base
 
 
 class User(Base):
@@ -162,7 +206,7 @@ Lưu ý:
 
 - Dùng SQLAlchemy 2.0 typed mapping: `Mapped[...]`, `mapped_column`.
 - Không tạo engine/session riêng trong từng module.
-- Dùng `get_db` từ `app.core.database` cho FastAPI dependency.
+- Wiring `get_db` từ `app.infra.db` tại delivery/composition boundary; application service nhận repository/port thay vì session global.
 - Không hardcode database credentials trong code.
 
 ---

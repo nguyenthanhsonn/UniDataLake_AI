@@ -5,6 +5,7 @@ venv/
 # IDE
 .vscode/
 .idea/
+.crossnote/
 *.swp
 !frontend/.vscode/
 !frontend/.vscode/settings.json

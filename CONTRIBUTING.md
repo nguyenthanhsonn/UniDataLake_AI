@@ -172,7 +172,7 @@ Chúng ta dùng **[Conventional Commits](https://www.conventionalcommits.org/)**
 
 ### Scopes
 
-`auth`, `ingest`, `pipeline`, `governance`, `query`, `ai_engine`, `fe`, `infra`, `docs`, `deps`
+`auth`, `users`, `datasources`, `ingestion`, `pipeline`, `governance`, `nlq`, `dashboard`, `query_history`, `fe`, `infra`, `docs`, `deps`
 
 ### Examples
 
@@ -180,11 +180,11 @@ Chúng ta dùng **[Conventional Commits](https://www.conventionalcommits.org/)**
 feat(auth): add JWT refresh token endpoint
 feat(ai): implement text-to-sql with LangChain
 fix(pipeline): handle null values in Bronze ingestion
-docs(api): update OpenAPI spec for query module
+docs(api): update OpenAPI spec for dashboard module
 test(governance): add unit tests for data quality rules
 chore(deps): upgrade FastAPI to 0.115.0
 refactor(ai): extract prompt templates to separate module
-perf(query): optimize dashboard aggregation queries
+perf(dashboard): optimize aggregation queries
 ```
 
 ### Commit Body (optional but recommended)
@@ -384,14 +384,18 @@ test_pipeline_bronze_to_silver_handles_null_values
 
 ```
 backend/app/
-├── core/              # Config, security, deps (CHỈ Sơn/Đạt sửa)
+├── core/              # Config, security, errors, logging
+├── domains/           # Domain contracts and implementations
+├── infra/             # DB, storage, LLM and query adapters
 ├── modules/
 │   ├── auth/          # JWT, OAuth2, RBAC
-│   ├── ingest/        # Data ingestion → Bronze
+│   ├── datasources/   # Source configuration
+│   ├── ingestion/     # Source → Bronze
 │   ├── pipeline/      # ETL: Bronze → Silver → Gold
 │   ├── governance/    # Catalog, Lineage, DQ Check
-│   ├── query/         # Dashboard API, export
-│   └── ai_engine/     # Text-to-SQL, OR-Tools
+│   ├── dashboard/     # KPI/read APIs
+│   ├── nlq/           # Natural language → read-only SQL
+│   └── query_history/ # Query audit
 └── shared/            # Utils, base models, schemas
 ```
 
@@ -399,12 +403,12 @@ backend/app/
 
 - ✅ Các module **giao tiếp qua hàm Python** (in-process), KHÔNG qua HTTP.
 - ✅ Mỗi module có `__init__.py` export public API rõ ràng.
-- ❌ KHÔNG import trực tiếp từ module khác — dùng **dependency injection** hoặc **shared interfaces**.
+- ❌ KHÔNG import implementation nội bộ của module khác — chỉ dùng public **contracts/services**.
 - ✅ Mỗi module có `tests/` riêng.
 
 ### 🤖 AI Engine Guidelines (Đức)
 
-- Prompt templates đặt ở `backend/app/modules/ai_engine/prompts/`.
+- Prompt templates đặt ở `backend/app/modules/nlq/prompts/`.
 - Dùng **LangChain** cho orchestration, **structured output** (Pydantic) cho LLM responses.
 - **KHÔNG** hardcode API keys — dùng `settings` từ `core/config.py`.
 - Log tất cả LLM calls với prompt + response (cho debug) ở `DEBUG` level.

@@ -2,35 +2,18 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Protocol
+from typing import TYPE_CHECKING
 from uuid import uuid4
 
 from app.domains.registry import get_domain_registry
+from app.modules.ingestion.contracts import BronzeBatch
 
 if TYPE_CHECKING:
     from collections.abc import Mapping, Sequence
 
     from app.domains.base import Record
     from app.domains.registry import DomainRegistry
-
-
-@dataclass(frozen=True)
-class BronzeBatch:
-    """Immutable hand-off from generic ingestion to the pipeline."""
-
-    batch_id: str
-    domain_id: str
-    source_type: str
-    records: tuple[Record, ...]
-    metadata: Mapping[str, str] = field(default_factory=dict)
-
-
-class BronzeRepository(Protocol):
-    """Storage port implemented by the Bronze infrastructure adapter."""
-
-    def write(self, batch: BronzeBatch) -> None:
-        """Persist a raw batch without applying domain transformations."""
+    from app.modules.ingestion.contracts import BronzeRepository
 
 
 class InMemoryBronzeRepository:

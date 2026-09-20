@@ -12,7 +12,7 @@ from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from app.core.config import settings
-from app.core.database import Base
+from app.infra.db.base import Base
 
 if TYPE_CHECKING:
     from sqlalchemy.engine import Connection

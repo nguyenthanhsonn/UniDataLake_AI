@@ -2,6 +2,6 @@
 
 from __future__ import annotations
 
-from app.core.database import Base
+from app.infra.db.base import Base
 
 __all__ = ["Base"]

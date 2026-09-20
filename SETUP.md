@@ -324,7 +324,8 @@ Backend sử dụng Alembic để quản lý thay đổi schema PostgreSQL. Cấ
 - `backend/alembic/script.py.mako`
 - `backend/alembic/versions/`
 - `backend/app/core/config.py`
-- `backend/app/core/database.py`
+- `backend/app/infra/db/base.py`
+- `backend/app/infra/db/session.py`
 
 ### 10.1. Chạy migration hiện có
 

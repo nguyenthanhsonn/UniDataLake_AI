@@ -2,6 +2,6 @@
 
 from __future__ import annotations
 
-from app.infra.llm.client import LLMClient, MockLLMClient
+from app.infra.llm.client import MockLLMClient
 
-__all__ = ["LLMClient", "MockLLMClient"]
+__all__ = ["MockLLMClient"]

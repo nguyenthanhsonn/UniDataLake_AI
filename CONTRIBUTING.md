@@ -217,36 +217,12 @@ Closes #42
 ### 2. Create PR
 
 - **Title:** Theo commit convention, ví dụ: `feat(auth): add JWT refresh token endpoint`
-- **Description:** Dùng template có sẵn (`.github/PULL_REQUEST_TEMPLATE.md`)
+- **Description:** Mô tả thay đổi, issue liên quan, cách kiểm thử và tác động kiến trúc.
 - **Assignees:** Chính bạn
 - **Reviewers:** Ít nhất 1 người (Sơn cho backend, Đạt cho infra, Sơn cho frontend nếu liên quan architecture)
 - **Labels:** `feature`, `bug`, `docs`, `priority:high`, v.v.
 
-### 3. PR Template
-
-```markdown
-## 🎯 What does this PR do?
-[Mô tả ngắn gọn]
-
-## 🔗 Related Issue
-Closes #<issue-number>
-
-## 🧪 How to test
-1. Step 1
-2. Step 2
-3. Expected result
-
-## 📸 Screenshots (if UI change)
-
-## ✅ Checklist
-- [ ] Code follows project style
-- [ ] Self-review completed
-- [ ] Tests added/updated
-- [ ] Documentation updated
-- [ ] No sensitive data committed
-```
-
-### 4. Review Rules
+### 3. Review Rules
 
 - Reviewer phải review trong vòng **24 giờ**.
 - Author phải trả lời **tất cả comments** trước khi merge.
@@ -439,54 +415,7 @@ backend/app/
 
 ## 🐛 Issue Reporting
 
-### Bug Report
-
-Dùng template `.github/ISSUE_TEMPLATE/bug_report.md`:
-
-```markdown
-## 🐛 Mô tả bug
-[Mô tả ngắn gọn]
-
-## 🔄 Các bước tái hiện
-1. Go to '...'
-2. Click on '...'
-3. See error
-
-## ✅ Expected behavior
-[Kết quả mong đợi]
-
-## ❌ Actual behavior
-[Kết quả thực tế]
-
-## 📸 Screenshots
-
-## 🖥️ Environment
-- OS: [e.g. Ubuntu 22.04]
-- Python: [e.g. 3.11.5]
-- Node: [e.g. 20.10.0]
-- Browser: [e.g. Chrome 120]
-
-## 📝 Additional context
-```
-
-### Feature Request
-
-Dùng template `.github/ISSUE_TEMPLATE/feature_request.md`:
-
-```markdown
-## 💡 Mô tả feature
-[Feature giải quyết vấn đề gì?]
-
-## 🎯 Use case
-[Ai sẽ dùng? Khi nào?]
-
-## ✅ Acceptance Criteria
-- [ ] Criterion 1
-- [ ] Criterion 2
-
-## 📊 Priority
-[ ] Critical  [ ] High  [ ] Medium  [ ] Low
-```
+Khi tạo issue, hãy mô tả rõ vấn đề hoặc đề xuất, cách tái hiện nếu có, kết quả mong đợi, môi trường liên quan và acceptance criteria.
 
 ---
 

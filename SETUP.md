@@ -202,27 +202,7 @@ pytest
 
 Repo đã được cấu hình một số automation trong thư mục `.github/` để giảm việc gắn nhãn thủ công và giúp team theo dõi PR nhất quán hơn.
 
-### 9.1. Dependabot - tự động cập nhật dependencies
-
-File cấu hình: `.github/dependabot.yml`
-
-Dependabot sẽ tự kiểm tra dependency mới và tạo Pull Request định kỳ:
-
-- **Python backend**: kiểm tra `backend/pyproject.toml` mỗi thứ Hai lúc `02:00` theo múi giờ `Asia/Ho_Chi_Minh`.
-- **GitHub Actions**: kiểm tra mỗi thứ Hai lúc `03:00` theo múi giờ `Asia/Ho_Chi_Minh`.
-- PR Dependabot sẽ tự có label như `dependencies`, `area/backend`, `area/devops`, `python`, `ci-cd`.
-- Một số package liên quan được gom nhóm thành một PR, ví dụ `fastapi-stack`, `data-stack`, `dev-tools`, `actions-all`.
-
-Khi review PR từ Dependabot, member cần:
-
-1. Đọc changelog hoặc release note nếu dependency có thay đổi lớn.
-2. Chạy test/lint ở local nếu PR ảnh hưởng phần đang phụ trách.
-3. Kiểm tra CI trên GitHub đã pass trước khi merge.
-4. Không merge vội các dependency quan trọng như `fastapi`, `pydantic`, `sqlalchemy`, `langchain` nếu chưa test API chính.
-
-Hiện tại repo bật Dependabot cho Python trong thư mục `backend/`, JavaScript/TypeScript trong thư mục `frontend/`, và GitHub Actions. Docker sẽ bật sau khi Dockerfile có nội dung dependency thật.
-
-### 9.2. Frontend ESLint + Prettier
+### 9.1. Frontend ESLint + Prettier
 
 File cấu hình:
 
@@ -261,7 +241,7 @@ pnpm lighthouse
 
 Lighthouse cần Chrome/Chromium trên máy. Trên GitHub Actions, workflow frontend đã có bước cài Chrome tự động trước khi chạy Lighthouse CI.
 
-### 9.3. Pull Request Labeler - tự động gắn label cho PR
+### 9.2. Pull Request Labeler - tự động gắn label cho PR
 
 File cấu hình:
 
@@ -278,9 +258,9 @@ Các label chính:
 | `area/frontend` | Sửa `frontend/**` |
 | `area/devops` | Sửa `.github/**`, Docker, `infra/**`, pre-commit/config |
 | `area/data` | Sửa `data/**`, `notebooks/**` |
-| `area/docs` | Sửa `docs/**`, file Markdown hoặc template GitHub |
+| `area/docs` | Sửa `docs/**` hoặc file Markdown |
 | `tests` | Sửa thư mục/file test |
-| `dependencies` | Sửa dependency manifest/lockfile hoặc branch `dependabot/*` |
+| `dependencies` | Sửa dependency manifest hoặc lockfile |
 | `ci-cd` | Sửa `.github/workflows/**` |
 | `security` | Sửa cấu hình security hoặc branch có chữ `security` |
 | `feature`, `bug`, `chore` | Dựa trên prefix tên branch |

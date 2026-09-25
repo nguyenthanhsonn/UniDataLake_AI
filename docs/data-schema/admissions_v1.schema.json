@@ -1,0 +1,146 @@
+{
+  "dataset": "admissions",
+  "version": "1.1.0",
+  "description": "Admissions Dataset Schema V1 - UniLake AI V1.0. Bám đúng thiết kế DB nguồn docs/data-schema/unilake-db.dbml. Mỗi file CSV là bản dump của một bảng nguồn. Xem docs/data-schema/admissions-dataset-v1.md.",
+  "source_dbml": "docs/data-schema/unilake-db.dbml",
+  "file_format": {
+    "type": "csv",
+    "encoding": "utf-8",
+    "delimiter": ",",
+    "header": true,
+    "null_value": "",
+    "date_format": "YYYY-MM-DD",
+    "decimal_separator": ".",
+    "boolean_values": ["true", "false"]
+  },
+  "load_order": ["department", "major", "program", "admission_method", "admission_year", "applicant", "admission", "student", "enrollment"],
+  "audit_columns": [
+    {"name": "_source_system", "type": "varchar(50)", "nullable": false, "description": "Hệ thống nguồn"},
+    {"name": "_batch_id", "type": "varchar(64)", "nullable": false, "description": "ID lô ingestion"},
+    {"name": "_ingested_at", "type": "timestamp", "nullable": false, "description": "Thời điểm ghi vào Bronze (UTC)"}
+  ],
+  "entities": {
+    "department": {"from_dataset": "hr"},
+    "major": {
+      "domain": "admissions",
+      "owned_by_dataset": true,
+      "description": "Ngành đào tạo. major_code dùng mã ngành theo danh mục Bộ GD&ĐT.",
+      "file": "admissions/major.csv",
+      "primary_key": ["major_id"],
+      "columns": [
+        {"name": "major_id", "type": "int", "nullable": false},
+        {"name": "major_code", "type": "varchar(20)", "nullable": false, "unique": true, "pattern": "^[0-9]{7}$", "description": "Mã ngành Bộ GD&ĐT (7 chữ số)"},
+        {"name": "major_name", "type": "varchar(150)", "nullable": false},
+        {"name": "department_id", "type": "int", "nullable": true, "references": {"entity": "department", "column": "department_id"}}
+      ]
+    },
+    "program": {
+      "domain": "admissions",
+      "owned_by_dataset": true,
+      "description": "Chương trình đào tạo thuộc một ngành (một ngành có thể có chương trình chuẩn và chất lượng cao). Thí sinh đăng ký theo chương trình.",
+      "file": "admissions/program.csv",
+      "primary_key": ["program_id"],
+      "columns": [
+        {"name": "program_id", "type": "int", "nullable": false},
+        {"name": "program_code", "type": "varchar(20)", "nullable": false, "unique": true, "pattern": "^[A-Z]+-[A-Z]+$"},
+        {"name": "program_name", "type": "varchar(200)", "nullable": false},
+        {"name": "major_id", "type": "int", "nullable": false, "references": {"entity": "major", "column": "major_id"}},
+        {"name": "degree_level", "type": "varchar(30)", "nullable": false, "enum": ["Bachelor", "Engineer", "Master"]},
+        {"name": "duration_years", "type": "decimal(3,1)", "nullable": false, "min": 1, "max": 6},
+        {"name": "tuition_fee_per_credit", "type": "decimal(12,2)", "nullable": true, "min": 0, "description": "Học phí/tín chỉ (VND)"}
+      ]
+    },
+    "admission_method": {
+      "domain": "admissions",
+      "owned_by_dataset": true,
+      "description": "Phương thức xét tuyển. Theo DB nguồn: Học bạ, Điểm thi THPT, Xét tuyển thẳng. Điểm của THPT và HOCBA cùng thang 30.",
+      "file": "admissions/admission_method.csv",
+      "primary_key": ["admission_method_id"],
+      "columns": [
+        {"name": "admission_method_id", "type": "int", "nullable": false},
+        {"name": "method_code", "type": "varchar(20)", "nullable": false, "unique": true, "enum": ["THPT", "HOCBA", "XTT"]},
+        {"name": "method_name", "type": "varchar(150)", "nullable": false},
+        {"name": "description", "type": "text", "nullable": true}
+      ]
+    },
+    "admission_year": {
+      "domain": "admissions",
+      "owned_by_dataset": true,
+      "description": "Mùa tuyển sinh. start_date..end_date bao trọn thời gian nhận hồ sơ, xét tuyển và nhập học.",
+      "file": "admissions/admission_year.csv",
+      "primary_key": ["admission_year_id"],
+      "columns": [
+        {"name": "admission_year_id", "type": "int", "nullable": false},
+        {"name": "year_label", "type": "varchar(9)", "nullable": false, "unique": true, "pattern": "^[0-9]{4}-[0-9]{4}$"},
+        {"name": "start_date", "type": "date", "nullable": false},
+        {"name": "end_date", "type": "date", "nullable": false}
+      ]
+    },
+    "applicant": {
+      "domain": "admissions",
+      "owned_by_dataset": true,
+      "pii_columns": ["national_id", "full_name", "date_of_birth", "phone", "email"],
+      "description": "Thí sinh. Có dữ liệu cá nhân (PII); dữ liệu mẫu là giả lập, email dùng tên miền example.com.",
+      "file": "admissions/applicant.csv",
+      "primary_key": ["applicant_id"],
+      "columns": [
+        {"name": "applicant_id", "type": "bigint", "nullable": false},
+        {"name": "national_id", "type": "varchar(20)", "nullable": false, "unique": true, "pattern": "^[0-9]{12}$", "description": "Số CCCD 12 chữ số"},
+        {"name": "full_name", "type": "varchar(150)", "nullable": false},
+        {"name": "date_of_birth", "type": "date", "nullable": false},
+        {"name": "gender", "type": "varchar(10)", "nullable": false, "enum": ["Male", "Female"]},
+        {"name": "phone", "type": "varchar(20)", "nullable": true, "pattern": "^0[0-9]{9}$"},
+        {"name": "email", "type": "varchar(150)", "nullable": true, "pattern": "^[a-z0-9._]+@[a-z0-9.-]+\\.[a-z]{2,}$"},
+        {"name": "high_school_name", "type": "varchar(200)", "nullable": true},
+        {"name": "province", "type": "varchar(100)", "nullable": true}
+      ]
+    },
+    "admission": {
+      "domain": "admissions",
+      "owned_by_dataset": true,
+      "description": "Hồ sơ xét tuyển: một thí sinh đăng ký một chương trình theo một phương thức trong một mùa tuyển sinh.",
+      "file": "admissions/admission.csv",
+      "primary_key": ["admission_id"],
+      "unique_together": [["applicant_id", "program_id", "admission_year_id", "admission_method_id"]],
+      "columns": [
+        {"name": "admission_id", "type": "bigint", "nullable": false},
+        {"name": "applicant_id", "type": "bigint", "nullable": false, "references": {"entity": "applicant", "column": "applicant_id"}},
+        {"name": "program_id", "type": "int", "nullable": false, "references": {"entity": "program", "column": "program_id"}},
+        {"name": "admission_method_id", "type": "int", "nullable": false, "references": {"entity": "admission_method", "column": "admission_method_id"}},
+        {"name": "admission_year_id", "type": "int", "nullable": false, "references": {"entity": "admission_year", "column": "admission_year_id"}},
+        {"name": "application_date", "type": "date", "nullable": false},
+        {"name": "admission_score", "type": "decimal(5,2)", "nullable": true, "min": 0, "max": 30, "description": "Thang 30, đã gồm điểm ưu tiên; null với xét tuyển thẳng"},
+        {"name": "admission_status", "type": "varchar(20)", "nullable": false, "enum": ["Applied", "Accepted", "Rejected", "Waitlisted"]}
+      ]
+    },
+    "student": {"from_dataset": "academic"},
+    "enrollment": {
+      "domain": "admissions",
+      "owned_by_dataset": true,
+      "description": "Nhập học của hồ sơ trúng tuyển. Quan hệ 1-0..1 với admission.",
+      "file": "admissions/enrollment.csv",
+      "primary_key": ["enrollment_id"],
+      "columns": [
+        {"name": "enrollment_id", "type": "bigint", "nullable": false},
+        {"name": "admission_id", "type": "bigint", "nullable": false, "unique": true, "references": {"entity": "admission", "column": "admission_id"}},
+        {"name": "student_id", "type": "bigint", "nullable": true, "unique": true, "references": {"entity": "student", "column": "student_id"}},
+        {"name": "enrollment_date", "type": "date", "nullable": false},
+        {"name": "enrollment_status", "type": "varchar(20)", "nullable": false, "enum": ["Enrolled", "Deferred", "Cancelled"]}
+      ]
+    }
+  },
+  "quality_rules": [
+    {"id": "ADM-DQ-01", "entity": "*", "rule": "PK và cột unique không null, không trùng", "severity": "error"},
+    {"id": "ADM-DQ-02", "entity": "*", "rule": "FK trỏ tới bản ghi có thật", "severity": "error"},
+    {"id": "ADM-DQ-03", "entity": "*", "rule": "Đúng kiểu, độ dài, enum, pattern, min/max", "severity": "error"},
+    {"id": "ADM-DQ-04", "entity": "admission_year", "rule": "end_date > start_date", "severity": "error"},
+    {"id": "ADM-DQ-05", "entity": "admission", "rule": "application_date nằm trong [start_date, end_date] của admission_year", "severity": "error"},
+    {"id": "ADM-DQ-06", "entity": "admission", "rule": "Phương thức XTT thì admission_score null; THPT/HOCBA có điểm khi status khác Applied", "severity": "error"},
+    {"id": "ADM-DQ-07", "entity": "admission", "rule": "Mỗi thí sinh tối đa một hồ sơ Accepted trong một mùa tuyển sinh", "severity": "error"},
+    {"id": "ADM-DQ-08", "entity": "applicant", "rule": "Tuổi tại mùa tuyển sinh đầu tiên từ 16 đến 30", "severity": "warning"},
+    {"id": "ADM-DQ-09", "entity": "enrollment", "rule": "Hồ sơ tương ứng có admission_status = Accepted; enrollment_date >= application_date và <= end_date của mùa", "severity": "error"},
+    {"id": "ADM-DQ-10", "entity": "enrollment", "rule": "Enrolled thì có student_id; Deferred/Cancelled thì student_id null", "severity": "error"},
+    {"id": "ADM-DQ-11", "entity": "enrollment", "rule": "student của enrollment khớp applicant_id, program_id, admission_year_id của admission", "severity": "error"},
+    {"id": "ADM-DQ-12", "entity": "student", "rule": "full_name, date_of_birth, gender của student khớp applicant", "severity": "warning"}
+  ]
+}

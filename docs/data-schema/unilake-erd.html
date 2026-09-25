@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UniLake AI V1.0 – ERD Dataset V1</title>
+<style>
+  :root { color-scheme: light dark; --bg:#f8fafc; --fg:#0f172a; --muted:#475569; --card:#ffffff; --line:#cbd5e1; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#0b1020; --fg:#e2e8f0; --muted:#94a3b8; --card:#111827; --line:#334155; } }
+  body { margin:0; padding:24px 16px; background:var(--bg); color:var(--fg); font:14px/1.5 system-ui, sans-serif; }
+  main { max-width:1400px; margin:0 auto; }
+  h1 { font-size:22px; margin:0 0 4px; }
+  p.lead { margin:0 0 16px; color:var(--muted); }
+  .panel { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px; overflow-x:auto; }
+  .notes { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:12px; margin-top:16px; }
+  .notes section { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:12px 14px; }
+  .notes h2 { font-size:14px; margin:0 0 6px; }
+  .notes ul { margin:0; padding-left:18px; color:var(--muted); }
+  button#zoom { font:inherit; padding:6px 12px; border:1px solid var(--line); border-radius:8px; background:var(--card); color:var(--fg); cursor:pointer; }
+  #err { color:#dc2626; display:none; }
+</style>
+</head>
+<body>
+<main>
+  <h1>UniLake AI V1.0 – ERD Dataset V1</h1>
+  <p class="lead">Mô hình dữ liệu đích cho lớp Silver và Gold, gồm 3 domain Admissions, Academic/Training, Human Resources và các bảng tham chiếu dùng chung.</p>
+  <p><button id="zoom" type="button">Xem kích thước thật</button></p>
+  <div class="panel"><pre class="mermaid" id="diagram">
+%% UniLake AI V1.0 - Entity Relationship Diagram (Dataset V1)
+%% Phạm vi theo proposal: Admissions, Academic/Training, Human Resources. Không có Finance.
+%% Đây là mô hình đích cho lớp Silver và Gold. Bronze giữ dữ liệu gốc, chưa ép theo mô hình này.
+%% Mọi bảng Silver và Gold có thêm cột audit: _source_system, _batch_id, _ingested_at.
+erDiagram
+    %% ===== Tham chiếu dùng chung =====
+    DEPARTMENT {
+        int department_id PK
+        string department_code UK
+        string department_name
+    }
+    PROGRAM {
+        int program_id PK
+        string program_name
+        string degree_level "cử nhân, thạc sĩ"
+    }
+    MAJOR {
+        int major_id PK
+        string major_code UK
+        string major_name
+        int program_id FK
+        int department_id FK
+    }
+    ACADEMIC_YEAR {
+        int year_id PK
+        int start_year UK
+        string year_label "vd 2026-2027, cũng là năm tuyển sinh"
+    }
+    SEMESTER {
+        int semester_id PK
+        int year_id FK
+        string semester_name "HK1, HK2, HK hè"
+    }
+
+    %% ===== Admissions =====
+    ADMISSION_METHOD {
+        int method_id PK
+        string method_code UK
+        string method_name
+    }
+    APPLICANT {
+        int applicant_id PK
+        string applicant_code UK "mã giả lập, không dùng dữ liệu cá nhân thật"
+        string gender
+        int birth_year
+        string province
+    }
+    ADMISSION {
+        int admission_id PK
+        int applicant_id FK
+        int major_id FK
+        int method_id FK
+        int year_id FK
+        decimal admission_score
+        string result "accepted, rejected, waitlist"
+    }
+    ENROLLMENT {
+        int enrollment_id PK
+        int admission_id FK, UK
+        int student_id FK, UK
+        date enrolled_date
+    }
+
+    %% ===== Academic / Training =====
+    STUDENT {
+        int student_id PK
+        string student_code UK
+        int major_id FK
+        int cohort_year
+        string study_status "studying, graduated, dropped"
+    }
+    COURSE {
+        int course_id PK
+        string course_code UK
+        string course_name
+        int credits
+        int department_id FK
+    }
+    COURSE_CLASS {
+        int class_id PK
+        int course_id FK
+        int semester_id FK
+        string class_code UK
+        int capacity
+    }
+    GRADE {
+        int grade_id PK
+        int student_id FK
+        int class_id FK
+        decimal score
+        string letter_grade "duy nhất theo cặp student_id và class_id"
+    }
+
+    %% ===== Human Resources =====
+    POSITION {
+        int position_id PK
+        string position_name
+    }
+    QUALIFICATION {
+        int qualification_id PK
+        string qualification_name "cử nhân, thạc sĩ, tiến sĩ"
+    }
+    EMPLOYEE {
+        int employee_id PK
+        string employee_code UK
+        int department_id FK
+        int position_id FK
+        date hire_date
+        string employment_status
+    }
+    LECTURER {
+        int employee_id PK, FK
+        int qualification_id FK
+        string academic_title
+    }
+    ASSIGNMENT {
+        int assignment_id PK
+        int employee_id FK "giảng viên"
+        int class_id FK
+        string teaching_role
+        decimal teaching_hours
+    }
+
+    %% ===== Quan hệ =====
+    DEPARTMENT ||--o{ MAJOR : "quản lý"
+    PROGRAM ||--o{ MAJOR : "gồm"
+    DEPARTMENT ||--o{ COURSE : "phụ trách"
+    DEPARTMENT ||--o{ EMPLOYEE : "có"
+    ACADEMIC_YEAR ||--o{ SEMESTER : "gồm"
+
+    APPLICANT ||--o{ ADMISSION : "nộp hồ sơ"
+    MAJOR ||--o{ ADMISSION : "đăng ký"
+    ADMISSION_METHOD ||--o{ ADMISSION : "xét theo"
+    ACADEMIC_YEAR ||--o{ ADMISSION : "năm tuyển sinh"
+    ADMISSION ||--o| ENROLLMENT : "nhập học"
+    STUDENT ||--o| ENROLLMENT : "sinh ra từ"
+
+    MAJOR ||--o{ STUDENT : "theo học"
+    COURSE ||--o{ COURSE_CLASS : "mở thành"
+    SEMESTER ||--o{ COURSE_CLASS : "tổ chức trong"
+    STUDENT ||--o{ GRADE : "đạt"
+    COURSE_CLASS ||--o{ GRADE : "có kết quả"
+
+    POSITION ||--o{ EMPLOYEE : "giữ"
+    EMPLOYEE ||--o| LECTURER : "là"
+    QUALIFICATION ||--o{ LECTURER : "đạt"
+    LECTURER ||--o{ ASSIGNMENT : "được phân công"
+    COURSE_CLASS ||--o{ ASSIGNMENT : "được giảng dạy"
+  </pre><p id="err">Không tải được thư viện Mermaid. Xem nguồn tại unilake-erd.mmd, GitHub sẽ tự render file này.</p></div>
+
+  <div class="notes">
+    <section><h2>Nhóm bảng</h2><ul>
+      <li>Tham chiếu chung: DEPARTMENT, PROGRAM, MAJOR, ACADEMIC_YEAR, SEMESTER</li>
+      <li>Admissions: ADMISSION_METHOD, APPLICANT, ADMISSION, ENROLLMENT</li>
+      <li>Academic: STUDENT, COURSE, COURSE_CLASS, GRADE</li>
+      <li>HR: POSITION, QUALIFICATION, EMPLOYEE, LECTURER, ASSIGNMENT</li>
+    </ul></section>
+    <section><h2>Khóa liên kết giữa domain</h2><ul>
+      <li>ENROLLMENT nối Admissions với Academic qua admission_id và student_id</li>
+      <li>ASSIGNMENT nối HR với Academic qua employee_id và class_id</li>
+      <li>MAJOR và DEPARTMENT là chiều dùng chung cho cả ba domain</li>
+    </ul></section>
+    <section><h2>Quy ước</h2><ul>
+      <li>Dùng dữ liệu synthetic, mã giả lập, không có thông tin cá nhân thật</li>
+      <li>Mọi bảng Silver và Gold có thêm cột _source_system, _batch_id, _ingested_at để phục vụ Lineage</li>
+      <li>Bronze giữ dữ liệu gốc, chưa ép theo mô hình này</li>
+    </ul></section>
+  </div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
+<script>
+  (function () {
+    var err = document.getElementById('err');
+    if (!window.mermaid) { err.style.display = 'block'; return; }
+    var dark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    window.mermaid.initialize({ startOnLoad: false, theme: dark ? 'dark' : 'default', er: { useMaxWidth: true } });
+    window.mermaid.run({ querySelector: '#diagram' }).catch(function (e) { err.textContent = 'Lỗi render Mermaid: ' + e.message; err.style.display = 'block'; });
+    var btn = document.getElementById('zoom'), full = false;
+    btn.addEventListener('click', function () {
+      var svg = document.querySelector('#diagram svg'); if (!svg) return;
+      full = !full;
+      svg.style.maxWidth = full ? 'none' : '';
+      svg.style.width = full ? svg.viewBox.baseVal.width + 'px' : '';
+      btn.textContent = full ? 'Vừa khung' : 'Xem kích thước thật';
+    });
+  })();
+</script>
+</body>
+</html>

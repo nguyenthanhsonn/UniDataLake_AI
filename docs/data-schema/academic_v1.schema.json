@@ -1,0 +1,154 @@
+{
+  "dataset": "academic",
+  "version": "1.0.0",
+  "description": "Academic/Training Dataset Schema V1 - UniLake AI V1.0. Bám đúng thiết kế DB nguồn docs/data-schema/unilake-db.dbml. Mỗi file CSV là bản dump của một bảng nguồn. Xem docs/data-schema/academic-dataset-v1.md.",
+  "source_dbml": "docs/data-schema/unilake-db.dbml",
+  "file_format": {
+    "type": "csv",
+    "encoding": "utf-8",
+    "delimiter": ",",
+    "header": true,
+    "null_value": "",
+    "date_format": "YYYY-MM-DD",
+    "decimal_separator": ".",
+    "boolean_values": ["true", "false"]
+  },
+  "load_order": ["department", "major", "program", "admission_year", "applicant", "employee", "lecturer", "student", "semester", "course", "class", "enrollment_grade"],
+  "audit_columns": [
+    {"name": "_source_system", "type": "varchar(50)", "nullable": false, "description": "Hệ thống nguồn"},
+    {"name": "_batch_id", "type": "varchar(64)", "nullable": false, "description": "ID lô ingestion"},
+    {"name": "_ingested_at", "type": "timestamp", "nullable": false, "description": "Thời điểm ghi vào Bronze (UTC)"}
+  ],
+  "entities": {
+    "department": {"from_dataset": "hr"},
+    "major": {"from_dataset": "admissions"},
+    "program": {"from_dataset": "admissions"},
+    "admission_year": {"from_dataset": "admissions"},
+    "applicant": {"from_dataset": "admissions"},
+    "employee": {"from_dataset": "hr"},
+    "lecturer": {"from_dataset": "hr"},
+    "student": {
+      "domain": "training",
+      "owned_by_dataset": true,
+      "pii_columns": ["full_name", "date_of_birth"],
+      "description": "Sinh viên. Được tạo khi enrollment (Admissions) có trạng thái Enrolled; applicant_id để trống với sinh viên nhập từ hệ thống cũ.",
+      "file": "training/student.csv",
+      "primary_key": ["student_id"],
+      "columns": [
+        {"name": "student_id", "type": "bigint", "nullable": false},
+        {"name": "student_code", "type": "varchar(20)", "nullable": false, "unique": true, "pattern": "^[0-9]{10}$", "description": "Năm nhập học (4) + program_id (2) + số thứ tự (4)"},
+        {"name": "applicant_id", "type": "bigint", "nullable": true, "unique": true, "references": {"entity": "applicant", "column": "applicant_id"}},
+        {"name": "full_name", "type": "varchar(150)", "nullable": false},
+        {"name": "date_of_birth", "type": "date", "nullable": false},
+        {"name": "gender", "type": "varchar(10)", "nullable": false, "enum": ["Male", "Female"]},
+        {"name": "program_id", "type": "int", "nullable": false, "references": {"entity": "program", "column": "program_id"}},
+        {"name": "admission_year_id", "type": "int", "nullable": false, "references": {"entity": "admission_year", "column": "admission_year_id"}, "description": "Khóa (cohort)"},
+        {"name": "student_status", "type": "varchar(20)", "nullable": false, "enum": ["Active", "Graduated", "Suspended", "Dropped"]}
+      ]
+    },
+    "semester": {
+      "domain": "training",
+      "owned_by_dataset": true,
+      "description": "Học kỳ. semester_code = <năm bắt đầu năm học>-<1: HK1, 2: HK2, 3: học kỳ hè>.",
+      "file": "training/semester.csv",
+      "primary_key": ["semester_id"],
+      "columns": [
+        {"name": "semester_id", "type": "int", "nullable": false},
+        {"name": "semester_code", "type": "varchar(20)", "nullable": false, "unique": true, "pattern": "^[0-9]{4}-[1-3]$"},
+        {"name": "academic_year", "type": "varchar(9)", "nullable": false, "pattern": "^[0-9]{4}-[0-9]{4}$", "description": "Khớp admission_year.year_label"},
+        {"name": "start_date", "type": "date", "nullable": false},
+        {"name": "end_date", "type": "date", "nullable": false}
+      ]
+    },
+    "course": {
+      "domain": "training",
+      "owned_by_dataset": true,
+      "description": "Học phần. major_id null = học phần chung toàn trường (lý luận chính trị, ngoại ngữ, toán).",
+      "file": "training/course.csv",
+      "primary_key": ["course_id"],
+      "columns": [
+        {"name": "course_id", "type": "int", "nullable": false},
+        {"name": "course_code", "type": "varchar(20)", "nullable": false, "unique": true, "pattern": "^[A-Z]{2,4}[0-9]{3}$"},
+        {"name": "course_name", "type": "varchar(200)", "nullable": false},
+        {"name": "credit_hours", "type": "int", "nullable": false, "min": 1, "max": 10, "description": "Số tín chỉ"},
+        {"name": "major_id", "type": "int", "nullable": true, "references": {"entity": "major", "column": "major_id"}, "description": "Ngành quản lý học phần"}
+      ]
+    },
+    "class": {
+      "domain": "training",
+      "owned_by_dataset": true,
+      "description": "Lớp học phần: một học phần mở trong một học kỳ, do một giảng viên phụ trách.",
+      "file": "training/class.csv",
+      "primary_key": ["class_id"],
+      "columns": [
+        {"name": "class_id", "type": "bigint", "nullable": false},
+        {"name": "class_code", "type": "varchar(30)", "nullable": false, "unique": true, "pattern": "^[A-Z]{2,4}[0-9]{3}-[0-9]{4}-[1-3]-[0-9]{2}$", "description": "<course_code>-<semester_code>-<nhóm>"},
+        {"name": "course_id", "type": "int", "nullable": false, "references": {"entity": "course", "column": "course_id"}},
+        {"name": "semester_id", "type": "int", "nullable": false, "references": {"entity": "semester", "column": "semester_id"}},
+        {"name": "lecturer_id", "type": "bigint", "nullable": false, "references": {"entity": "lecturer", "column": "lecturer_id"}},
+        {"name": "max_capacity", "type": "int", "nullable": false, "min": 1, "max": 200},
+        {"name": "room", "type": "varchar(50)", "nullable": true, "description": "Null = chưa xếp phòng hoặc học trực tuyến"}
+      ]
+    },
+    "enrollment_grade": {
+      "domain": "training",
+      "owned_by_dataset": true,
+      "description": "Đăng ký lớp học phần và kết quả của sinh viên. Điểm thang 10; null khi học kỳ chưa kết thúc.",
+      "file": "training/enrollment_grade.csv",
+      "primary_key": ["student_id", "class_id"],
+      "columns": [
+        {"name": "student_id", "type": "bigint", "nullable": false, "references": {"entity": "student", "column": "student_id"}},
+        {"name": "class_id", "type": "bigint", "nullable": false, "references": {"entity": "class", "column": "class_id"}},
+        {"name": "midterm_score", "type": "decimal(4,2)", "nullable": true, "min": 0, "max": 10},
+        {"name": "final_score", "type": "decimal(4,2)", "nullable": true, "min": 0, "max": 10},
+        {"name": "grade_value", "type": "decimal(4,2)", "nullable": true, "min": 0, "max": 10, "description": "Điểm tổng kết = 0.3 x midterm + 0.7 x final, làm tròn 1 chữ số"},
+        {"name": "letter_grade", "type": "varchar(2)", "nullable": true, "enum": ["A", "B+", "B", "C+", "C", "D+", "D", "F"]},
+        {"name": "registration_date", "type": "date", "nullable": false}
+      ]
+    }
+  },
+  "grading": {
+    "scale": 10,
+    "weights": {"midterm_score": 0.3, "final_score": 0.7},
+    "letter_bands": [
+      {"letter": "A", "min": 8.5, "grade_point": 4.0},
+      {"letter": "B+", "min": 8.0, "grade_point": 3.5},
+      {"letter": "B", "min": 7.0, "grade_point": 3.0},
+      {"letter": "C+", "min": 6.5, "grade_point": 2.5},
+      {"letter": "C", "min": 5.5, "grade_point": 2.0},
+      {"letter": "D+", "min": 5.0, "grade_point": 1.5},
+      {"letter": "D", "min": 4.0, "grade_point": 1.0},
+      {"letter": "F", "min": 0.0, "grade_point": 0.0}
+    ],
+    "pass_letter_min": "D"
+  },
+  "silver_derived_columns": {
+    "enrollment_grade": [
+      {"name": "grade_point", "type": "decimal(3,2)", "rule": "Theo letter_bands, thang 4"},
+      {"name": "is_passed", "type": "boolean", "rule": "letter_grade <> 'F'; null khi chưa có điểm"},
+      {"name": "credits_earned", "type": "int", "rule": "course.credit_hours nếu is_passed, ngược lại 0"},
+      {"name": "attempt_no", "type": "int", "rule": "Thứ tự lần học cùng course_id của sinh viên, theo semester.start_date"},
+      {"name": "is_latest_attempt", "type": "boolean", "rule": "Lần học cuối cùng của sinh viên với course_id; GPA tích lũy chỉ tính lần này"}
+    ],
+    "semester": [
+      {"name": "semester_type", "type": "varchar(10)", "rule": "Hậu tố semester_code: 1 = HK1, 2 = HK2, 3 = Summer"}
+    ],
+    "student": [
+      {"name": "cohort_year", "type": "int", "rule": "Năm bắt đầu của admission_year.year_label"},
+      {"name": "major_id", "type": "int", "rule": "program.major_id"}
+    ]
+  },
+  "quality_rules": [
+    {"id": "ACA-DQ-01", "entity": "*", "rule": "PK (kể cả PK ghép) và cột unique không null, không trùng", "severity": "error"},
+    {"id": "ACA-DQ-02", "entity": "*", "rule": "FK trỏ tới bản ghi có thật", "severity": "error"},
+    {"id": "ACA-DQ-03", "entity": "*", "rule": "Đúng kiểu, độ dài, enum, pattern, min/max", "severity": "error"},
+    {"id": "ACA-DQ-04", "entity": "semester", "rule": "end_date > start_date; các học kỳ không chồng lấn; academic_year khớp semester_code", "severity": "error"},
+    {"id": "ACA-DQ-05", "entity": "class", "rule": "Số sinh viên đăng ký <= max_capacity", "severity": "error"},
+    {"id": "ACA-DQ-06", "entity": "enrollment_grade", "rule": "grade_value = round(0.3 x midterm + 0.7 x final, 1) và letter_grade khớp letter_bands", "severity": "error"},
+    {"id": "ACA-DQ-07", "entity": "enrollment_grade", "rule": "Học kỳ đã kết thúc thì đủ điểm; học kỳ chưa kết thúc thì chưa có điểm", "severity": "warning"},
+    {"id": "ACA-DQ-08", "entity": "enrollment_grade", "rule": "registration_date <= semester.end_date", "severity": "error"},
+    {"id": "ACA-DQ-09", "entity": "enrollment_grade", "rule": "Sinh viên không học trước khóa nhập học (semester.academic_year >= cohort)", "severity": "error"},
+    {"id": "ACA-DQ-10", "entity": "enrollment_grade", "rule": "Sinh viên không đăng ký cùng một học phần hai lần trong một học kỳ", "severity": "error"},
+    {"id": "ACA-DQ-11", "entity": "student", "rule": "Sinh viên Active có đăng ký ở học kỳ hiện tại; Dropped/Suspended thì không", "severity": "warning"}
+  ]
+}

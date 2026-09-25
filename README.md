@@ -15,7 +15,7 @@
 
 **UniLake AI** là nền tảng Data Lake tích hợp dữ liệu đa nguồn và kết hợp mô-đun **AI Analytics**, được xây dựng theo kiến trúc **Modular Monolith** với Python/FastAPI.
 
-Hệ thống thu thập và chuẩn hóa dữ liệu từ nhiều mảng nghiệp vụ trong trường đại học như **Tuyển sinh, Đào tạo, Tài chính, Nhân sự** theo mô hình **Bronze - Silver - Gold**. Sau đó, hệ thống áp dụng các cơ chế **Data Governance** như Data Catalog, Data Lineage và Data Quality Check để đảm bảo dữ liệu đáng tin cậy.
+Hệ thống thu thập và chuẩn hóa dữ liệu từ nhiều mảng nghiệp vụ trong trường đại học như **Tuyển sinh, Đào tạo, Nhân sự** theo mô hình **Bronze - Silver - Gold**. Sau đó, hệ thống áp dụng các cơ chế **Data Governance** như Data Catalog, Data Lineage và Data Quality Check để đảm bảo dữ liệu đáng tin cậy.
 
 Trên lớp dữ liệu đã được chuẩn hóa, **AI Decision Engine** kết hợp **Text-to-SQL / Intent Parser** và **Constraint Optimization** để trả lời câu hỏi bằng ngôn ngữ tự nhiên, đồng thời mô phỏng các kịch bản quản trị (**What-If Analysis**). Cách tiếp cận này vượt ra ngoài báo cáo mô tả truyền thống của Dashboard/BI.
 
@@ -139,7 +139,7 @@ unilake-ai/
 │
 ├── data/                     # Dữ liệu synthetic và dữ liệu mẫu
 │   ├── synthetic/            # Script sinh dữ liệu
-│   └── samples/              # Dữ liệu mẫu cho 4 domain
+│   └── samples/              # Dữ liệu mẫu cho 3 domain (admissions, training, hr)
 │
 ├── docs/                     # Tài liệu dự án
 │   ├── architecture/         # Sơ đồ kiến trúc hệ thống
@@ -158,7 +158,7 @@ unilake-ai/
 
 | ID | Mục tiêu |
 |----|----------|
-| 1 | Xây dựng Data Lake 3 lớp (Bronze - Silver - Gold) cho ít nhất 4 domain nghiệp vụ |
+| 1 | Xây dựng Data Lake 3 lớp (Bronze - Silver - Gold) cho 3 domain nghiệp vụ: Tuyển sinh, Đào tạo, Nhân sự |
 | 2 | Xây dựng mô-đun Text-to-SQL đạt **Execution Accuracy >= 85%** trên tập kiểm thử |
 | 3 | Xây dựng mô-đun Data Governance với **DQ Check pass rate >= 90%** |
 | 4 | Hoàn thiện Web Platform v1.0 hỗ trợ truy vấn ngôn ngữ tự nhiên thời gian thực, **response time < 5s** |
@@ -191,6 +191,7 @@ Học phần: **CMU-SE 450 - Capstone Project 1**
 ## 📚 Tài liệu
 
 - [Thiết kế kiến trúc](docs/architecture/)
+- [System Architecture Baseline V1.0](docs/architecture/system-architecture-baseline.md)
 - [Tài liệu API](docs/api/)
 - [Data Schema](docs/data-schema/)
 - [Ghi chú nghiên cứu](docs/research/)

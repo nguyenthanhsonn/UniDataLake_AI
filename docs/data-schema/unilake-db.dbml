@@ -1,0 +1,384 @@
+// ==========================================================
+// UniLake AI - Database Design (DBML for dbdiagram.io)
+// Dua tren muc 6.3 "In Scope" - Project Proposal C1SE.11
+// Paste toan bo file nay vao https://dbdiagram.io
+// ==========================================================
+
+Project UniLakeAI {
+  database_type: 'PostgreSQL'
+  Note: 'Operational/source layer database cho cac phong ban truong dai hoc, nguon du lieu ingest vao Data Lake (Bronze/Silver/Gold) cua UniLake AI'
+}
+
+//// ==================== 1. ADMISSIONS ====================
+
+Table admission_year {
+  admission_year_id int [pk, increment]
+  year_label varchar(9) [unique, not null, note: 'vd 2025-2026']
+  start_date date [not null]
+  end_date date [not null]
+
+  Note: 'Phong Tuyen sinh'
+}
+
+Table major {
+  major_id int [pk, increment]
+  major_code varchar(20) [unique, not null]
+  major_name varchar(150) [not null]
+  department_id int [ref: > department.department_id]
+}
+
+Table program {
+  program_id int [pk, increment]
+  program_code varchar(20) [unique, not null]
+  program_name varchar(200) [not null]
+  major_id int [not null, ref: > major.major_id]
+  degree_level varchar(30) [not null]
+  duration_years decimal(3,1) [not null]
+  tuition_fee_per_credit decimal(12,2)
+}
+
+Table admission_method {
+  admission_method_id int [pk, increment]
+  method_code varchar(20) [unique, not null]
+  method_name varchar(150) [not null, note: 'Hoc ba, Diem thi THPT, Xet tuyen thang']
+  description text
+}
+
+Table applicant {
+  applicant_id bigint [pk, increment]
+  national_id varchar(20) [unique, not null]
+  full_name varchar(150) [not null]
+  date_of_birth date [not null]
+  gender varchar(10) [not null]
+  phone varchar(20)
+  email varchar(150)
+  high_school_name varchar(200)
+  province varchar(100)
+}
+
+Table admission {
+  admission_id bigint [pk, increment]
+  applicant_id bigint [not null, ref: > applicant.applicant_id]
+  program_id int [not null, ref: > program.program_id]
+  admission_method_id int [not null, ref: > admission_method.admission_method_id]
+  admission_year_id int [not null, ref: > admission_year.admission_year_id]
+  application_date date [not null]
+  admission_score decimal(5,2)
+  admission_status varchar(20) [not null, note: "CHECK IN ('Applied','Accepted','Rejected','Waitlisted')"]
+
+  indexes {
+    (applicant_id, program_id, admission_year_id, admission_method_id) [unique]
+  }
+}
+
+Table enrollment {
+  enrollment_id bigint [pk, increment]
+  admission_id bigint [unique, not null, ref: > admission.admission_id]
+  student_id bigint [unique, ref: > student.student_id]
+  enrollment_date date [not null]
+  enrollment_status varchar(20) [not null, note: "CHECK IN ('Enrolled','Deferred','Cancelled')"]
+}
+
+//// ==================== 2. ACADEMIC / TRAINING ====================
+
+Table student {
+  student_id bigint [pk, increment]
+  student_code varchar(20) [unique, not null]
+  applicant_id bigint [unique, ref: > applicant.applicant_id]
+  full_name varchar(150) [not null]
+  date_of_birth date [not null]
+  gender varchar(10) [not null]
+  program_id int [not null, ref: > program.program_id]
+  admission_year_id int [not null, ref: > admission_year.admission_year_id]
+  student_status varchar(20) [not null, note: "CHECK IN ('Active','Graduated','Suspended','Dropped')"]
+
+  Note: 'Phong Dao tao'
+}
+
+Table semester {
+  semester_id int [pk, increment]
+  semester_code varchar(20) [unique, not null, note: 'vd 2026-1']
+  academic_year varchar(9) [not null]
+  start_date date [not null]
+  end_date date [not null]
+}
+
+Table course {
+  course_id int [pk, increment]
+  course_code varchar(20) [unique, not null]
+  course_name varchar(200) [not null]
+  credit_hours int [not null]
+  major_id int [ref: > major.major_id]
+}
+
+Table class {
+  class_id bigint [pk, increment]
+  class_code varchar(30) [unique, not null]
+  course_id int [not null, ref: > course.course_id]
+  semester_id int [not null, ref: > semester.semester_id]
+  lecturer_id bigint [not null, ref: > lecturer.lecturer_id]
+  max_capacity int [not null]
+  room varchar(50)
+}
+
+Table enrollment_grade {
+  student_id bigint [ref: > student.student_id]
+  class_id bigint [ref: > class.class_id]
+  midterm_score decimal(4,2)
+  final_score decimal(4,2)
+  grade_value decimal(4,2)
+  letter_grade varchar(2)
+  registration_date date [not null]
+
+  indexes {
+    (student_id, class_id) [pk]
+  }
+}
+
+//// ==================== 3. HUMAN RESOURCES ====================
+
+Table department {
+  department_id int [pk, increment]
+  department_code varchar(20) [unique, not null]
+  department_name varchar(150) [not null]
+  parent_department_id int [ref: > department.department_id]
+
+  Note: 'Phong To chuc - Nhan su'
+}
+
+Table position {
+  position_id int [pk, increment]
+  position_code varchar(20) [unique, not null]
+  position_name varchar(100) [not null]
+  position_level varchar(30)
+}
+
+Table employee {
+  employee_id bigint [pk, increment]
+  employee_code varchar(20) [unique, not null]
+  full_name varchar(150) [not null]
+  date_of_birth date [not null]
+  gender varchar(10) [not null]
+  email varchar(150) [unique]
+  phone varchar(20)
+  hire_date date [not null]
+  employee_status varchar(20) [not null, note: "CHECK IN ('Active','Resigned','Retired')"]
+}
+
+Table lecturer {
+  lecturer_id bigint [pk, ref: - employee.employee_id]
+  academic_rank varchar(50) [note: 'M.Sc., Ph.D., Assoc. Prof.']
+  research_field varchar(200)
+}
+
+Table qualification {
+  qualification_id int [pk, increment]
+  qualification_name varchar(150) [unique, not null]
+  qualification_type varchar(30) [not null, note: "CHECK IN ('Degree','Certificate')"]
+}
+
+Table employee_qualification {
+  employee_id bigint [ref: > employee.employee_id]
+  qualification_id int [ref: > qualification.qualification_id]
+  institution varchar(200)
+  year_obtained int
+
+  indexes {
+    (employee_id, qualification_id) [pk]
+  }
+}
+
+Table assignment {
+  assignment_id bigint [pk, increment]
+  employee_id bigint [not null, ref: > employee.employee_id]
+  department_id int [not null, ref: > department.department_id]
+  position_id int [not null, ref: > position.position_id]
+  start_date date [not null]
+  end_date date
+  is_primary boolean [not null, default: true]
+}
+
+//// ==================== 4. DATA LAKE ====================
+
+Table data_layer {
+  data_layer_id int [pk, increment]
+  layer_name varchar(10) [unique, not null, note: "CHECK IN ('Bronze','Silver','Gold')"]
+}
+
+Table ingestion_job {
+  ingestion_job_id bigint [pk, increment]
+  source_system varchar(100) [not null]
+  target_layer_id int [not null, ref: > data_layer.data_layer_id]
+  target_table_name varchar(150) [not null]
+  started_at timestamp [not null]
+  finished_at timestamp
+  row_count bigint
+  job_status varchar(20) [not null, note: "CHECK IN ('Running','Success','Failed')"]
+}
+
+Table transformation_step {
+  transformation_step_id bigint [pk, increment]
+  ingestion_job_id bigint [ref: > ingestion_job.ingestion_job_id]
+  source_layer_id int [not null, ref: > data_layer.data_layer_id]
+  target_layer_id int [not null, ref: > data_layer.data_layer_id]
+  transformation_type varchar(50) [not null, note: 'Cleaning, Standardization, Validation, Aggregation']
+  executed_at timestamp [not null]
+}
+
+//// ==================== 5. DATA GOVERNANCE ====================
+
+Table dataset {
+  dataset_id int [pk, increment]
+  dataset_name varchar(150) [unique, not null]
+  domain varchar(50) [not null]
+  data_layer_id int [not null, ref: > data_layer.data_layer_id]
+  owner_department_id int [ref: > department.department_id]
+  description text
+}
+
+Table catalog_table {
+  catalog_table_id bigint [pk, increment]
+  dataset_id int [not null, ref: > dataset.dataset_id]
+  table_name varchar(150) [not null]
+  source_system varchar(100)
+
+  indexes {
+    (dataset_id, table_name) [unique]
+  }
+}
+
+Table catalog_column {
+  catalog_column_id bigint [pk, increment]
+  catalog_table_id bigint [not null, ref: > catalog_table.catalog_table_id]
+  column_name varchar(150) [not null]
+  data_type varchar(50) [not null]
+  description text
+  is_nullable boolean [not null]
+
+  indexes {
+    (catalog_table_id, column_name) [unique]
+  }
+}
+
+Table data_lineage {
+  data_lineage_id bigint [pk, increment]
+  transformation_step_id bigint [not null, ref: > transformation_step.transformation_step_id]
+  source_column_id bigint [not null, ref: > catalog_column.catalog_column_id]
+  target_column_id bigint [not null, ref: > catalog_column.catalog_column_id]
+}
+
+Table data_quality_rule {
+  data_quality_rule_id int [pk, increment]
+  catalog_column_id bigint [not null, ref: > catalog_column.catalog_column_id]
+  rule_type varchar(30) [not null, note: "CHECK IN ('Completeness','Validity','Uniqueness','Consistency','DataType')"]
+  rule_expression text [not null]
+  is_active boolean [not null, default: true]
+}
+
+Table data_quality_report {
+  data_quality_report_id bigint [pk, increment]
+  data_quality_rule_id int [not null, ref: > data_quality_rule.data_quality_rule_id]
+  run_at timestamp [not null]
+  total_records bigint [not null]
+  passed_records bigint [not null]
+  pass_rate decimal(5,2) [not null]
+}
+
+//// ==================== 6. AI ANALYTICS ====================
+
+Table nl_query {
+  nl_query_id bigint [pk, increment]
+  app_user_id bigint [not null, ref: > app_user.app_user_id]
+  question_text text [not null]
+  submitted_at timestamp [not null]
+  detected_intent varchar(100)
+}
+
+Table schema_retrieval_result {
+  nl_query_id bigint [ref: > nl_query.nl_query_id]
+  catalog_table_id bigint [ref: > catalog_table.catalog_table_id]
+  relevance_score decimal(5,4)
+
+  indexes {
+    (nl_query_id, catalog_table_id) [pk]
+  }
+}
+
+Table generated_sql {
+  generated_sql_id bigint [pk, increment]
+  nl_query_id bigint [not null, ref: > nl_query.nl_query_id]
+  sql_text text [not null]
+  generated_at timestamp [not null]
+  validation_status varchar(20) [not null, note: "CHECK IN ('Pending','Valid','Invalid')"]
+  validation_error text
+}
+
+Table query_execution {
+  query_execution_id bigint [pk, increment]
+  generated_sql_id bigint [unique, not null, ref: > generated_sql.generated_sql_id]
+  executed_at timestamp [not null]
+  execution_status varchar(20) [not null, note: "CHECK IN ('Success','Failed','Timeout')"]
+  row_count int
+  execution_time_ms int
+  result_ref varchar(255)
+}
+
+//// ==================== 7. WEB APPLICATION ====================
+
+Table app_user {
+  app_user_id bigint [pk, increment]
+  username varchar(50) [unique, not null]
+  password_hash varchar(255) [not null]
+  employee_id bigint [unique, ref: > employee.employee_id]
+  role varchar(30) [not null, note: "CHECK IN ('Admin','Analyst','Viewer')"]
+  is_active boolean [not null, default: true]
+  created_at timestamp [not null]
+}
+
+Table login_session {
+  login_session_id bigint [pk, increment]
+  app_user_id bigint [not null, ref: > app_user.app_user_id]
+  login_at timestamp [not null]
+  logout_at timestamp
+  ip_address varchar(45)
+}
+
+Table dashboard {
+  dashboard_id int [pk, increment]
+  dashboard_name varchar(150) [not null]
+  owner_app_user_id bigint [not null, ref: > app_user.app_user_id]
+  created_at timestamp [not null]
+}
+
+Table kpi {
+  kpi_id int [pk, increment]
+  kpi_code varchar(30) [unique, not null]
+  kpi_name varchar(150) [not null]
+  domain varchar(50) [not null]
+  unit varchar(20)
+}
+
+Table kpi_value {
+  kpi_id bigint [ref: > kpi.kpi_id]
+  period_date date
+  kpi_value decimal(18,4) [not null]
+
+  indexes {
+    (kpi_id, period_date) [pk]
+  }
+}
+
+Table chart_widget {
+  chart_widget_id bigint [pk, increment]
+  dashboard_id int [not null, ref: > dashboard.dashboard_id]
+  chart_type varchar(30) [not null, note: 'Bar, Line, Pie']
+  kpi_id int [ref: > kpi.kpi_id]
+  config_json text
+}
+
+Table query_history {
+  query_history_id bigint [pk, increment]
+  app_user_id bigint [not null, ref: > app_user.app_user_id]
+  nl_query_id bigint [unique, not null, ref: > nl_query.nl_query_id]
+  viewed_at timestamp [not null]
+}

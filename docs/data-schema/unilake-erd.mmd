@@ -1,0 +1,148 @@
+%% UniLake AI V1.0 - Entity Relationship Diagram (Dataset V1)
+%% Phạm vi theo proposal: Admissions, Academic/Training, Human Resources. Không có Finance.
+%% Đây là mô hình đích cho lớp Silver và Gold. Bronze giữ dữ liệu gốc, chưa ép theo mô hình này.
+%% Mọi bảng Silver và Gold có thêm cột audit: _source_system, _batch_id, _ingested_at.
+erDiagram
+    %% ===== Tham chiếu dùng chung =====
+    DEPARTMENT {
+        int department_id PK
+        string department_code UK
+        string department_name
+    }
+    PROGRAM {
+        int program_id PK
+        string program_name
+        string degree_level "cử nhân, thạc sĩ"
+    }
+    MAJOR {
+        int major_id PK
+        string major_code UK
+        string major_name
+        int program_id FK
+        int department_id FK
+    }
+    ACADEMIC_YEAR {
+        int year_id PK
+        int start_year UK
+        string year_label "vd 2026-2027, cũng là năm tuyển sinh"
+    }
+    SEMESTER {
+        int semester_id PK
+        int year_id FK
+        string semester_name "HK1, HK2, HK hè"
+    }
+
+    %% ===== Admissions =====
+    ADMISSION_METHOD {
+        int method_id PK
+        string method_code UK
+        string method_name
+    }
+    APPLICANT {
+        int applicant_id PK
+        string applicant_code UK "mã giả lập, không dùng dữ liệu cá nhân thật"
+        string gender
+        int birth_year
+        string province
+    }
+    ADMISSION {
+        int admission_id PK
+        int applicant_id FK
+        int major_id FK
+        int method_id FK
+        int year_id FK
+        decimal admission_score
+        string result "accepted, rejected, waitlist"
+    }
+    ENROLLMENT {
+        int enrollment_id PK
+        int admission_id FK, UK
+        int student_id FK, UK
+        date enrolled_date
+    }
+
+    %% ===== Academic / Training =====
+    STUDENT {
+        int student_id PK
+        string student_code UK
+        int major_id FK
+        int cohort_year
+        string study_status "studying, graduated, dropped"
+    }
+    COURSE {
+        int course_id PK
+        string course_code UK
+        string course_name
+        int credits
+        int department_id FK
+    }
+    COURSE_CLASS {
+        int class_id PK
+        int course_id FK
+        int semester_id FK
+        string class_code UK
+        int capacity
+    }
+    GRADE {
+        int grade_id PK
+        int student_id FK
+        int class_id FK
+        decimal score
+        string letter_grade "duy nhất theo cặp student_id và class_id"
+    }
+
+    %% ===== Human Resources =====
+    POSITION {
+        int position_id PK
+        string position_name
+    }
+    QUALIFICATION {
+        int qualification_id PK
+        string qualification_name "cử nhân, thạc sĩ, tiến sĩ"
+    }
+    EMPLOYEE {
+        int employee_id PK
+        string employee_code UK
+        int department_id FK
+        int position_id FK
+        date hire_date
+        string employment_status
+    }
+    LECTURER {
+        int employee_id PK, FK
+        int qualification_id FK
+        string academic_title
+    }
+    ASSIGNMENT {
+        int assignment_id PK
+        int employee_id FK "giảng viên"
+        int class_id FK
+        string teaching_role
+        decimal teaching_hours
+    }
+
+    %% ===== Quan hệ =====
+    DEPARTMENT ||--o{ MAJOR : "quản lý"
+    PROGRAM ||--o{ MAJOR : "gồm"
+    DEPARTMENT ||--o{ COURSE : "phụ trách"
+    DEPARTMENT ||--o{ EMPLOYEE : "có"
+    ACADEMIC_YEAR ||--o{ SEMESTER : "gồm"
+
+    APPLICANT ||--o{ ADMISSION : "nộp hồ sơ"
+    MAJOR ||--o{ ADMISSION : "đăng ký"
+    ADMISSION_METHOD ||--o{ ADMISSION : "xét theo"
+    ACADEMIC_YEAR ||--o{ ADMISSION : "năm tuyển sinh"
+    ADMISSION ||--o| ENROLLMENT : "nhập học"
+    STUDENT ||--o| ENROLLMENT : "sinh ra từ"
+
+    MAJOR ||--o{ STUDENT : "theo học"
+    COURSE ||--o{ COURSE_CLASS : "mở thành"
+    SEMESTER ||--o{ COURSE_CLASS : "tổ chức trong"
+    STUDENT ||--o{ GRADE : "đạt"
+    COURSE_CLASS ||--o{ GRADE : "có kết quả"
+
+    POSITION ||--o{ EMPLOYEE : "giữ"
+    EMPLOYEE ||--o| LECTURER : "là"
+    QUALIFICATION ||--o{ LECTURER : "đạt"
+    LECTURER ||--o{ ASSIGNMENT : "được phân công"
+    COURSE_CLASS ||--o{ ASSIGNMENT : "được giảng dạy"

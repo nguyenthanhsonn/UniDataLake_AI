@@ -1,0 +1,164 @@
+{
+  "dataset": "hr",
+  "version": "1.0.0",
+  "description": "Human Resources Dataset Schema V1 - UniLake AI V1.0. Bám đúng thiết kế DB nguồn docs/data-schema/unilake-db.dbml. Mỗi file CSV là bản dump của một bảng nguồn. Xem docs/data-schema/hr-dataset-v1.md.",
+  "source_dbml": "docs/data-schema/unilake-db.dbml",
+  "file_format": {
+    "type": "csv",
+    "encoding": "utf-8",
+    "delimiter": ",",
+    "header": true,
+    "null_value": "",
+    "date_format": "YYYY-MM-DD",
+    "decimal_separator": ".",
+    "boolean_values": ["true", "false"]
+  },
+  "load_order": ["department", "position", "qualification", "employee", "lecturer", "employee_qualification", "assignment"],
+  "audit_columns": [
+    {"name": "_source_system", "type": "varchar(50)", "nullable": false, "description": "Hệ thống nguồn"},
+    {"name": "_batch_id", "type": "varchar(64)", "nullable": false, "description": "ID lô ingestion"},
+    {"name": "_ingested_at", "type": "timestamp", "nullable": false, "description": "Thời điểm ghi vào Bronze (UTC)"}
+  ],
+  "entities": {
+    "department": {
+      "domain": "hr",
+      "owned_by_dataset": true,
+      "description": "Đơn vị tổ chức dạng cây: trường -> phòng/ban/khoa -> bộ môn. Dùng chung cho Admissions (major) và governance (dataset.owner_department_id).",
+      "file": "hr/department.csv",
+      "primary_key": ["department_id"],
+      "department_types": {"UNI": "Trường", "BGH": "Ban Giám hiệu", "P": "Phòng", "K": "Khoa", "BM": "Bộ môn"},
+      "columns": [
+        {"name": "department_id", "type": "int", "nullable": false},
+        {"name": "department_code", "type": "varchar(20)", "nullable": false, "unique": true, "pattern": "^(UNI|BGH|P[A-Z]+|K[A-Z]+|BM[A-Z]+)$", "description": "Tiền tố cho biết loại đơn vị: P = phòng, K = khoa, BM = bộ môn"},
+        {"name": "department_name", "type": "varchar(150)", "nullable": false},
+        {"name": "parent_department_id", "type": "int", "nullable": true, "references": {"entity": "department", "column": "department_id"}, "description": "Null = đơn vị gốc (trường)"}
+      ]
+    },
+    "position": {
+      "domain": "hr",
+      "owned_by_dataset": true,
+      "description": "Chức danh/chức vụ.",
+      "file": "hr/position.csv",
+      "primary_key": ["position_id"],
+      "columns": [
+        {"name": "position_id", "type": "int", "nullable": false},
+        {"name": "position_code", "type": "varchar(20)", "nullable": false, "unique": true, "pattern": "^[A-Z]{2,5}$"},
+        {"name": "position_name", "type": "varchar(100)", "nullable": false},
+        {"name": "position_level", "type": "varchar(30)", "nullable": true, "enum": ["Leadership", "Management", "Staff"]}
+      ]
+    },
+    "qualification": {
+      "domain": "hr",
+      "owned_by_dataset": true,
+      "description": "Danh mục văn bằng và chứng chỉ.",
+      "file": "hr/qualification.csv",
+      "primary_key": ["qualification_id"],
+      "columns": [
+        {"name": "qualification_id", "type": "int", "nullable": false},
+        {"name": "qualification_name", "type": "varchar(150)", "nullable": false, "unique": true},
+        {"name": "qualification_type", "type": "varchar(30)", "nullable": false, "enum": ["Degree", "Certificate"]}
+      ]
+    },
+    "employee": {
+      "domain": "hr",
+      "owned_by_dataset": true,
+      "pii_columns": ["full_name", "date_of_birth", "email", "phone"],
+      "description": "Nhân sự (giảng viên và cán bộ hành chính). Đơn vị và chức vụ lấy qua assignment.",
+      "file": "hr/employee.csv",
+      "primary_key": ["employee_id"],
+      "columns": [
+        {"name": "employee_id", "type": "bigint", "nullable": false},
+        {"name": "employee_code", "type": "varchar(20)", "nullable": false, "unique": true, "pattern": "^NV[0-9]{4}$"},
+        {"name": "full_name", "type": "varchar(150)", "nullable": false},
+        {"name": "date_of_birth", "type": "date", "nullable": false},
+        {"name": "gender", "type": "varchar(10)", "nullable": false, "enum": ["Male", "Female"]},
+        {"name": "email", "type": "varchar(150)", "nullable": true, "unique": true, "pattern": "^[a-z0-9._]+@[a-z0-9.-]+\\.[a-z]{2,}$"},
+        {"name": "phone", "type": "varchar(20)", "nullable": true, "pattern": "^0[0-9]{9}$"},
+        {"name": "hire_date", "type": "date", "nullable": false, "description": "= start_date sớm nhất trong assignment"},
+        {"name": "employee_status", "type": "varchar(20)", "nullable": false, "enum": ["Active", "Resigned", "Retired"]}
+      ]
+    },
+    "lecturer": {
+      "domain": "hr",
+      "owned_by_dataset": true,
+      "description": "Giảng viên: kiểu con của employee (chia sẻ khóa chính lecturer_id = employee_id, quan hệ 1 - 0..1).",
+      "file": "hr/lecturer.csv",
+      "primary_key": ["lecturer_id"],
+      "columns": [
+        {"name": "lecturer_id", "type": "bigint", "nullable": false, "references": {"entity": "employee", "column": "employee_id"}},
+        {"name": "academic_rank", "type": "varchar(50)", "nullable": true, "enum": ["M.Sc.", "Ph.D.", "Assoc. Prof.", "Prof."], "description": "Học vị/học hàm cao nhất"},
+        {"name": "research_field", "type": "varchar(200)", "nullable": true}
+      ]
+    },
+    "employee_qualification": {
+      "domain": "hr",
+      "owned_by_dataset": true,
+      "description": "Văn bằng/chứng chỉ của nhân sự (N-N giữa employee và qualification).",
+      "file": "hr/employee_qualification.csv",
+      "primary_key": ["employee_id", "qualification_id"],
+      "columns": [
+        {"name": "employee_id", "type": "bigint", "nullable": false, "references": {"entity": "employee", "column": "employee_id"}},
+        {"name": "qualification_id", "type": "int", "nullable": false, "references": {"entity": "qualification", "column": "qualification_id"}},
+        {"name": "institution", "type": "varchar(200)", "nullable": true, "description": "Nơi cấp"},
+        {"name": "year_obtained", "type": "int", "nullable": true, "min": 1960, "max": 2100}
+      ]
+    },
+    "assignment": {
+      "domain": "hr",
+      "owned_by_dataset": true,
+      "description": "Quá trình công tác: nhân sự giữ chức vụ tại đơn vị trong một khoảng thời gian. end_date null = đang giữ. is_primary = vị trí chính (kiêm nhiệm là false).",
+      "file": "hr/assignment.csv",
+      "primary_key": ["assignment_id"],
+      "columns": [
+        {"name": "assignment_id", "type": "bigint", "nullable": false},
+        {"name": "employee_id", "type": "bigint", "nullable": false, "references": {"entity": "employee", "column": "employee_id"}},
+        {"name": "department_id", "type": "int", "nullable": false, "references": {"entity": "department", "column": "department_id"}},
+        {"name": "position_id", "type": "int", "nullable": false, "references": {"entity": "position", "column": "position_id"}},
+        {"name": "start_date", "type": "date", "nullable": false},
+        {"name": "end_date", "type": "date", "nullable": true},
+        {"name": "is_primary", "type": "boolean", "nullable": false}
+      ]
+    }
+  },
+  "position_rules": {
+    "unique_holder_per_department": ["HT", "TK", "TP", "TBM"],
+    "allowed_department_types": {
+      "HT": ["BGH"], "PHT": ["BGH"],
+      "TK": ["K"], "PTK": ["K"],
+      "TP": ["P"],
+      "TBM": ["BM"],
+      "GV": ["K", "BM"], "GVC": ["K", "BM"], "TG": ["K", "BM"],
+      "CV": ["P"], "NV": ["P"]
+    },
+    "lecturer_only": ["GV", "GVC", "TG", "TK", "PTK", "TBM"],
+    "staff_only": ["CV", "NV", "TP"]
+  },
+  "silver_derived_columns": {
+    "employee": [
+      {"name": "birth_year", "type": "int", "rule": "Thay date_of_birth (PII)"},
+      {"name": "is_lecturer", "type": "boolean", "rule": "Có dòng trong lecturer"},
+      {"name": "primary_department_id", "type": "int", "rule": "department_id của assignment is_primary đang hiệu lực"},
+      {"name": "faculty_id", "type": "int", "rule": "Tổ tiên cấp khoa/phòng (con trực tiếp của đơn vị gốc) của primary_department_id"},
+      {"name": "current_position_id", "type": "int", "rule": "position_id của assignment is_primary đang hiệu lực"},
+      {"name": "seniority_years", "type": "decimal(4,1)", "rule": "Từ hire_date tới ngày chốt (hoặc ngày nghỉ)"},
+      {"name": "highest_degree", "type": "varchar(30)", "rule": "Tiến sĩ > Thạc sĩ > Kỹ sư/Cử nhân theo employee_qualification"}
+    ],
+    "assignment": [
+      {"name": "is_current", "type": "boolean", "rule": "end_date null hoặc >= ngày chốt"}
+    ]
+  },
+  "quality_rules": [
+    {"id": "HR-DQ-01", "entity": "*", "rule": "PK (kể cả PK ghép) và cột unique không null, không trùng", "severity": "error"},
+    {"id": "HR-DQ-02", "entity": "*", "rule": "FK trỏ tới bản ghi có thật", "severity": "error"},
+    {"id": "HR-DQ-03", "entity": "*", "rule": "Đúng kiểu, độ dài, enum, pattern, min/max", "severity": "error"},
+    {"id": "HR-DQ-04", "entity": "department", "rule": "Cây đơn vị có đúng một gốc, không có chu trình; bộ môn thuộc khoa", "severity": "error"},
+    {"id": "HR-DQ-05", "entity": "employee", "rule": "Tuổi khi tuyển 20 - 60; hire_date = start_date sớm nhất của assignment", "severity": "error"},
+    {"id": "HR-DQ-06", "entity": "assignment", "rule": "start_date >= hire_date; end_date null hoặc >= start_date; các vị trí chính không chồng lấn", "severity": "error"},
+    {"id": "HR-DQ-07", "entity": "assignment", "rule": "Active có đúng một vị trí chính đang hiệu lực; Resigned/Retired không còn assignment mở", "severity": "error"},
+    {"id": "HR-DQ-08", "entity": "assignment", "rule": "HT, TK, TP, TBM: mỗi đơn vị một người tại một thời điểm; chức vụ đúng loại đơn vị", "severity": "error"},
+    {"id": "HR-DQ-09", "entity": "assignment", "rule": "Chức vụ giảng dạy (GV, GVC, TG, TK, PTK, TBM) chỉ cho lecturer; CV, NV, TP chỉ cho cán bộ không phải lecturer", "severity": "error"},
+    {"id": "HR-DQ-10", "entity": "employee_qualification", "rule": "Năm cấp sau 18 tuổi, không sau ngày chốt; Cử nhân/Kỹ sư < Thạc sĩ < Tiến sĩ", "severity": "error"},
+    {"id": "HR-DQ-11", "entity": "lecturer", "rule": "Ph.D./Assoc. Prof./Prof. có bằng Tiến sĩ; M.Sc. có Thạc sĩ và không có Tiến sĩ", "severity": "warning"},
+    {"id": "HR-DQ-12", "entity": "class (Academic)", "rule": "Giảng viên được xếp lớp có assignment hiệu lực suốt học kỳ; học phần của ngành thì assignment thuộc khoa quản lý ngành", "severity": "error"}
+  ]
+}

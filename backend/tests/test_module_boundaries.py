@@ -1,132 +1,185 @@
-"""Architecture guard: enforce the module boundaries of the V1.0 baseline.
-
-The rules mirror ``docs/architecture/system-architecture-baseline.md`` (section 5).
-When a module legitimately needs a new dependency, update ``ALLOWED_DEPENDENCIES`` here
-and the dependency matrix in the document in the same pull request.
-"""
-
 from __future__ import annotations
 
 import ast
+from collections import defaultdict
 from pathlib import Path
 
-APP_ROOT = Path(__file__).resolve().parents[1] / "app"
-MODULES_ROOT = APP_ROOT / "modules"
-
-# Direct module -> module dependencies allowed in V1.0 (must stay acyclic).
-ALLOWED_DEPENDENCIES: dict[str, set[str]] = {
-    "auth": {"users"},
-    "users": set(),
-    "datasources": set(),
-    "ingestion": {"datasources", "governance"},
-    "governance": set(),
-    "nlq": {"governance", "query_history"},
-    "dashboard": set(),
-    "query_history": set(),
-}
-
-# Compatibility aliases kept during the transition; they only re-export a new module.
-LEGACY_MODULES = {"ingest", "pipeline", "query", "ai_engine"}
-
-# A module may import another module only through its public surface.
-PUBLIC_SURFACE = {"service", "schemas"}
-
-# Third-party clients that must only be touched inside app/infra.
-INFRA_ONLY_PACKAGES = {"openai", "anthropic", "minio", "duckdb", "langchain", "boto3"}
+APP_ROOT = Path(__file__).parents[1] / "app"
+BACKEND_ROOT = APP_ROOT.parent
 
 
-def _imports(path: Path) -> list[str]:
-    """Return absolute dotted names imported by a Python file."""
+def _module_name(path: Path) -> str:
+    relative = path.relative_to(BACKEND_ROOT).with_suffix("")
+    parts = relative.parts[:-1] if relative.name == "__init__" else relative.parts
+    return ".".join(parts)
+
+
+def _imports(path: Path) -> set[str]:
     tree = ast.parse(path.read_text(encoding="utf-8"))
-    names: list[str] = []
+    imported: set[str] = set()
     for node in ast.walk(tree):
-        if isinstance(node, ast.Import):
-            names.extend(alias.name for alias in node.names)
-        elif isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
-            names.append(node.module)
-            names.extend(f"{node.module}.{alias.name}" for alias in node.names)
-    return names
+        if isinstance(node, ast.ImportFrom) and node.module is not None:
+            imported.add(node.module)
+        elif isinstance(node, ast.Import):
+            imported.update(alias.name for alias in node.names)
+    return imported
 
 
-def _python_files(root: Path) -> list[Path]:
-    return sorted(p for p in root.rglob("*.py") if "__pycache__" not in p.parts)
+def _app_modules() -> dict[str, Path]:
+    return {_module_name(path): path for path in APP_ROOT.rglob("*.py")}
 
 
-def _module_names() -> set[str]:
-    return {p.name for p in MODULES_ROOT.iterdir() if p.is_dir() and not p.name.startswith("_")}
+def _concrete_domain(module: str) -> bool:
+    parts = module.split(".")
+    return (
+        len(parts) >= 3
+        and parts[:2] == ["app", "domains"]
+        and parts[2]
+        not in {
+            "base",
+            "registry",
+        }
+    )
 
 
-def test_every_module_is_classified() -> None:
-    """A new folder under app/modules must be added to the baseline before use."""
-    assert _module_names() == set(ALLOWED_DEPENDENCIES) | LEGACY_MODULES
-
-
-def test_allowed_dependencies_are_acyclic() -> None:
-    visiting: set[str] = set()
-    done: set[str] = set()
-
-    def visit(name: str) -> None:
-        assert name not in visiting, f"dependency cycle through module '{name}'"
-        if name in done:
-            return
-        visiting.add(name)
-        for dependency in ALLOWED_DEPENDENCIES[name]:
-            visit(dependency)
-        visiting.discard(name)
-        done.add(name)
-
-    for module in ALLOWED_DEPENDENCIES:
-        visit(module)
-
-
-def test_modules_only_depend_on_allowed_modules_via_public_surface() -> None:
+def test_core_and_shared_do_not_depend_on_features_or_infrastructure() -> None:
     violations: list[str] = []
-    for module, allowed in ALLOWED_DEPENDENCIES.items():
-        for file in _python_files(MODULES_ROOT / module):
-            for name in _imports(file):
-                parts = name.split(".")
-                if parts[:2] != ["app", "modules"] or len(parts) < 3 or parts[2] == module:
-                    continue
-                target = parts[2]
-                location = f"{file.relative_to(APP_ROOT)} imports {name}"
-                if target not in allowed:
-                    violations.append(f"{location}: '{module}' may not depend on '{target}'")
-                elif len(parts) > 3 and parts[3] not in PUBLIC_SURFACE:
-                    violations.append(f"{location}: only {sorted(PUBLIC_SURFACE)} are public")
-    assert not violations, "\n".join(violations)
-
-
-def test_legacy_modules_only_reexport_from_new_modules() -> None:
-    violations: list[str] = []
-    for module in LEGACY_MODULES:
-        for file in _python_files(MODULES_ROOT / module):
-            for name in _imports(file):
-                parts = name.split(".")
-                if parts[:2] == ["app", "modules"] and parts[2] in LEGACY_MODULES:
-                    violations.append(f"{file.relative_to(APP_ROOT)} imports legacy {name}")
-    assert not violations, "\n".join(violations)
-
-
-def test_core_infra_and_shared_do_not_import_modules() -> None:
-    violations: list[str] = []
-    for layer in ("core", "infra", "shared"):
-        for file in _python_files(APP_ROOT / layer):
-            violations.extend(
-                f"{file.relative_to(APP_ROOT)} imports {name}"
-                for name in _imports(file)
-                if name.startswith("app.modules")
-            )
-    assert not violations, "\n".join(violations)
-
-
-def test_external_clients_are_only_used_in_infra() -> None:
-    violations: list[str] = []
-    for file in _python_files(APP_ROOT):
-        if "infra" in file.relative_to(APP_ROOT).parts:
+    for source, path in _app_modules().items():
+        if not (source == "app.core" or source.startswith("app.core.")) and not (
+            source == "app.shared" or source.startswith("app.shared.")
+        ):
             continue
-        violations.extend(
-            f"{file.relative_to(APP_ROOT)} imports {name}"
-            for name in _imports(file)
-            if name.split(".")[0] in INFRA_ONLY_PACKAGES
-        )
-    assert not violations, "\n".join(violations)
+        for target in _imports(path):
+            if target.startswith(("app.modules", "app.infra", "app.domains")):
+                violations.append(f"{source} -> {target}")
+
+    assert violations == []
+
+
+def test_concrete_domains_depend_only_on_domain_contracts() -> None:
+    violations: list[str] = []
+    for source, path in _app_modules().items():
+        if not _concrete_domain(source):
+            continue
+        for target in _imports(path):
+            if target.startswith(("app.core", "app.modules", "app.infra", "fastapi", "sqlalchemy")):
+                violations.append(f"{source} -> {target}")
+
+    assert violations == []
+
+
+def test_generic_modules_do_not_import_concrete_domains() -> None:
+    violations = [
+        f"{source} -> {target}"
+        for source, path in _app_modules().items()
+        if source.startswith("app.modules.")
+        for target in _imports(path)
+        if _concrete_domain(target)
+    ]
+
+    assert violations == []
+
+
+def test_cross_module_imports_use_public_contracts_only() -> None:
+    violations: list[str] = []
+    for source, path in _app_modules().items():
+        source_parts = source.split(".")
+        if len(source_parts) < 3 or source_parts[:2] != ["app", "modules"]:
+            continue
+        source_module = source_parts[2]
+        for target in _imports(path):
+            target_parts = target.split(".")
+            if len(target_parts) < 3 or target_parts[:2] != ["app", "modules"]:
+                continue
+            target_module = target_parts[2]
+            if target_module == source_module:
+                continue
+            is_public_contract = len(target_parts) >= 4 and target_parts[3] == "contracts"
+            if not is_public_contract:
+                violations.append(f"{source} -> {target}")
+
+    assert violations == []
+
+
+def test_modules_do_not_depend_on_concrete_infrastructure() -> None:
+    violations: list[str] = []
+    for source, path in _app_modules().items():
+        if not source.startswith("app.modules."):
+            continue
+        for target in _imports(path):
+            if not target.startswith("app.infra"):
+                continue
+            is_persistence_model = path.name == "models.py" and target == "app.infra.db.base"
+            if not is_persistence_model:
+                violations.append(f"{source} -> {target}")
+
+    assert violations == []
+
+
+def test_infrastructure_imports_only_module_contracts() -> None:
+    violations: list[str] = []
+    for source, path in _app_modules().items():
+        if not source.startswith("app.infra."):
+            continue
+        for target in _imports(path):
+            if not target.startswith("app.modules."):
+                continue
+            parts = target.split(".")
+            if len(parts) < 4 or parts[3] != "contracts":
+                violations.append(f"{source} -> {target}")
+
+    assert violations == []
+
+
+def test_internal_modules_do_not_import_routers() -> None:
+    violations = [
+        f"{source} -> {target}"
+        for source, path in _app_modules().items()
+        if source != "app.main"
+        for target in _imports(path)
+        if target.startswith("app.modules.") and target.endswith(".router")
+    ]
+
+    assert violations == []
+
+
+def test_application_import_graph_has_no_cycles() -> None:
+    modules = _app_modules()
+    graph: dict[str, set[str]] = defaultdict(set)
+    for source, path in modules.items():
+        for target in _imports(path):
+            if target in modules and target != source:
+                graph[source].add(target)
+
+    visiting: list[str] = []
+    visited: set[str] = set()
+
+    def visit(module: str) -> list[str] | None:
+        if module in visiting:
+            cycle_start = visiting.index(module)
+            return [*visiting[cycle_start:], module]
+        if module in visited:
+            return None
+
+        visiting.append(module)
+        for dependency in sorted(graph[module]):
+            cycle = visit(dependency)
+            if cycle is not None:
+                return cycle
+        visiting.pop()
+        visited.add(module)
+        return None
+
+    detected_cycle: list[str] | None = None
+    for module in sorted(modules):
+        detected_cycle = visit(module)
+        if detected_cycle is not None:
+            break
+
+    assert detected_cycle is None, " -> ".join(detected_cycle or [])
+
+
+def test_removed_legacy_and_compatibility_packages_stay_removed() -> None:
+    assert not (APP_ROOT / "core" / "database.py").exists()
+    assert not (APP_ROOT / "modules" / "ai_engine").exists()
+    assert not (APP_ROOT / "modules" / "query").exists()

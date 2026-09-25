@@ -32,7 +32,7 @@ UniLake AI sử dụng kiến trúc **Modular Monolith**: toàn bộ backend g�
 | Lớp | Thành phần | Chức năng |
 |-----|------------|-----------|
 | **Presentation** | Web Dashboard (Next.js) | Báo cáo, so sánh kịch bản, giao diện Chatbot |
-| **Application/API** | Modular Monolith FastAPI | Auth (JWT/RBAC), Ingest, Pipeline, Governance, Query, AI modules |
+| **Application/API** | Modular Monolith FastAPI | Auth (JWT/RBAC), Ingestion, Pipeline, Governance, Query, AI modules |
 | **AI Analytics** | AI Module nội bộ | Text-to-SQL (LLM + LangChain + VectorDB) và Constraint Optimization (OR-Tools) |
 | **Data Governance** | Catalog, Lineage, DQ Check | Đảm bảo chất lượng và khả năng truy vết dữ liệu giữa các lớp |
 | **Data Lake** | Bronze (MinIO) -> Silver -> Gold (PostgreSQL) | Dữ liệu thô, dữ liệu đã làm sạch và dữ liệu tổng hợp trên Delta Lake |
@@ -117,11 +117,14 @@ unilake-ai/
 │   │   │   ├── auth/         # JWT / OAuth2 / RBAC
 │   │   │   ├── users/        # Hồ sơ người dùng, vai trò
 │   │   │   ├── datasources/  # Quản lý nguồn dữ liệu
-│   │   │   ├── ingestion/    # Trigger pipeline, theo dõi job ingest
+│   │   │   ├── ingestion/    # Source -> Bronze
+│   │   │   ├── pipeline/     # Bronze -> Silver -> Gold
 │   │   │   ├── governance/   # Catalog, Lineage, DQ Check
 │   │   │   ├── nlq/          # Text-to-SQL, Intent Parser, SQL validation
 │   │   │   ├── dashboard/    # Dashboard API, KPI aggregate
 │   │   │   └── query_history/# Lịch sử truy vấn
+│   │   ├── domains/          # Domain contracts và implementations
+│   │   │   └── demo/         # Extension proof of concept
 │   │   ├── infra/            # DB, DuckDB, MinIO, LLM adapters
 │   │   └── shared/           # Utils, models, schemas
 │   ├── tests/

@@ -5,16 +5,12 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Annotated, Any
 
 from fastapi import Depends, Header
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import AppException
 from app.core.security import decode_access_token
-from app.infra.db.session import get_db
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-
-DbSession = Annotated[AsyncSession, Depends(get_db)]
 
 
 async def get_current_user(

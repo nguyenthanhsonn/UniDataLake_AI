@@ -1,0 +1,623 @@
+.loginShell {
+  --ink: #182536;
+  --muted: #6e7c8d;
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 40% 60%;
+  background: #fff;
+  color: var(--ink);
+}
+
+.brandPanel {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  background: linear-gradient(145deg, #edf1f3 0%, #e5edf0 53%, #e1e8eb 100%);
+  padding: 42px 9vw 34px 8vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.brandGrid {
+  position: absolute;
+  inset: 27% -15% 12% -10%;
+  opacity: 0.42;
+  background-image:
+    linear-gradient(#c6d6dc 1px, transparent 1px),
+    linear-gradient(90deg, #c6d6dc 1px, transparent 1px);
+  background-size: 38px 38px;
+  mask-image: linear-gradient(120deg, transparent 7%, black 32%, transparent 88%);
+  transform: perspective(500px) rotateY(-12deg) rotateX(10deg);
+}
+
+.brandContent,
+.version {
+  position: relative;
+  z-index: 1;
+}
+
+.brandMarkRow {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+
+.brandMark {
+  width: 39px;
+  height: 39px;
+  display: grid;
+  place-items: center;
+  border: 1.5px solid #2373aa;
+  color: #1769aa;
+  font:
+    700 22px/1 ui-monospace,
+    SFMono-Regular,
+    monospace;
+}
+
+.brandName,
+.mobileBrand {
+  color: #1e3042;
+  font:
+    700 16px/1 ui-monospace,
+    SFMono-Regular,
+    monospace;
+  letter-spacing: 0.04em;
+}
+
+.brandName span,
+.mobileBrand span {
+  color: #1769aa;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.eyebrow,
+.formKicker {
+  margin: 54px 0 17px;
+  color: #4e7385;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.brandCopy {
+  max-width: 430px;
+}
+
+.brandCopy h1 {
+  margin: 0;
+  color: #172737;
+  font-size: clamp(32px, 3.2vw, 51px);
+  line-height: 1.1;
+  letter-spacing: -0.045em;
+}
+
+.modulePills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 30px;
+}
+
+.modulePills span {
+  border: 1px solid #91a9b6;
+  border-radius: 999px;
+  color: #496676;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 8px 13px;
+}
+
+.pipeline {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 44px;
+  color: #657b88;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.pipelineLine {
+  position: absolute;
+  left: 35px;
+  right: 8px;
+  top: 13px;
+  height: 1px;
+  background: #b3c4ca;
+}
+
+.pipelineSource,
+.pipelineStep {
+  position: relative;
+  background: #e7eef0;
+}
+
+.pipelineSource {
+  padding-right: 3px;
+}
+
+.pipelineStep {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: 4px;
+}
+
+.stepIcon {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font:
+    700 8px ui-monospace,
+    monospace;
+  background: #e7eef0;
+}
+
+.bronze {
+  color: #ad6b28;
+}
+
+.silver {
+  color: #667983;
+}
+
+.gold {
+  color: #b78a22;
+}
+
+.trustNote {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 39px;
+  color: #718691;
+  font-size: 11px;
+}
+
+.lockIcon {
+  color: #46829a;
+  font-size: 18px;
+}
+
+.version {
+  margin: 0;
+  color: #7c8e97;
+  font-size: 11px;
+}
+
+.version span {
+  padding: 0 6px;
+  color: #a9b4b8;
+}
+
+.formPanel {
+  position: relative;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 60px 9vw;
+  background: #fff;
+}
+
+.themeToggle {
+  position: absolute;
+  top: 27px;
+  right: 38px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  background: transparent;
+  color: #71808e;
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.themeToggle span:first-child {
+  font-size: 18px;
+  color: #1769aa;
+}
+
+.formWrap {
+  width: min(100%, 430px);
+  animation: riseIn 0.55s ease-out both;
+}
+
+.mobileBrand {
+  display: none;
+}
+
+.formHeader h2 {
+  margin: 0 0 9px;
+  font-size: 40px;
+  letter-spacing: -0.04em;
+}
+
+.formHeader p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.errorBanner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 25px 0 18px;
+  border: 1px solid #e5a2a2;
+  border-radius: 5px;
+  padding: 12px;
+  background: #fff2f1;
+  color: #9e3636;
+  font-size: 12px;
+  line-height: 1.45;
+  animation:
+    fadeIn 0.25s ease-out,
+    shake 0.35s ease-out;
+}
+
+.errorBanner p {
+  margin: 0;
+  flex: 1;
+}
+
+.errorBanner strong {
+  font-weight: 800;
+}
+
+.errorBanner button {
+  border: 0;
+  background: transparent;
+  color: #b25656;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.alertIcon {
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  font-weight: 800;
+}
+
+.ssoButton,
+.submitButton {
+  width: 100%;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.ssoButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 27px;
+  border: 1px solid #cbd7df;
+  padding: 13px 16px;
+  background: #fff;
+  color: #2b4458;
+  font-size: 13px;
+}
+
+.buttonArrow {
+  margin-left: auto;
+  color: #1769aa;
+  font-size: 18px;
+}
+
+.ssoLogo {
+  display: grid;
+  grid-template-columns: 5px 5px;
+  gap: 2px;
+}
+
+.ssoLogo i {
+  display: block;
+  width: 5px;
+  height: 5px;
+}
+
+.ssoLogo i:nth-child(1) {
+  background: #4285f4;
+}
+
+.ssoLogo i:nth-child(2) {
+  background: #34a853;
+}
+
+.ssoLogo i:nth-child(3) {
+  background: #fbbc05;
+}
+
+.ssoLogo i:nth-child(4) {
+  background: #ea4335;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 22px 0;
+  color: #97a4ad;
+  font-size: 11px;
+}
+
+.divider::before,
+.divider::after {
+  content: '';
+  height: 1px;
+  flex: 1;
+  background: #e4e9ed;
+}
+
+.loginForm {
+  display: grid;
+  gap: 9px;
+}
+
+.loginForm label {
+  color: #35495a;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.loginForm input:not([type='checkbox']) {
+  width: 100%;
+  border: 1px solid #cbd6de;
+  border-radius: 4px;
+  outline: none;
+  padding: 12px 13px;
+  background: #fff;
+  color: #182536;
+  font-size: 13px;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+
+.loginForm input:not([type='checkbox'])::placeholder {
+  color: #a5b0b8;
+}
+
+.loginForm input:not([type='checkbox']):focus {
+  border-color: #1769aa;
+  box-shadow: 0 0 0 3px #1769aa1c;
+}
+
+.passwordLabelRow {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 9px;
+}
+
+.fieldError,
+.passwordHint {
+  color: #bd4d4d;
+  font-size: 11px;
+}
+
+.passwordHint {
+  margin: -4px 0 0;
+}
+
+.passwordField {
+  position: relative;
+}
+
+.passwordField input {
+  padding-right: 58px !important;
+}
+
+.passwordField button {
+  position: absolute;
+  top: 1px;
+  right: 3px;
+  height: calc(100% - 2px);
+  border: 0;
+  background: #fff;
+  color: #1769aa;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.hasError .passwordField input {
+  border-color: #c95d5d !important;
+}
+
+.formOptions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 14px 0 20px;
+  font-size: 12px;
+}
+
+.remember {
+  display: flex !important;
+  align-items: center;
+  gap: 7px;
+  font-weight: 500 !important;
+  cursor: pointer;
+}
+
+.remember input {
+  width: 14px;
+  height: 14px;
+  accent-color: #1769aa;
+}
+
+.formOptions a {
+  color: #1769aa;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.submitButton {
+  border: 0;
+  padding: 14px;
+  background: #145d96;
+  color: #fff;
+  font-size: 14px;
+  box-shadow: 0 5px 12px #145d9626;
+}
+
+.submitButton span {
+  margin-left: 7px;
+  font-size: 18px;
+}
+
+.submitButton:hover {
+  background: #0d4e82;
+}
+
+.accessNote {
+  margin: 25px 0 0;
+  color: #89959e;
+  font-size: 11px;
+  line-height: 1.55;
+  text-align: center;
+}
+
+.isDark .formPanel {
+  background: #17212b;
+}
+
+.isDark .formHeader h2,
+.isDark .loginForm label,
+.isDark .formHeader p,
+.isDark .ssoButton,
+.isDark .loginForm input:not([type='checkbox']) {
+  color: #edf4f7;
+}
+
+.isDark .formHeader p,
+.isDark .accessNote {
+  color: #9eabb5;
+}
+
+.isDark .ssoButton,
+.isDark .loginForm input:not([type='checkbox']),
+.isDark .passwordField button {
+  border-color: #3c4e5a;
+  background: #202e39;
+}
+
+.isDark .passwordField button {
+  color: #82c3ed;
+}
+
+.isDark .divider::before,
+.isDark .divider::after {
+  background: #354650;
+}
+
+.isDark .divider {
+  color: #8b9aa4;
+}
+
+@keyframes riseIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes shake {
+  25% {
+    transform: translateX(-4px);
+  }
+
+  75% {
+    transform: translateX(4px);
+  }
+}
+
+@media (max-width: 800px) {
+  .loginShell {
+    display: block;
+  }
+
+  .brandPanel {
+    min-height: auto;
+    padding: 24px;
+  }
+
+  .brandGrid,
+  .brandCopy h1,
+  .modulePills,
+  .pipeline,
+  .trustNote,
+  .version {
+    display: none;
+  }
+
+  .brandContent {
+    display: block;
+  }
+
+  .eyebrow {
+    margin: 20px 0 0;
+    font-size: 9px;
+  }
+
+  .brandMark {
+    width: 32px;
+    height: 32px;
+    font-size: 18px;
+  }
+
+  .brandName {
+    font-size: 14px;
+  }
+
+  .formPanel {
+    min-height: calc(100vh - 90px);
+    padding: 48px 24px 35px;
+    place-items: start center;
+  }
+
+  .themeToggle {
+    top: 18px;
+    right: 22px;
+  }
+
+  .mobileBrand {
+    display: block;
+    margin-bottom: 38px;
+    font-size: 13px;
+  }
+
+  .formHeader h2 {
+    font-size: 34px;
+  }
+}

@@ -35,3 +35,16 @@ async def get_db() -> AsyncGenerator[AsyncSession]:
         except Exception:
             await session.rollback()
             raise
+
+readonly_engine = create_async_engine(
+    settings.readonly_database_url,
+    echo=settings.db_echo,
+    pool_pre_ping=True,
+    pool_size=5,
+)
+
+readonly_session_factory = async_sessionmaker(
+    readonly_engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
+)

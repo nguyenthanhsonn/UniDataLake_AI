@@ -14,7 +14,11 @@ import unicodedata
 from datetime import date
 from pathlib import Path
 
-ROOT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).resolve().parents[1] / "samples"
+ROOT = (
+    Path(sys.argv[1])
+    if len(sys.argv) > 1
+    else Path(__file__).resolve().parents[1] / "samples"
+)
 rng = random.Random(20260927)
 
 
@@ -161,7 +165,10 @@ EMPLOYEES = [
         "1975-02-18",
         None,
         "Active",
-        [("PDT", "CV", "2001-03-01", "2014-06-30", P), ("PDT", "TP", "2014-07-01", None, P)],
+        [
+            ("PDT", "CV", "2001-03-01", "2014-06-30", P),
+            ("PDT", "TP", "2014-07-01", None, P),
+        ],
         [("BA", 1997, SPDN), ("MSC", 2008, SPDN)],
     ),
     (
@@ -170,7 +177,10 @@ EMPLOYEES = [
         "1980-11-07",
         None,
         "Active",
-        [("PTS", "CV", "2006-03-01", "2019-06-30", P), ("PTS", "TP", "2019-07-01", None, P)],
+        [
+            ("PTS", "CV", "2006-03-01", "2019-06-30", P),
+            ("PTS", "TP", "2019-07-01", None, P),
+        ],
         [("BA", 2002, "Trường ĐH Khoa học - ĐH Huế")],
     ),
     (
@@ -179,7 +189,10 @@ EMPLOYEES = [
         "1978-06-25",
         None,
         "Active",
-        [("PTCNS", "CV", "2004-03-01", "2016-06-30", P), ("PTCNS", "TP", "2016-07-01", None, P)],
+        [
+            ("PTCNS", "CV", "2004-03-01", "2016-06-30", P),
+            ("PTCNS", "TP", "2016-07-01", None, P),
+        ],
         [("BA", 2000, LAWH), ("MSC", 2010, "Học viện Hành chính Quốc gia")],
     ),
     (
@@ -188,7 +201,10 @@ EMPLOYEES = [
         "1979-01-30",
         None,
         "Active",
-        [("PKHTC", "CV", "2003-03-01", "2017-06-30", P), ("PKHTC", "TP", "2017-07-01", None, P)],
+        [
+            ("PKHTC", "CV", "2003-03-01", "2017-06-30", P),
+            ("PKHTC", "TP", "2017-07-01", None, P),
+        ],
         [("BA", 2001, KTDN), ("KTT", 2015, "Học viện Tài chính")],
     ),
     (
@@ -224,7 +240,10 @@ EMPLOYEES = [
         "1988-03-09",
         None,
         "Active",
-        [("PTCNS", "NV", "2012-03-01", "2018-06-30", P), ("PTCNS", "CV", "2018-07-01", None, P)],
+        [
+            ("PTCNS", "NV", "2012-03-01", "2018-06-30", P),
+            ("PTCNS", "CV", "2018-07-01", None, P),
+        ],
         [("BA", 2010, LAWH)],
     ),
     (
@@ -270,7 +289,10 @@ EMPLOYEES = [
         "1986-07-02",
         ("Ph.D.", "Hệ thống thông tin"),
         "Active",
-        [("BMHTTT", "GV", "2010-08-15", "2019-06-30", P), ("BMHTTT", "TBM", "2019-07-01", None, P)],
+        [
+            ("BMHTTT", "GV", "2010-08-15", "2019-06-30", P),
+            ("BMHTTT", "TBM", "2019-07-01", None, P),
+        ],
         [
             ("ENG", 2008, BKDN),
             ("MSC", 2012, BKDN),
@@ -299,7 +321,10 @@ EMPLOYEES = [
         "1989-05-28",
         ("Ph.D.", "Khoa học dữ liệu"),
         "Active",
-        [("BMKHMT", "GV", "2013-08-15", "2021-06-30", P), ("BMKHMT", "TBM", "2021-07-01", None, P)],
+        [
+            ("BMKHMT", "GV", "2013-08-15", "2021-06-30", P),
+            ("BMKHMT", "TBM", "2021-07-01", None, P),
+        ],
         [
             ("BA", 2011, "Trường ĐH Khoa học Tự nhiên - ĐHQG TP.HCM"),
             ("MSC", 2014, "Trường ĐH Khoa học Tự nhiên - ĐHQG TP.HCM"),
@@ -314,7 +339,10 @@ EMPLOYEES = [
         "1984-09-09",
         ("M.Sc.", "Công nghệ phần mềm"),
         "Active",
-        [("BMHTTT", "GV", "2009-08-15", "2020-06-30", P), ("BMHTTT", "GVC", "2020-07-01", None, P)],
+        [
+            ("BMHTTT", "GV", "2009-08-15", "2020-06-30", P),
+            ("BMHTTT", "GVC", "2020-07-01", None, P),
+        ],
         [("ENG", 2007, BKDN), ("MSC", 2011, BKDN), ("NVSP", 2010, NVSP_ORG)],
     ),
     (
@@ -490,7 +518,12 @@ EMPLOYEES = [
             ("KXD", "GVC", "2011-07-01", "2022-12-31", P),
             ("KXD", "TK", "2023-01-01", None, P),
         ],
-        [("ENG", 1999, BKDN), ("MSC", 2004, BKDN), ("PHD", 2010, BKDN), ("NVSP", 2003, NVSP_ORG)],
+        [
+            ("ENG", 1999, BKDN),
+            ("MSC", 2004, BKDN),
+            ("PHD", 2010, BKDN),
+            ("NVSP", 2003, NVSP_ORG),
+        ],
     ),
     (
         "Đỗ Thành Long",
@@ -520,7 +553,10 @@ EMPLOYEES = [
         "1972-01-08",
         ("Ph.D.", "Triết học"),
         "Active",
-        [("KLLCT", "GV", "1998-08-15", "2016-06-30", P), ("KLLCT", "TK", "2016-07-01", None, P)],
+        [
+            ("KLLCT", "GV", "1998-08-15", "2016-06-30", P),
+            ("KLLCT", "TK", "2016-07-01", None, P),
+        ],
         [
             ("BA", 1994, "Trường ĐH KHXH&NV - ĐHQG Hà Nội"),
             ("MSC", 2001, "Trường ĐH KHXH&NV - ĐHQG Hà Nội"),
@@ -545,7 +581,11 @@ EMPLOYEES = [
         ("M.Sc.", "Luật học"),
         "Active",
         [("KLLCT", "GV", "2011-08-15", None, P)],
-        [("BA", 2007, LAWH), ("MSC", 2011, "Trường ĐH Luật TP.HCM"), ("NVSP", 2012, NVSP_ORG)],
+        [
+            ("BA", 2007, LAWH),
+            ("MSC", 2011, "Trường ĐH Luật TP.HCM"),
+            ("NVSP", 2012, NVSP_ORG),
+        ],
     ),
     (
         "Võ Đức Hải",
@@ -596,14 +636,23 @@ for eid, (name, gender, dob, lect, status, career, quals) in enumerate(EMPLOYEES
         if rng.random() < 0.1
         else rng.choice(["09", "03", "07", "08"]) + (f"{rng.randrange(10**8):08d}")
     )
-    employees.append((eid, f"NV{eid:04d}", name, dob, gender, email, phone, hire, status))
+    employees.append(
+        (eid, f"NV{eid:04d}", name, dob, gender, email, phone, hire, status)
+    )
     if lect:
         lecturers.append((eid, *lect))
     for code, year, org in quals:
         emp_quals.append((eid, qual_id[code], org, year))
     for dept, pos, start, end, primary in career:
         assignments.append(
-            (eid, dept_id[dept], pos_id[pos], start, end, "true" if primary else "false")
+            (
+                eid,
+                dept_id[dept],
+                pos_id[pos],
+                start,
+                end,
+                "true" if primary else "false",
+            )
         )
 
 write(

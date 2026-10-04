@@ -36,6 +36,7 @@ async def get_db() -> AsyncGenerator[AsyncSession]:
             await session.rollback()
             raise
 
+
 readonly_engine = create_async_engine(
     settings.readonly_database_url,
     echo=settings.db_echo,

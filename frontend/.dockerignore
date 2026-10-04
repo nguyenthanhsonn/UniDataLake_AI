@@ -1,0 +1,19 @@
+# Dependencies & Build Output
+node_modules/
+.next/
+out/
+build/
+dist/
+.pnpm-store/
+*.tsbuildinfo
+.lighthouseci/
+
+# Environment & Secrets
+.env
+.env.local
+.env.*.local
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store

@@ -13,7 +13,11 @@ import sys
 from datetime import date, timedelta
 from pathlib import Path
 
-ROOT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).resolve().parents[1] / "samples"
+ROOT = (
+    Path(sys.argv[1])
+    if len(sys.argv) > 1
+    else Path(__file__).resolve().parents[1] / "samples"
+)
 rng = random.Random(20260926)
 TODAY = date(2026, 9, 25)
 
@@ -199,7 +203,9 @@ GROUP_FACULTY = {
 departments = {d["department_id"]: d for d in read("hr/department.csv")}
 dept_by_code = {d["department_code"]: d["department_id"] for d in departments.values()}
 lecturer_ids = {row["lecturer_id"] for row in read("hr/lecturer.csv")}
-lecturer_assignments = [a for a in read("hr/assignment.csv") if a["employee_id"] in lecturer_ids]
+lecturer_assignments = [
+    a for a in read("hr/assignment.csv") if a["employee_id"] in lecturer_ids
+]
 
 
 def in_subtree(dept, root):
@@ -212,7 +218,9 @@ def in_subtree(dept, root):
 
 def lecturer_for(code, sem):
     """Giảng viên có phân công ở khoa phụ trách, còn công tác suốt học kỳ."""
-    group = next(g for g in sorted(GROUP_FACULTY, key=len, reverse=True) if code.startswith(g))
+    group = next(
+        g for g in sorted(GROUP_FACULTY, key=len, reverse=True) if code.startswith(g)
+    )
     faculty = dept_by_code[GROUP_FACULTY[group]]
     start, end = sem[3].isoformat(), sem[4].isoformat()
     candidates = sorted(
@@ -229,9 +237,12 @@ def lecturer_for(code, sem):
 
 # ---------- students (from Admissions) ----------
 students = read("training/student.csv")
-program_major = {p["program_id"]: int(p["major_id"]) for p in read("admissions/program.csv")}
+program_major = {
+    p["program_id"]: int(p["major_id"]) for p in read("admissions/program.csv")
+}
 year_start = {
-    y["admission_year_id"]: int(y["year_label"][:4]) for y in read("admissions/admission_year.csv")
+    y["admission_year_id"]: int(y["year_label"][:4])
+    for y in read("admissions/admission_year.csv")
 }
 admissions = {a["admission_id"]: a for a in read("admissions/admission.csv")}
 enroll_date = {}  # applicant_id -> enrollment_date
@@ -270,7 +281,9 @@ for s in students:
     cohort = year_start[s["admission_year_id"]]
     major = program_major[s["program_id"]]
     score = entry_score.get(s["applicant_id"])
-    ability = (score - 23.5) / 3.0 * 0.6 + rng.gauss(0, 0.8) if score else rng.gauss(0.5, 0.8)
+    ability = (
+        (score - 23.5) / 3.0 * 0.6 + rng.gauss(0, 0.8) if score else rng.gauss(0.5, 0.8)
+    )
     my_regular = [sem for sem in regular if sem[6] >= cohort]
     stop_after = None
     if s["student_status"] == "Dropped":
@@ -342,7 +355,9 @@ for (code, sem_id), members in sorted(
         room = (
             None
             if sem[5] == 3 and rng.random() < 0.3
-            else (f"{rng.choice(BUILDINGS)}{rng.randrange(1, 6)}{rng.randrange(1, 12):02d}")
+            else (
+                f"{rng.choice(BUILDINGS)}{rng.randrange(1, 6)}{rng.randrange(1, 12):02d}"
+            )
         )
         classes.append(
             (
@@ -356,11 +371,21 @@ for (code, sem_id), members in sorted(
             )
         )
         for r in members[start : start + capacity]:
-            grade_rows.append((r[0], cid, fmt(r[3]), fmt(r[4]), fmt(r[5]), r[6], r[7].isoformat()))
+            grade_rows.append(
+                (r[0], cid, fmt(r[3]), fmt(r[4]), fmt(r[5]), r[6], r[7].isoformat())
+            )
 
 write(
     "training/class.csv",
-    ["class_id", "class_code", "course_id", "semester_id", "lecturer_id", "max_capacity", "room"],
+    [
+        "class_id",
+        "class_code",
+        "course_id",
+        "semester_id",
+        "lecturer_id",
+        "max_capacity",
+        "room",
+    ],
     classes,
 )
 grade_rows.sort()

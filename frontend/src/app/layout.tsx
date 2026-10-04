@@ -4,6 +4,8 @@ import type { Metadata } from 'next'
 
 import '../styles/globals.css'
 
+import { Providers } from './providers'
+
 export const metadata: Metadata = {
   title: 'UniLake AI',
   description: 'Nền tảng Data Lake đa nguồn tích hợp AI Analytics cho quản trị đại học.',
@@ -16,7 +18,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="vi">
-      <body>{children}</body>
+      <body>
+        <Providers>{children}</Providers>
+      </body>
     </html>
   )
 }

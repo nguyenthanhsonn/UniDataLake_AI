@@ -1,9 +1,10 @@
-"""Load dataset schemas (docs/data-schema/<name>_v1.schema.json) and their sample CSVs."""
+"""Load the source DB design, dataset schemas (docs/data-schema/<name>_v1.schema.json) and sample CSVs."""
 
 from __future__ import annotations
 
 import csv
 import json
+import re
 from datetime import date
 from decimal import Decimal
 from functools import cache
@@ -15,6 +16,41 @@ SAMPLES_DIR = REPO_ROOT / "data" / "samples"
 DATASETS = sorted(
     p.name.removesuffix("_v1.schema.json") for p in SCHEMA_DIR.glob("*_v1.schema.json")
 )
+
+
+SOURCE_DB = SCHEMA_DIR / "unilake-db-architecture.txt"
+
+
+@cache
+def source_db() -> dict[str, list[dict]]:
+    """Parse the team's DB design (Eraser syntax) into {table: [column, ...]}.
+
+    Each column is {"name", "db_type", "nullable", "pk", "unique", "references"}; a column
+    without the ``nullable`` flag is NOT NULL, and ``references`` comes from the relation lines.
+    """
+    text = SOURCE_DB.read_text(encoding="utf-8")
+    refs = {
+        src: tuple(dst.split("."))
+        for src, dst in re.findall(r"^(\w+\.\w+) [<>-] (\w+\.\w+)$", text, re.M)
+    }
+    tables: dict[str, list[dict]] = {}
+    for match in re.finditer(r"^(\w+) \[[^\]]*\] \{\n(.*?)^\}", text, re.M | re.S):
+        table, body = match.groups()
+        columns = []
+        for line in body.strip().splitlines():
+            name, db_type, *flags = line.split()
+            columns.append(
+                {
+                    "name": name,
+                    "db_type": db_type,
+                    "nullable": "nullable" in flags,
+                    "pk": "pk" in flags,
+                    "unique": "unique" in flags,
+                    "references": refs.get(f"{table}.{name}"),
+                }
+            )
+        tables[table] = columns
+    return tables
 
 
 @cache

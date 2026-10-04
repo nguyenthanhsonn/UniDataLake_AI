@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
+from app.core.config import settings
 from app.core.exceptions import AppException, app_exception_handler
 from app.core.logging import request_id_middleware
 from app.domains.registry import get_domain_registry
@@ -31,7 +33,7 @@ def create_app() -> FastAPI:
     application.add_exception_handler(AppException, app_exception_handler)
     application.dependency_overrides[get_nlq_service] = provide_nlq_service
 
-    api_prefix = "/api/v1"
+    api_prefix = settings.api_v1_prefix
     application.include_router(auth_router, prefix=api_prefix)
     application.include_router(users_router, prefix=api_prefix)
     application.include_router(datasources_router, prefix=api_prefix)
@@ -41,6 +43,14 @@ def create_app() -> FastAPI:
     application.include_router(nlq_router, prefix=api_prefix)
     application.include_router(dashboard_router, prefix=api_prefix)
     application.include_router(query_history_router, prefix=api_prefix)
+    application.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.cors_origin_list,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+        expose_headers=["X-Request-ID"],
+    )
     return application
 
 

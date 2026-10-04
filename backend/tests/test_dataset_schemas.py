@@ -1,4 +1,4 @@
-"""Generic checks for every dataset schema: DBML match, sample CSVs, keys, FKs and DDL."""
+"""Generic checks for every dataset schema: source DB match, sample CSVs, keys, FKs and DDL."""
 
 from __future__ import annotations
 
@@ -13,10 +13,12 @@ from tests.dataset_utils import (
     DATASETS,
     SAMPLES_DIR,
     SCHEMA_DIR,
+    SOURCE_DB,
     entities,
     load_schema,
     parse,
     rows,
+    source_db,
 )
 
 ENTITY_CASES = [(d, e) for d in DATASETS for e in load_schema(d)["entities"]]
@@ -27,20 +29,37 @@ def test_datasets_found() -> None:
     assert {"admissions", "academic", "hr"} <= set(DATASETS)
 
 
+SQL_TYPE_FOR_DB_TYPE = {
+    "bigint": r"bigint",
+    "int": r"int",
+    "string": r"varchar\(\d+\)",
+    "decimal": r"decimal\(\d+,\d+\)",
+    "text": r"text",
+    "date": r"date",
+    "timestamp": r"timestamp",
+    "boolean": r"boolean",
+}
+
+
 @pytest.mark.parametrize("dataset", DATASETS)
-def test_schema_matches_source_dbml(dataset: str) -> None:
-    dbml = (SCHEMA_DIR / "unilake-db.dbml").read_text(encoding="utf-8")
+def test_schema_matches_source_db(dataset: str) -> None:
+    db = source_db()
     for name, spec in entities(dataset).items():
-        match = re.search(rf"^Table {name} \{{\n(.*?)^\}}", dbml, re.M | re.S)
-        assert match, f"table {name} missing in DBML"
-        dbml_cols = re.findall(r"^  (\w+) (\w+(?:\(\d+(?:,\d+)?\))?)", match.group(1), re.M)
-        assert [(c["name"], c["type"]) for c in spec["columns"]] == dbml_cols, name
-        not_null = set(re.findall(r"^  (\w+) .*(?:not null|pk)", match.group(1), re.M))
-        pk_index = re.search(r"\(([\w, ]+)\) \[pk\]", match.group(1))
-        if pk_index:
-            not_null |= {c.strip() for c in pk_index.group(1).split(",")}
-        declared = {c["name"] for c in spec["columns"] if not c["nullable"]}
-        assert declared == not_null, f"{name} nullability differs from DBML"
+        assert name in db, f"table {name} missing in {SOURCE_DB.name}"
+        db_cols = db[name]
+        assert [c["name"] for c in spec["columns"]] == [c["name"] for c in db_cols], name
+        for col, db_col in zip(spec["columns"], db_cols, strict=True):
+            where = f"{name}.{col['name']}"
+            assert col["db_type"] == db_col["db_type"], f"{where}: db_type"
+            assert re.fullmatch(SQL_TYPE_FOR_DB_TYPE[db_col["db_type"]], col["type"]), where
+            assert col["nullable"] == db_col["nullable"], f"{where}: nullable"
+            assert bool(col.get("unique")) == db_col["unique"], f"{where}: unique"
+            ref = col.get("references")
+            assert (ref and (ref["entity"], ref["column"])) == (db_col["references"] or None), (
+                f"{where}: references"
+            )
+        db_pk = [c["name"] for c in db_cols if c["pk"]]
+        assert spec["primary_key"] == db_pk, f"{name}: primary key"
 
 
 @pytest.mark.parametrize("dataset", DATASETS)
@@ -112,12 +131,33 @@ def test_foreign_keys_resolve(dataset: str, entity: str) -> None:
 
 
 @pytest.mark.parametrize("dataset", DATASETS)
-def test_ddl_declares_every_owned_column(dataset: str) -> None:
+def test_ddl_matches_schema(dataset: str) -> None:
     ddl = (SCHEMA_DIR / f"{dataset}_v1.sql").read_text(encoding="utf-8")
     for name, spec in entities(dataset).items():
         if not spec["owned_by_dataset"]:
             continue
         match = re.search(rf"CREATE TABLE IF NOT EXISTS {name} \((.*?)\n\);", ddl, re.S)
         assert match, f"missing DDL for {name}"
-        declared = re.findall(r"^\s{4}([a-z_]+)\s", match.group(1), re.M)
-        assert declared == [c["name"] for c in spec["columns"]], name
+        body = match.group(1)
+        lines = dict(re.findall(r"^\s{4}([a-z_]+)\s+(.*?),?$", body, re.M))
+        assert list(lines) == [c["name"] for c in spec["columns"]], name
+        single_pk = spec["primary_key"] if len(spec["primary_key"]) == 1 else []
+        for col in spec["columns"]:
+            line = lines[col["name"]].upper()
+            where = f"{name}.{col['name']}"
+            sql_type = col["type"].upper()
+            if col["name"] in single_pk and sql_type == "BIGINT" and "REFERENCES" not in line:
+                sql_type = "BIGSERIAL"
+            assert line.startswith(sql_type), f"{where}: type"
+            is_pk = "PRIMARY KEY" in line or col["name"] in spec["primary_key"]
+            assert ("NOT NULL" in line or is_pk) == (not col["nullable"]), f"{where}: NOT NULL"
+            assert ("UNIQUE" in line) == bool(col.get("unique")), f"{where}: UNIQUE"
+            ref = col.get("references")
+            if ref:
+                assert f"REFERENCES {ref['entity']} ({ref['column']})".upper() in line, where
+            else:
+                assert "REFERENCES" not in line, f"{where}: unexpected FK"
+        if len(spec["primary_key"]) > 1:
+            assert f"PRIMARY KEY ({', '.join(spec['primary_key'])})" in body, f"{name}: PK"
+        for key in spec.get("unique_together", []):
+            assert f"UNIQUE ({', '.join(key)})" in body, f"{name}: UNIQUE {key}"

@@ -5,10 +5,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from app.domains.base import DataLayer, FieldDefinition  # noqa: TC001 - Pydantic cần lúc runtime
 from app.domains.registry import get_domain_registry
 
 if TYPE_CHECKING:
-    from app.domains.base import DataLayer, FieldDefinition
     from app.domains.registry import DomainRegistry
     from app.modules.pipeline.contracts import PipelineEvent
 

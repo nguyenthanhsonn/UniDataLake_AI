@@ -6,6 +6,7 @@ Nếu bạn phụ trách chuyên sâu từng phần, đọc thêm:
 
 - [Hướng dẫn Backend](docs/backend.md)
 - [Hướng dẫn Frontend](docs/frontend.md)
+- [Hướng dẫn Docker & Hạ tầng](docs/docker-guide.md)
 
 Repo hỗ trợ nhiều IDE. VS Code có file gợi ý extension riêng trong `frontend/.vscode/`, còn Antigravity/Cursor/WebStorm/PyCharm có thể dùng các file chuẩn như `.editorconfig`, `backend/pyproject.toml`, `frontend/tsconfig.json`, `frontend/eslint.config.mjs` và `frontend/.prettierrc`.
 

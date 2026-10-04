@@ -1,0 +1,25 @@
+# Python Virtual Environment & Cache
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+
+# Environment & Secrets
+.env
+.env.local
+.env.*.local
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+
+# Test & Docs
+tests/
+alembic/versions/__pycache__/

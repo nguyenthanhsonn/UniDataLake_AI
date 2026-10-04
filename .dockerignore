@@ -1,0 +1,75 @@
+# ==============================================================================
+# Docker Ignore File for UniLake AI
+# Prevents unnecessary files and sensitive data from being copied into images
+# ==============================================================================
+
+# Git & Version Control
+.git/
+.gitignore
+.github/
+
+# Environment Variables & Secrets (Keep .env out of images for security)
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Python Virtual Environment & Cache
+.venv/
+venv/
+ENV/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+
+# Node.js & Frontend Build Artifacts
+node_modules/
+frontend/node_modules/
+.next/
+frontend/.next/
+.pnpm-store/
+out/
+dist/
+build/
+*.tsbuildinfo
+.lighthouseci/
+
+# IDE & Editor Files
+.vscode/
+.idea/
+.crossnote/
+*.swp
+*.swo
+
+# OS Metadata
+.DS_Store
+Thumbs.db
+
+# Database & Storage Files
+data/
+*.parquet
+*.duckdb
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs & Temporary Files
+*.log
+logs/
+tmp/
+temp/
+
+# Documentation & Notebooks (Not needed in production containers)
+docs/
+notebooks/
+.ipynb_checkpoints/
+README.md
+SETUP.md
+CONTRIBUTING.md

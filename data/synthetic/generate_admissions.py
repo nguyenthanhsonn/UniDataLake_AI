@@ -12,7 +12,11 @@ import unicodedata
 from datetime import date, timedelta
 from pathlib import Path
 
-ROOT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).resolve().parents[1] / "samples"
+ROOT = (
+    Path(sys.argv[1])
+    if len(sys.argv) > 1
+    else Path(__file__).resolve().parents[1] / "samples"
+)
 rng = random.Random(20260925)
 
 
@@ -49,7 +53,11 @@ majors = [
     (7, "7580201", "Kỹ thuật xây dựng", 10),
     (8, "8480101", "Khoa học máy tính", 7),
 ]
-write("admissions/major.csv", ["major_id", "major_code", "major_name", "department_id"], majors)
+write(
+    "admissions/major.csv",
+    ["major_id", "major_code", "major_name", "department_id"],
+    majors,
+)
 
 # program_id, code, name, major_id, degree, years, fee, THPT cutoff 2024, popularity weight
 programs = [
@@ -82,7 +90,17 @@ programs = [
     (7, "KT-CQ", "Kế toán", 5, "Bachelor", "4.0", "450000.00", 20.00, 8),
     (8, "NNA-CQ", "Ngôn ngữ Anh", 6, "Bachelor", "4.0", "440000.00", 22.00, 11),
     (9, "KTXD-KS", "Kỹ thuật xây dựng", 7, "Engineer", "4.5", "480000.00", 18.00, 6),
-    (10, "KHMT-THS", "Thạc sĩ Khoa học máy tính", 8, "Master", "2.0", "750000.00", None, 0),
+    (
+        10,
+        "KHMT-THS",
+        "Thạc sĩ Khoa học máy tính",
+        8,
+        "Master",
+        "2.0",
+        "750000.00",
+        None,
+        0,
+    ),
 ]
 write(
     "admissions/program.csv",
@@ -112,7 +130,12 @@ methods = [
         "Xét học bạ THPT",
         "Điểm trung bình 3 môn lớp 12 theo tổ hợp, thang 30, đã cộng điểm ưu tiên",
     ),
-    (3, "XTT", "Xét tuyển thẳng", "Theo quy chế tuyển sinh của Bộ GD&ĐT, không xét điểm"),
+    (
+        3,
+        "XTT",
+        "Xét tuyển thẳng",
+        "Theo quy chế tuyển sinh của Bộ GD&ĐT, không xét điểm",
+    ),
 ]
 write(
     "admissions/admission_method.csv",
@@ -152,7 +175,12 @@ provinces = [
     ("Khánh Hòa", "056", 6, ["THPT Lý Tự Trọng", "THPT Nguyễn Văn Trỗi"]),
     ("Nghệ An", "040", 8, ["THPT Huỳnh Thúc Kháng", "THPT Hà Huy Tập"]),
     ("Hà Nội", "001", 4, ["THPT Kim Liên", "THPT Việt Đức"]),
-    ("Thành phố Hồ Chí Minh", "079", 4, ["THPT Nguyễn Thị Minh Khai", "THPT Lê Quý Đôn"]),
+    (
+        "Thành phố Hồ Chí Minh",
+        "079",
+        4,
+        ["THPT Nguyễn Thị Minh Khai", "THPT Lê Quý Đôn"],
+    ),
 ]
 last = [
     "Nguyễn",
@@ -222,9 +250,7 @@ for year_id, y in YEARS.items():
     for _ in range(PER_YEAR):
         aid += 1
         gender = rng.choice(["Male", "Female"])
-        full_name = (
-            f"{rng.choices(last, last_w)[0]} {rng.choice(mid[gender])} {rng.choice(first[gender])}"
-        )
+        full_name = f"{rng.choices(last, last_w)[0]} {rng.choice(mid[gender])} {rng.choice(first[gender])}"
         birth_year = y - 18 if rng.random() < 0.9 else y - 19
         dob = rand_date(date(birth_year, 1, 1), date(birth_year, 12, 31))
         prov, pcode, _, schools = rng.choices(provinces, [p[2] for p in provinces])[0]
@@ -242,8 +268,14 @@ for year_id, y in YEARS.items():
         email = None
         if rng.random() < 0.85:
             parts = ascii_slug(full_name).split()
-            base = f"{parts[-1]}.{''.join(p[0] for p in parts[:-1])}{dob.strftime('%d%m')}"
-            email = f"{base}@example.com" if base not in used_emails else f"{base}{aid}@example.com"
+            base = (
+                f"{parts[-1]}.{''.join(p[0] for p in parts[:-1])}{dob.strftime('%d%m')}"
+            )
+            email = (
+                f"{base}@example.com"
+                if base not in used_emails
+                else f"{base}{aid}@example.com"
+            )
             used_emails.add(base)
         school = None if rng.random() < 0.05 else rng.choice(schools)
         applicants.append(
@@ -279,12 +311,18 @@ for year_id, y in YEARS.items():
             if method == 1:
                 app_date = rand_date(date(y, 7, 16), date(y, 7, 28))
                 score = (
-                    round(min(29.5, max(12.0, 21.0 + 3.3 * ability + rng.gauss(0, 1.0))) * 20) / 20
+                    round(
+                        min(29.5, max(12.0, 21.0 + 3.3 * ability + rng.gauss(0, 1.0)))
+                        * 20
+                    )
+                    / 20
                 )
             elif method == 2:
                 app_date = rand_date(date(y, 3, 15), date(y, 6, 15))
                 cutoff = min(28.5, cutoff + 2.0)
-                score = round(min(29.8, max(17.0, 24.3 + 2.2 * ability + rng.gauss(0, 0.8))), 1)
+                score = round(
+                    min(29.8, max(17.0, 24.3 + 2.2 * ability + rng.gauss(0, 0.8))), 1
+                )
             else:
                 app_date = rand_date(date(y, 4, 1), date(y, 6, 20))
                 score = None
@@ -314,7 +352,11 @@ for year_id, y in YEARS.items():
             if status == "Accepted":
                 enr_id += 1
                 r = rng.random()
-                estatus = "Enrolled" if r < 0.82 else ("Deferred" if r < 0.88 else "Cancelled")
+                estatus = (
+                    "Enrolled"
+                    if r < 0.82
+                    else ("Deferred" if r < 0.88 else "Cancelled")
+                )
                 student_id = None
                 if estatus == "Enrolled":
                     stu_id += 1
@@ -345,7 +387,9 @@ for year_id, y in YEARS.items():
                         enr_id,
                         adm_id,
                         student_id,
-                        rand_date(result_day + timedelta(days=2), date(y, 9, 12)).isoformat(),
+                        rand_date(
+                            result_day + timedelta(days=2), date(y, 9, 12)
+                        ).isoformat(),
                         estatus,
                     )
                 )
@@ -355,7 +399,12 @@ for year_id, y in YEARS.items():
             taken = {(w[0][0], w[1]) for w in wishes}
             prog = rng.choice([p for p in ug if (p[0], 1) not in taken])
             adm_id += 1
-            score = round(min(29.5, max(12.0, 21.0 + 3.3 * ability + rng.gauss(0, 1.0))) * 20) / 20
+            score = (
+                round(
+                    min(29.5, max(12.0, 21.0 + 3.3 * ability + rng.gauss(0, 1.0))) * 20
+                )
+                / 20
+            )
             admissions.append(
                 (
                     adm_id,
@@ -415,7 +464,13 @@ write(
 )
 write(
     "admissions/enrollment.csv",
-    ["enrollment_id", "admission_id", "student_id", "enrollment_date", "enrollment_status"],
+    [
+        "enrollment_id",
+        "admission_id",
+        "student_id",
+        "enrollment_date",
+        "enrollment_status",
+    ],
     enrollments,
 )
 print(len(applicants), len(admissions), len(enrollments), len(students))

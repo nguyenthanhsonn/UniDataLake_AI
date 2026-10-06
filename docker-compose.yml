@@ -109,6 +109,9 @@ services:
     restart: always
     ports:
       - "8000:8000"
+    volumes:
+      - ./backend:/app
+
     environment:
       - ENVIRONMENT=${ENVIRONMENT:-development}
       - DEBUG=${DEBUG:-true}

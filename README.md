@@ -172,7 +172,7 @@ unilake-ai/
 |--------|---------|
 | **Nguyễn Thanh Sơn** | Scrum Master / Backend Lead |
 | **Hoàng Lâm Bảo Toàn** | Backend - Data Engineering |
-| **Nguyễn Thị Tố Loan** | Frontend Developer |
+| **Nguyễn Thị Tô Loan** | Frontend Developer |
 | **Đặng Trần Trí Đức** | AI/ML Developer |
 | **Trương Đình Đạt** | DevOps & QA |
 

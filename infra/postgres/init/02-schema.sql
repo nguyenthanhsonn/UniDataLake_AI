@@ -297,8 +297,11 @@ CREATE TABLE IF NOT EXISTS login_session (
     login_at TIMESTAMP NOT NULL DEFAULT NOW(),
     logout_at TIMESTAMP,
     ip_address VARCHAR(45),
-    session_status VARCHAR(30) NOT NULL
+    user_agent TEXT,
+    refresh_token_hash TEXT,
+    session_status VARCHAR(30) NOT NULL DEFAULT 'ACTIVE'
 );
+
 
 -- -----------------------------------------------------------------------------
 -- 6. DATA PLATFORM & LAKE ENGINE

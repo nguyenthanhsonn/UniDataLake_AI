@@ -23,6 +23,7 @@ def _b64url_decode(data: str) -> bytes:
     return base64.urlsafe_b64decode(f"{data}{padding}")
 
 
+# Hàm hash_password để hash một mật khẩu với PBKDF2-HMAC-SHA256
 def hash_password(password: str) -> str:
     """Hash a password with PBKDF2-HMAC-SHA256."""
     salt = token_bytes(16)
@@ -30,6 +31,7 @@ def hash_password(password: str) -> str:
     return f"pbkdf2_sha256${_b64url_encode(salt)}${_b64url_encode(digest)}"
 
 
+# Hàm verify_password để verify một mật khẩu với PBKDF2-HMAC-SHA256
 def verify_password(password: str, password_hash: str) -> bool:
     """Verify a password against a PBKDF2 hash."""
     try:
@@ -46,6 +48,7 @@ def verify_password(password: str, password_hash: str) -> bool:
     return hmac.compare_digest(digest, expected)
 
 
+# Hàm create_access_token để tạo một HS256 JWT access token (mặc định 15 phút)
 def create_access_token(
     subject: str,
     *,
@@ -66,6 +69,23 @@ def create_access_token(
     return f"{encoded_header}.{encoded_payload}.{_b64url_encode(signature)}"
 
 
+# Hàm create_refresh_token để tạo một HS256 JWT refresh token (mặc định 7 ngày)
+def create_refresh_token(
+    subject: str,
+    *,
+    expires_delta: timedelta | None = None,
+    claims: dict[str, Any] | None = None,
+) -> str:
+    """Create a compact HS256 JWT refresh token (default 7 days)."""
+    token_claims = {"type": "refresh", **(claims or {})}
+    return create_access_token(
+        subject,
+        expires_delta=expires_delta or timedelta(days=7),
+        claims=token_claims,
+    )
+
+
+# Hàm decode_access_token để verify một compact HS256 JWT access token
 def decode_access_token(token: str) -> dict[str, Any]:
     """Decode and verify a compact HS256 JWT access token."""
     try:

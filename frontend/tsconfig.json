@@ -36,6 +36,12 @@
       "@/types/*": [
         "./src/types/*"
       ],
+      "@/config/*": [
+        "./src/config/*"
+      ],
+      "@/views/*": [
+        "./src/views/*"
+      ],
       "@/constants/*": [
         "./src/constants/*"
       ]

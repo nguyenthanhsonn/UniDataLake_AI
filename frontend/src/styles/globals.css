@@ -4,7 +4,6 @@
 
 :root {
   color-scheme: light;
-  font-family: 'Avenir Next', 'Segoe UI', sans-serif;
   color: #182536;
   background: #f6f8fa;
 }
@@ -101,5 +100,6 @@ a {
   }
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: 'cv11', 'ss01';
   }
 }

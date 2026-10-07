@@ -7,7 +7,7 @@ import hashlib
 import hmac
 import json
 from datetime import UTC, datetime, timedelta
-from secrets import token_bytes
+from secrets import token_bytes, token_urlsafe
 from typing import Any, cast
 
 from app.core.config import settings
@@ -77,7 +77,7 @@ def create_refresh_token(
     claims: dict[str, Any] | None = None,
 ) -> str:
     """Create a compact HS256 JWT refresh token (default 7 days)."""
-    token_claims = {"type": "refresh", **(claims or {})}
+    token_claims = {"type": "refresh", "jti": token_urlsafe(16), **(claims or {})}
     return create_access_token(
         subject,
         expires_delta=expires_delta or timedelta(days=7),

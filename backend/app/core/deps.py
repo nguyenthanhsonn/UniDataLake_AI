@@ -4,7 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Annotated, Any
 
-from fastapi import Depends, Header
+from fastapi import Depends
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from app.core.exceptions import AppException
 from app.core.security import decode_access_token
@@ -12,14 +13,33 @@ from app.core.security import decode_access_token
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+bearer_scheme = HTTPBearer(auto_error=False)
+
 
 async def get_current_user(
-    authorization: Annotated[str | None, Header()] = None,
+    credentials: Annotated[
+        HTTPAuthorizationCredentials | str | None,
+        Depends(bearer_scheme),
+    ] = None,
 ) -> dict[str, Any]:
     """Resolve the current user from a bearer token."""
-    if not authorization or not authorization.lower().startswith("bearer "):
-        raise AppException("Missing bearer token", code="UNAUTHORIZED", status_code=401)
-    return decode_access_token(authorization.split(" ", 1)[1])
+    # Swagger Authorize và client thật đều gửi access token qua header Authorization.
+    # HTTPBearer tự tách phần "Bearer", nên phía endpoint không cần nhận header thủ công.
+    token: str | None = None
+    if isinstance(credentials, HTTPAuthorizationCredentials):
+        token = credentials.credentials
+    elif isinstance(credentials, str):
+        # Nhánh này giữ cho unit test cũ có thể gọi trực tiếp bằng chuỗi Bearer token.
+        token = credentials.removeprefix("Bearer ").removeprefix("bearer ").strip()
+
+    if not token:
+        raise AppException(
+            "Vui lòng đăng nhập để tiếp tục",
+            code="UNAUTHORIZED",
+            status_code=401,
+        )
+    # Token hợp lệ sẽ trả về payload, trong đó "sub" chính là app_user_id.
+    return decode_access_token(token)
 
 
 def require_role(*roles: str) -> Callable[[dict[str, Any]], dict[str, Any]]:

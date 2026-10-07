@@ -4,10 +4,9 @@ from __future__ import annotations
 
 import hashlib
 from datetime import datetime
+from typing import TYPE_CHECKING
 
-from fastapi import HTTPException, status
-from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy import select, update
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import AppException
@@ -17,215 +16,256 @@ from app.core.security import (
     decode_access_token,
     verify_password,
 )
-from app.infra.db.session import async_session_factory
-from app.modules.auth.models import LoginSession
-from app.modules.auth.schemas import TokenResponse
-from app.modules.users.models import User
-from app.modules.users.service import get_user_by_username
+from app.modules.auth.models import LoginSession, Role, UserRole
+from app.modules.auth.schemas import LoginResponse, SessionRead, UserProfileDTO
+from app.repositories.user_repo import UserRepository
+
+if TYPE_CHECKING:
+    from app.modules.auth.schemas import LoginRequest, LogoutRequest, RefreshTokenRequest
 
 
-async def login(
-    request: OAuth2PasswordRequestForm,
-    db: AsyncSession | None = None,
-    ip_address: str | None = None,
-    user_agent: str | None = None,
-) -> TokenResponse:
-    """Authenticate user with username and password.
+class AuthService:
+    def __init__(self, db: AsyncSession) -> None:
+        self.db = db
+        self.user_repo = UserRepository(db)
 
-    1. Verify username & password; if invalid, raise 401 Unauthorized.
-    2. Generate access_token with sub=user_id, username, and role claims.
-    3. Generate refresh_token with sub=user_id.
-    4. Save login session record to app.login_session with token hash.
-    5. Return TokenResponse with access_token and refresh_token.
-    """
-    try:
-        user = await get_user_by_username(request.username, session=db)
-    except AppException as exc:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Tên đăng nhập hoặc mật khẩu không chính xác",
-            headers={"WWW-Authenticate": "Bearer"},
-        ) from exc
+    async def login(
+        self,
+        req: LoginRequest,
+        ip_address: str | None,
+        user_agent: str | None,
+    ) -> LoginResponse:
+        # Tìm tài khoản theo username người dùng nhập.
+        exist_user = await self.user_repo.get_by_username(req.username)
 
-    if not verify_password(request.password, str(user.password_hash)):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Tên đăng nhập hoặc mật khẩu không chính xác",
-            headers={"WWW-Authenticate": "Bearer"},
+        if not exist_user:
+            raise AppException(
+                message="Tên đăng nhập hoặc mật khẩu chưa đúng",
+                status_code=401,
+                code="UNAUTHORIZED",
+            )
+
+        # Kiểm tra mật khẩu nhưng không nói rõ sai username hay password.
+        password_match = verify_password(req.password, exist_user.password_hash)
+
+        if not password_match:
+            raise AppException(
+                message="Tên đăng nhập hoặc mật khẩu chưa đúng",
+                status_code=401,
+                code="UNAUTHORIZED",
+            )
+        if not exist_user.is_active:
+            raise AppException(
+                message="Tài khoản của bạn đang bị khóa, vui lòng liên hệ quản trị viên",
+                status_code=403,
+                code="USER_INACTIVE",
+            )
+
+        # Lấy quyền, tạo cặp token và lưu phiên đăng nhập hiện tại.
+        role_codes = await self._get_role_codes(exist_user.app_user_id)
+        access_token = create_access_token(
+            str(exist_user.app_user_id),
+            claims={"username": exist_user.username, "roles": role_codes},
+        )
+        refresh_token = create_refresh_token(str(exist_user.app_user_id))
+        self.db.add(
+            LoginSession(
+                app_user_id=exist_user.app_user_id,
+                ip_address=ip_address,
+                user_agent=user_agent,
+                refresh_token_hash=self._hash_refresh_token(refresh_token),
+            )
+        )
+        await self.db.flush()
+
+        return LoginResponse(
+            access_token=access_token,
+            refresh_token=refresh_token,
+            user=UserProfileDTO(
+                user_id=exist_user.app_user_id,
+                username=exist_user.username,
+                role=role_codes[0] if role_codes else "USER",
+            ),
         )
 
-    user_id_str = str(user.app_user_id)
-    role_name = getattr(user, "role", None) or "USER"
+    # Hàm lấy danh sách quyền của user từ AppUserRole và Role
+    async def _get_role_codes(self, app_user_id: int) -> list[str]:
+        # Gom tất cả role của user để đưa vào access token.
+        query = (
+            select(Role.role_code)
+            .join(UserRole, UserRole.role_id == Role.role_id)
+            .where(UserRole.app_user_id == app_user_id)
+            .order_by(Role.role_code)
+        )
+        result = await self.db.execute(query)
+        return list(result.scalars().all())
 
-    access_token = create_access_token(
-        subject=user_id_str,
-        claims={
-            "username": user.username,
-            "role": role_name,
-        },
-    )
-    refresh_token_str = create_refresh_token(subject=user_id_str)
+    @staticmethod
+    def _hash_refresh_token(refresh_token: str) -> str:
+        # Không lưu refresh token gốc trong DB; chỉ lưu hash để giảm rủi ro lộ phiên.
+        return hashlib.sha256(refresh_token.encode("utf-8")).hexdigest()
 
-    # Hash refresh token bằng SHA-256 để lưu an toàn vào DB
-    refresh_token_hash = hashlib.sha256(refresh_token_str.encode()).hexdigest()
+    async def refresh_token(self, req: RefreshTokenRequest) -> LoginResponse:
+        # Kiểm tra refresh token có hợp lệ và đúng loại dùng để gia hạn phiên.
+        payload = decode_access_token(req.refresh_token)
+        if payload.get("type") != "refresh":
+            raise AppException(
+                message="Phiên đăng nhập không hợp lệ, vui lòng đăng nhập lại",
+                status_code=401,
+                code="INVALID_REFRESH_TOKEN",
+            )
+        try:
+            app_user_id = int(payload["sub"])
+        except (KeyError, TypeError, ValueError) as exc:
+            raise AppException(
+                message="Phiên đăng nhập không hợp lệ, vui lòng đăng nhập lại",
+                status_code=401,
+                code="INVALID_REFRESH_TOKEN",
+            ) from exc
 
-    # lưu session login vào DB
-    session_log = LoginSession(
-        app_user_id=user.app_user_id,
-        ip_address=ip_address,
-        user_agent=user_agent,
-        refresh_token_hash=refresh_token_hash,
-        session_status="ACTIVE",
-    )
+        # Bảo đảm phiên này vẫn còn ACTIVE trong DB.
+        session = await self._get_active_session(req.refresh_token, app_user_id)
+        if session is None:
+            raise AppException(
+                message="Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại",
+                status_code=401,
+                code="SESSION_EXPIRED",
+            )
 
-    # Nếu có session DB thì lưu vào DB, ngược lại thì tạo session mới để lưu
-    if db is not None:
-        db.add(session_log)
-        await db.flush()
-    else:
-        async with async_session_factory() as session:
-            session.add(session_log)
-            await session.commit()
+        # Kiểm tra user còn tồn tại và chưa bị khóa.
+        user = await self.user_repo.get(app_user_id)
+        if user is None:
+            raise AppException(
+                message="Phiên đăng nhập không hợp lệ, vui lòng đăng nhập lại",
+                status_code=401,
+                code="INVALID_REFRESH_TOKEN",
+            )
+        if not user.is_active:
+            raise AppException(
+                message="Tài khoản của bạn đang bị khóa, vui lòng liên hệ quản trị viên",
+                status_code=403,
+                code="USER_INACTIVE",
+            )
 
-    # Trả về access_token và refresh_token
-    return TokenResponse(
-        access_token=access_token,
-        refresh_token=refresh_token_str,
-        token_type="bearer",
-    )
+        # Cấp access token mới và rotate refresh token để phiên cũ không dùng lại.
+        role_codes = await self._get_role_codes(user.app_user_id)
+        access_token = create_access_token(
+            str(user.app_user_id),
+            claims={"username": user.username, "roles": role_codes},
+        )
+        refresh_token = create_refresh_token(str(user.app_user_id))
+        session.refresh_token_hash = self._hash_refresh_token(refresh_token)
+        await self.db.flush()
 
-
-async def refresh_token(
-    refresh_token_str: str,
-    db: AsyncSession | None = None,
-) -> TokenResponse:
-    """Refresh an access token using a valid, active refresh token.
-
-    1. Decode JWT refresh token and verify signature & expiration.
-    2. Hash token with SHA-256 and query app.login_session.
-    3. Verify session exists, session_status == 'ACTIVE', and logout_at IS NULL.
-       If revoked/expired/not found: raise 401 Unauthorized.
-    4. Fetch user from DB, generate new access token.
-    5. Return TokenResponse.
-    """
-    # 1. Decode & verify JWT signature and token type
-    try:
-        payload = decode_access_token(refresh_token_str)
-    except AppException as exc:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại",
-            headers={"WWW-Authenticate": "Bearer"},
-        ) from exc
-
-    if payload.get("type") != "refresh":
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Phiên làm việc không hợp lệ, vui lòng đăng nhập lại",
-            headers={"WWW-Authenticate": "Bearer"},
+        return LoginResponse(
+            access_token=access_token,
+            refresh_token=refresh_token,
+            user=UserProfileDTO(
+                user_id=user.app_user_id,
+                username=user.username,
+                role=role_codes[0] if role_codes else "USER",
+            ),
         )
 
-    # 2. Hash refresh token để query vào bảng login_session
-    token_hash = hashlib.sha256(refresh_token_str.encode()).hexdigest()
-
-    # 3. Query bảng login_session kiểm tra trạng thái session
-    async def _check_session(session: AsyncSession) -> LoginSession | None:
-        stmt = select(LoginSession).where(
-            LoginSession.refresh_token_hash == token_hash,  # type: ignore[arg-type]
-            LoginSession.session_status == "ACTIVE",  # type: ignore[arg-type]
-            LoginSession.logout_at.is_(None),  # type: ignore[attr-defined]
+    # Hàm tìm session active của user
+    async def _get_active_session(
+        self,
+        refresh_token: str,
+        app_user_id: int,
+    ) -> LoginSession | None:
+        # Tìm đúng phiên ACTIVE bằng user id và hash của refresh token.
+        query = select(LoginSession).where(
+            LoginSession.app_user_id == app_user_id,
+            LoginSession.refresh_token_hash == self._hash_refresh_token(refresh_token),
+            LoginSession.session_status == "ACTIVE",
         )
-        result = await session.execute(stmt)
-        return result.scalars().first()
+        result = await self.db.execute(query)
+        return result.scalar_one_or_none()
 
-    if db is not None:
-        session_record = await _check_session(db)
-    else:
-        async with async_session_factory() as session:
-            session_record = await _check_session(session)
+    async def logout(self, req: LogoutRequest) -> dict[str, str]:
+        # Logout cần refresh token để biết chính xác phiên nào đang đăng xuất.
+        if not req.refresh_token:
+            raise AppException(
+                message="Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại",
+                status_code=401,
+                code="SESSION_EXPIRED",
+            )
 
-    if not session_record:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Phiên đăng nhập đã hết hạn hoặc bị đăng xuất, vui lòng đăng nhập lại",
-            headers={"WWW-Authenticate": "Bearer"},
+        # Kiểm tra refresh token và lấy user id từ token.
+        payload = decode_access_token(req.refresh_token)
+        if payload.get("type") != "refresh":
+            raise AppException(
+                message="Phiên đăng nhập không hợp lệ, vui lòng đăng nhập lại",
+                status_code=401,
+                code="INVALID_REFRESH_TOKEN",
+            )
+        try:
+            app_user_id = int(payload["sub"])
+        except (KeyError, TypeError, ValueError) as exc:
+            raise AppException(
+                message="Phiên đăng nhập không hợp lệ, vui lòng đăng nhập lại",
+                status_code=401,
+                code="INVALID_REFRESH_TOKEN",
+            ) from exc
+
+        # Tìm phiên active tương ứng, rồi đánh dấu đã đăng xuất.
+        session = await self._get_active_session(req.refresh_token, app_user_id)
+        if session is None:
+            raise AppException(
+                message="Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại",
+                status_code=401,
+                code="SESSION_EXPIRED",
+            )
+
+        session.session_status = "REVOKED"
+        session.logout_at = datetime.now()
+        await self.db.flush()
+        return {"message": "Bạn đã đăng xuất thành công"}
+
+    async def list_active_sessions(self, app_user_id: int) -> list[SessionRead]:
+        """Return active login sessions owned by the current user."""
+        # Chỉ liệt kê phiên ACTIVE của chính user đang đăng nhập.
+        query = (
+            select(LoginSession)
+            .where(
+                LoginSession.app_user_id == app_user_id,
+                LoginSession.session_status == "ACTIVE",
+            )
+            .order_by(LoginSession.login_at.desc())
         )
+        result = await self.db.execute(query)
+        sessions = result.scalars().all()
+        # Chỉ trả metadata đủ để user nhận diện thiết bị, không trả refresh token/hash.
+        return [
+            SessionRead(
+                login_session_id=session.login_session_id,
+                login_at=session.login_at,
+                ip_address=session.ip_address,
+                user_agent=session.user_agent,
+                session_status=session.session_status,
+            )
+            for session in sessions
+        ]
 
-    # 4. Lấy thông tin user từ DB để cấp Access Token mới
-    app_user_id = session_record.app_user_id
-    if db is not None:
-        user_result = await db.execute(select(User).where(User.app_user_id == app_user_id))
-        user = user_result.scalars().first()
-    else:
-        async with async_session_factory() as session:
-            user_result = await session.execute(select(User).where(User.app_user_id == app_user_id))
-            user = user_result.scalars().first()
-
-    if not user or not user.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Tài khoản của bạn đã bị khóa hoặc không tồn tại trên hệ thống",
-            headers={"WWW-Authenticate": "Bearer"},
+    async def revoke_session(self, session_id: int, app_user_id: int) -> dict[str, str]:
+        """Revoke one active session owned by the current user."""
+        # Tìm phiên theo session_id nhưng luôn khóa trong phạm vi current user.
+        query = select(LoginSession).where(
+            LoginSession.login_session_id == session_id,
+            LoginSession.app_user_id == app_user_id,
+            LoginSession.session_status == "ACTIVE",
         )
-
-    user_id_str = str(user.app_user_id)
-    role_name = getattr(user, "role", None) or "USER"
-
-    # 5. Sinh Access Token mới
-    new_access_token = create_access_token(
-        subject=user_id_str,
-        claims={
-            "username": user.username,
-            "role": role_name,
-        },
-    )
-
-    return TokenResponse(
-        access_token=new_access_token,
-        refresh_token=refresh_token_str,
-        token_type="bearer",
-    )
-
-
-async def logout(refresh_token_str: str, db: AsyncSession | None = None) -> dict[str, str]:
-    """Logout user by revoking all matching active refresh token sessions.
-
-    1. Hash the refresh token with SHA-256.
-    2. Update active session records in app.login_session:
-       set session_status = 'REVOKED' and logout_at = NOW (do not DELETE for audit log).
-    3. Return success status dictionary.
-    """
-    token_hash = hashlib.sha256(refresh_token_str.encode()).hexdigest()
-    stmt = (
-        update(LoginSession)
-        .where(
-            LoginSession.refresh_token_hash == token_hash,  # type: ignore[arg-type]
-            LoginSession.session_status == "ACTIVE",  # type: ignore[arg-type]
-            LoginSession.logout_at.is_(None),  # type: ignore[attr-defined]
-        )
-        .values(
-            session_status="REVOKED",
-            logout_at=datetime.now(),
-        )
-    )
-
-    async def _execute_update(session: AsyncSession) -> int:
-        result = await session.execute(stmt)
-        return int(getattr(result, "rowcount", 0) or 0)
-
-    if db is not None:
-        updated_count = await _execute_update(db)
-        await db.flush()
-    else:
-        async with async_session_factory() as session:
-            updated_count = await _execute_update(session)
-            await session.commit()
-
-    if updated_count == 0:
-        raise AppException(
-            "Phiên đăng nhập đã hết hạn hoặc bị đăng xuất, vui lòng đăng nhập lại",
-            code="UNAUTHORIZED",
-            status_code=401,
-        )
-
-    return {"message": "Đăng xuất thành công"}
+        result = await self.db.execute(query)
+        session = result.scalar_one_or_none()
+        if session is None:
+            # Không tìm thấy nghĩa là session không tồn tại, đã logout, hoặc không thuộc user này.
+            raise AppException(
+                message="Không tìm thấy phiên đăng nhập này hoặc phiên đã được đăng xuất",
+                status_code=404,
+                code="SESSION_NOT_FOUND",
+            )
+        # Revoke phiên được chọn để lần refresh tiếp theo trên thiết bị đó bị từ chối.
+        session.session_status = "REVOKED"
+        session.logout_at = datetime.now()
+        await self.db.flush()
+        return {"message": "Đã đăng xuất thiết bị này"}

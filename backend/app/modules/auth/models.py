@@ -4,18 +4,17 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import BigInteger, DateTime, ForeignKey, String, Text, func
+from sqlalchemy import BigInteger, DateTime, ForeignKey, Index, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.infra.db.base import Base
-from app.modules.users.models import User
 
-__all__ = ["Base", "LoginSession", "Permission", "Role", "RolePermission", "User", "UserRole"]
+__all__ = ["Base", "LoginSession", "Permission", "Role", "RolePermission", "UserRole"]
 
 
 class Role(Base):
     __tablename__ = "role"
-    __table_args__ = ({"schema": "app"},)
+    __table_args__ = (Index("ix_role_role_code", "role_code"), {"schema": "app"})
 
     role_id: Mapped[int] = mapped_column(
         BigInteger, primary_key=True, autoincrement=True, index=True
@@ -27,7 +26,10 @@ class Role(Base):
 
 class Permission(Base):
     __tablename__ = "permission"
-    __table_args__ = ({"schema": "app"},)
+    __table_args__ = (
+        Index("ix_permission_permission_code", "permission_code"),
+        {"schema": "app"},
+    )
 
     permission_id: Mapped[int] = mapped_column(
         BigInteger, primary_key=True, autoincrement=True, index=True
@@ -39,7 +41,10 @@ class Permission(Base):
 
 class UserRole(Base):
     __tablename__ = "user_role"
-    __table_args__ = ({"schema": "app"},)
+    __table_args__ = (
+        Index("ix_user_role_role_id", "role_id"),
+        {"schema": "app"},
+    )
 
     app_user_id: Mapped[int] = mapped_column(
         BigInteger, ForeignKey("app.app_user.app_user_id"), primary_key=True
@@ -51,7 +56,10 @@ class UserRole(Base):
 
 class RolePermission(Base):
     __tablename__ = "role_permission"
-    __table_args__ = ({"schema": "app"},)
+    __table_args__ = (
+        Index("ix_role_permission_permission_id", "permission_id"),
+        {"schema": "app"},
+    )
 
     role_id: Mapped[int] = mapped_column(
         BigInteger, ForeignKey("app.role.role_id"), primary_key=True
@@ -63,7 +71,11 @@ class RolePermission(Base):
 
 class LoginSession(Base):
     __tablename__ = "login_session"
-    __table_args__ = ({"schema": "app"},)
+    __table_args__ = (
+        Index("ix_login_session_app_user_id", "app_user_id"),
+        Index("ix_login_session_session_status", "session_status"),
+        {"schema": "app"},
+    )
 
     login_session_id: Mapped[int] = mapped_column(
         BigInteger, primary_key=True, autoincrement=True, index=True

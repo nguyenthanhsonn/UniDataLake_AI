@@ -9,9 +9,12 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from app.core.exceptions import AppException
 from app.core.security import decode_access_token
+from app.infra.db.session import get_db
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+
+__all__ = ["get_current_user", "get_db", "require_role"]
 
 bearer_scheme = HTTPBearer(auto_error=False)
 

@@ -26,6 +26,7 @@ from app.modules.datasources.service import (
     ALLOWED_DATA_SOURCE_WRITE_ROLES_RESPONSE,
     DataSourceService,
 )
+from app.modules.users.models import User as _User
 from app.repositories.datasource_repo import DataSourceRepository
 
 
@@ -557,6 +558,75 @@ def test_validate_configuration_accepts_valid_rest_api_config() -> None:
     )
 
     assert errors == []
+
+
+def test_validate_configuration_reports_invalid_excel_values() -> None:
+    repo = DataSourceRepository(_db())
+
+    errors = repo.validate_configuration(
+        "EXCEL",
+        {"sheet_name": "", "header_row": 0, "skip_rows": -1},
+    )
+
+    assert "Configuration 'sheet_name' must not be empty" in errors
+    assert "Configuration 'header_row' must be greater than or equal to 1" in errors
+    assert "Configuration 'skip_rows' must be greater than or equal to 0" in errors
+
+
+def test_validate_configuration_reports_invalid_rest_api_values() -> None:
+    repo = DataSourceRepository(_db())
+
+    errors = repo.validate_configuration(
+        "REST_API",
+        {
+            "method": "CONNECT",
+            "headers": {"Authorization": 123},
+            "pagination": {"type": "page", "page_param": "page"},
+            "timeout_seconds": 0,
+        },
+    )
+
+    assert "Configuration 'method' must be one of: GET, POST, PUT, PATCH, DELETE" in errors
+    assert "Configuration 'headers' must be an object with string keys and string values" in errors
+    assert "Configuration 'timeout_seconds' must be greater than 0" in errors
+    assert "Configuration 'pagination.size_param' is required for page pagination" in errors
+
+
+def test_validate_configuration_reports_invalid_csv_optional_values() -> None:
+    repo = DataSourceRepository(_db())
+
+    errors = repo.validate_configuration(
+        "CSV",
+        {
+            "delimiter": "",
+            "encoding": "",
+            "has_header": True,
+            "quote_char": 1,
+            "skip_rows": -1,
+        },
+    )
+
+    assert "Configuration 'delimiter' must not be empty" in errors
+    assert "Configuration 'encoding' must not be empty" in errors
+    assert "Invalid type for configuration 'quote_char': expected str" in errors
+    assert "Configuration 'skip_rows' must be greater than or equal to 0" in errors
+
+
+@pytest.mark.asyncio
+async def test_create_data_source_repository_preserves_valid_configuration() -> None:
+    db = _db()
+    db.flush = AsyncMock()
+    repo = DataSourceRepository(db)
+    req = _create_request()
+
+    data_source = await repo.create_data_source(req, created_by=7)
+
+    assert _User.__tablename__ == "app_user"
+    assert data_source.configuration == req.configuration
+    assert data_source.source_type == "CSV"
+    assert data_source.created_by == 7
+    db.add.assert_called_once_with(data_source)
+    db.flush.assert_awaited_once()
 
 
 @pytest.mark.asyncio

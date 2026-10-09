@@ -120,6 +120,8 @@ class DatasetRead(BaseModel):
 
 
 class DataSourceCreate(BaseModel):
+    """Payload tạo mới data source; configuration được validate theo source_type."""
+
     source_system_id: int
     source_name: str
     source_type: str
@@ -128,3 +130,16 @@ class DataSourceCreate(BaseModel):
     configuration: dict[str, Any]
     description: str | None = None
     is_active: bool
+
+
+class DataSourceUpdate(DataSourceCreate):
+    """Payload cập nhật data source; tất cả field đều optional để hỗ trợ partial update."""
+
+    source_system_id: int | None = None  # type: ignore[assignment]
+    source_name: str | None = None  # type: ignore[assignment]
+    source_type: str | None = None  # type: ignore[assignment]
+    connection_type: str | None = None  # type: ignore[assignment]
+    location: str | None = None  # type: ignore[assignment]
+    configuration: dict[str, Any] | None = None  # type: ignore[assignment]
+    description: str | None = None
+    is_active: bool | None = None  # type: ignore[assignment]

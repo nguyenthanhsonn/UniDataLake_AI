@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import TYPE_CHECKING, Any, cast
 
 from sqlalchemy import func, select
@@ -19,8 +20,19 @@ REQUIRED_CONFIG: dict[str, dict[str, type[Any]]] = {
         "encoding": str,
         "has_header": bool,
     },
+    "EXCEL": {
+        "sheet_name": str,
+        "header_row": int,
+        "skip_rows": int,
+    },
     "JSON": {
         "encoding": str,
+    },
+    "REST_API": {
+        "method": str,
+        "headers": dict,
+        "pagination": dict,
+        "timeout_seconds": int,
     },
 }
 
@@ -136,7 +148,13 @@ class DataSourceRepository(BaseRepository[DataSource]):
         result = await self.db.execute(query)
         return result.scalar_one() > 0
 
-    async def check_source_name(self, source_name: str, source_system_id: int) -> bool:
+    async def check_source_name(
+        self,
+        source_name: str,
+        source_system_id: int,
+        *,
+        exclude_data_source_id: int | None = None,
+    ) -> bool:
         """Kiểm tra trùng source_name trong cùng source_system."""
 
         if not source_name or not source_system_id:
@@ -148,6 +166,9 @@ class DataSourceRepository(BaseRepository[DataSource]):
             .where(DataSource.source_name == source_name)
             .where(DataSource.source_system_id == source_system_id)
         )
+        if exclude_data_source_id is not None:
+            query = query.where(DataSource.data_source_id != exclude_data_source_id)
+
         result = await self.db.execute(query)
         return result.scalar_one() > 0
 
@@ -182,3 +203,17 @@ class DataSourceRepository(BaseRepository[DataSource]):
                 )
 
         return errors
+
+    async def update_data_source(
+        self,
+        data_source: DataSource,
+        values: dict[str, Any],
+    ) -> DataSource:
+        """Cập nhật các field được gửi lên và flush để ORM giữ trạng thái mới nhất."""
+
+        for field_name, field_value in values.items():
+            setattr(data_source, field_name, field_value)
+
+        data_source.updated_at = datetime.now()
+        await self.db.flush()
+        return data_source

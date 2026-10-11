@@ -40,10 +40,10 @@ export function AnalyticsView() {
       </div>
 
       {/* NLQ Feature Spotlight */}
-      <Card className="border-sky-500/30 bg-gradient-to-r from-sky-500/5 via-indigo-500/5 to-transparent">
+      <Card className="border-indigo-500/30 bg-gradient-to-r from-indigo-500/5 via-indigo-500/5 to-transparent">
         <CardHeader>
           <div className="flex items-center gap-2">
-            <div className="flex size-8 items-center justify-center rounded-lg bg-sky-500 text-white shadow-sm">
+            <div className="flex size-8 items-center justify-center rounded-lg bg-indigo-500 text-white shadow-sm">
               <Bot className="size-4" />
             </div>
             <div>
@@ -55,7 +55,7 @@ export function AnalyticsView() {
                 (Read-only).
               </CardDescription>
             </div>
-            <Badge className="ml-auto bg-sky-500 text-white hover:bg-sky-600">
+            <Badge className="ml-auto bg-indigo-500 text-white hover:bg-indigo-600">
               <Sparkles className="mr-1 size-3" /> AI Engine
             </Badge>
           </div>
@@ -69,7 +69,7 @@ export function AnalyticsView() {
             </span>
             <button
               type="button"
-              className="ml-auto inline-flex items-center gap-1 rounded bg-sky-600 px-3 py-1 text-xs font-semibold text-white hover:bg-sky-700"
+              className="ml-auto inline-flex items-center gap-1 rounded bg-indigo-600 px-3 py-1 text-xs font-semibold text-white hover:bg-indigo-700"
             >
               Chạy truy vấn <ChevronRight className="size-3" />
             </button>
@@ -108,7 +108,7 @@ export function AnalyticsView() {
               <CardTitle className="text-sm font-bold">
                 Phân bố hồ sơ đăng ký theo phương thức
               </CardTitle>
-              <BarChart3 className="size-4 text-sky-500" />
+              <BarChart3 className="size-4 text-indigo-500" />
             </div>
             <CardDescription>Số lượng hồ sơ tuyển sinh đợt 1 năm học 2025-2026</CardDescription>
           </CardHeader>
@@ -137,7 +137,9 @@ export function AnalyticsView() {
             </div>
             <div className="flex items-center justify-between border-b border-slate-100 pb-2 dark:border-slate-800">
               <span className="text-slate-500">Điểm chuẩn trung bình toàn trường:</span>
-              <span className="font-mono font-bold text-sky-600 dark:text-sky-400">24.65 điểm</span>
+              <span className="font-mono font-bold text-indigo-600 dark:text-indigo-400">
+                24.65 điểm
+              </span>
             </div>
             <div className="flex items-center justify-between pb-2">
               <span className="text-slate-500">Tốc độ phản hồi trung bình DuckDB:</span>

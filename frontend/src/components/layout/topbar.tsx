@@ -1,10 +1,18 @@
 'use client'
 
-import { Bell, Database, Menu, Shield } from 'lucide-react'
+import Link from 'next/link'
 
-import { ROLE_DEFINITIONS } from '@/config/roles'
+import { Bell, Building2, ChevronDown, Layers, Menu, Sparkles } from 'lucide-react'
+
+import { hasAccessToRoute } from '@/config/roles'
 import { useAuth } from '@/hooks/use-auth'
 import type { RoleCode } from '@/types/auth'
+
+import { DomainSelector } from './domain-selector'
+import { UserMenu } from './user-menu'
+
+/** Trang Hỏi AI (NLQ) hiện nằm trong không gian phân tích. */
+const ASK_AI_PATH = '/analytics'
 
 interface TopbarProps {
   role: RoleCode
@@ -12,60 +20,69 @@ interface TopbarProps {
 }
 
 export function Topbar({ role, onOpenMobile }: TopbarProps) {
-  const { user } = useAuth()
-  const roleDef = ROLE_DEFINITIONS[role]
+  const { roles } = useAuth()
+  const canAskAi = hasAccessToRoute(ASK_AI_PATH, roles)
 
   return (
-    <header className="sticky top-0 z-20 flex h-16 items-center justify-between border-b border-slate-200 bg-white/95 px-4 backdrop-blur transition-colors dark:border-slate-800 dark:bg-slate-900/95 md:px-8">
-      <div className="flex items-center gap-4">
-        {/* Mobile menu button */}
-        <button
-          type="button"
-          onClick={onOpenMobile}
-          className="flex size-9 items-center justify-center rounded-lg border border-slate-200 text-slate-600 transition-colors hover:bg-slate-100 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800 md:hidden"
-          aria-label="Mở menu điều hướng"
-        >
-          <Menu className="size-4" />
-        </button>
+    <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-2 border-b border-slate-200 bg-white px-3 sm:gap-3 md:px-4">
+      <button
+        type="button"
+        onClick={onOpenMobile}
+        className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 text-slate-700 transition-colors hover:bg-slate-100 md:hidden"
+        aria-label="Mở menu điều hướng"
+      >
+        <Menu className="size-4" />
+      </button>
 
-        <div className="flex items-center gap-2.5">
-          <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-            UniDataLake AI
+      <div className="flex shrink-0 items-center gap-2.5">
+        <div className="flex size-8 items-center justify-center rounded-lg bg-indigo-600 text-white">
+          <Layers className="size-[18px]" />
+        </div>
+        <div className="hidden flex-col sm:flex">
+          <span className="flex items-center gap-1.5">
+            <span className="text-sm font-bold text-slate-900">UniLake AI</span>
+            <span className="rounded border border-indigo-200 bg-indigo-50 px-1.5 py-px font-mono text-[10px] font-bold text-indigo-700">
+              v1.0
+            </span>
           </span>
-          <span className="text-slate-300 dark:text-slate-700">/</span>
-          <h1 className="text-sm font-bold text-slate-900 dark:text-slate-100">{roleDef.name}</h1>
+          <span className="font-mono text-[9px] font-medium uppercase tracking-wider text-slate-400">
+            Hồ dữ liệu & phân tích AI
+          </span>
         </div>
       </div>
 
-      <div className="flex items-center gap-3">
-        {/* Lake status indicator */}
-        <div className="hidden items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50/70 px-3 py-1 text-[11px] font-medium text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-300 sm:flex">
-          <span className="size-1.5 animate-pulse rounded-full bg-emerald-500" />
-          <Database className="size-3" />
-          <span>Medallion Lake: Sẵn sàng</span>
-        </div>
+      <div className="hidden h-6 w-px shrink-0 bg-slate-200 sm:block" />
 
-        {/* Role badge */}
-        <div className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-semibold text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
-          <Shield className="size-3.5 text-sky-500" />
-          <span className="font-mono text-[11px]">{role}</span>
-        </div>
+      <DomainSelector />
 
-        {/* Notification icon */}
-        <button
-          type="button"
-          className="relative flex size-9 items-center justify-center rounded-lg border border-slate-200 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:border-slate-800 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
-          aria-label="Thông báo hệ thống"
+      <div className="hidden h-8 shrink-0 items-center gap-1.5 rounded-md border border-slate-300 bg-white px-2.5 text-xs font-medium text-slate-700 xl:flex">
+        <Building2 className="size-3.5 text-slate-500" />
+        Toàn trường (Tất cả đơn vị)
+        <ChevronDown className="size-3.5 text-slate-400" />
+      </div>
+
+      <div className="flex-1" />
+
+      {canAskAi && (
+        <Link
+          href={ASK_AI_PATH}
+          className="flex h-8 shrink-0 items-center gap-1.5 rounded-md border border-indigo-200 bg-indigo-50 px-3 text-xs font-semibold text-indigo-700 transition-colors hover:bg-indigo-100"
         >
-          <Bell className="size-4" />
-          <span className="absolute right-2 top-2 size-1.5 rounded-full bg-sky-500" />
-        </button>
+          <Sparkles className="size-3.5" />
+          <span className="hidden sm:inline">Ask AI (NLQ)</span>
+          <span className="sm:hidden">AI</span>
+        </Link>
+      )}
 
-        {/* User initials */}
-        <div className="flex size-9 items-center justify-center rounded-lg bg-sky-600 font-mono text-xs font-bold text-white shadow-sm">
-          {user?.username?.slice(0, 2).toUpperCase() ?? 'UD'}
-        </div>
-      </div>
+      <button
+        type="button"
+        className="relative hidden size-8 shrink-0 items-center justify-center rounded-md text-slate-600 transition-colors hover:bg-slate-100 sm:flex"
+        aria-label="Thông báo hệ thống"
+      >
+        <Bell className="size-4" />
+      </button>
+
+      <UserMenu role={role} />
     </header>
   )
 }

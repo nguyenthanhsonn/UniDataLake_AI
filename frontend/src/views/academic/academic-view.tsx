@@ -59,7 +59,7 @@ export function AcademicView() {
             <CardTitle className="text-xs font-semibold uppercase text-slate-500">
               Sinh viên chính quy
             </CardTitle>
-            <GraduationCap className="size-4 text-sky-500" />
+            <GraduationCap className="size-4 text-indigo-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">14,820</div>

@@ -28,9 +28,9 @@ export function HomeView() {
   return (
     <div className="space-y-6">
       {/* Welcome Banner */}
-      <div className="rounded-2xl border border-sky-100 bg-gradient-to-r from-sky-50 via-indigo-50 to-white p-6 dark:border-slate-800 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950">
+      <div className="rounded-2xl border border-indigo-100 bg-gradient-to-r from-indigo-50 via-indigo-50 to-white p-6 dark:border-slate-800 dark:from-slate-900 dark:via-slate-900 dark:to-slate-950">
         <div className="flex flex-col gap-2">
-          <div className="inline-flex items-center gap-1.5 self-start rounded-full bg-sky-100 px-3 py-1 font-mono text-xs font-semibold text-sky-700 dark:bg-sky-950/80 dark:text-sky-300">
+          <div className="inline-flex items-center gap-1.5 self-start rounded-full bg-indigo-100 px-3 py-1 font-mono text-xs font-semibold text-indigo-700 dark:bg-indigo-950/80 dark:text-indigo-300">
             <Sparkles className="size-3" />
             Cổng thông tin dữ liệu trường đại học
           </div>
@@ -52,7 +52,7 @@ export function HomeView() {
             <CardTitle className="text-xs font-semibold uppercase text-slate-500">
               Báo cáo sẵn sàng
             </CardTitle>
-            <FileText className="size-4 text-sky-500" />
+            <FileText className="size-4 text-indigo-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">42 Báo cáo</div>
@@ -109,7 +109,7 @@ export function HomeView() {
             {announcements.map((a) => (
               <div
                 key={a.title}
-                className="flex items-center justify-between py-3.5 transition-colors hover:text-sky-600"
+                className="flex items-center justify-between py-3.5 transition-colors hover:text-indigo-600"
               >
                 <div className="flex items-center gap-3">
                   <Badge variant="secondary" className="text-[10px]">

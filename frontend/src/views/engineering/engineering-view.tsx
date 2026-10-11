@@ -85,7 +85,7 @@ export function EngineeringView() {
             <CardTitle className="text-xs font-semibold uppercase text-slate-500">
               DuckDB OLAP Engine
             </CardTitle>
-            <Database className="size-4 text-sky-500" />
+            <Database className="size-4 text-indigo-500" />
           </CardHeader>
           <CardContent>
             <div className="text-xl font-bold">Phiên bản 1.1.0</div>

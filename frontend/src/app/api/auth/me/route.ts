@@ -51,8 +51,10 @@ export async function GET() {
   const sub = typeof payload.sub === 'string' ? payload.sub : undefined
   const username = typeof payload.username === 'string' ? payload.username : undefined
 
+  // Backend đặt `sub` là mã số người dùng, tên đăng nhập nằm ở claim `username`.
   const user: AuthUser = {
-    username: sub ?? username ?? 'user',
+    id: sub,
+    username: username ?? sub ?? 'user',
     email: typeof payload.email === 'string' ? payload.email : undefined,
     fullName: typeof payload.full_name === 'string' ? payload.full_name : undefined,
     roles,

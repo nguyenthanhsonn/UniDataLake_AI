@@ -1,224 +1,267 @@
 'use client'
 
 import { useState } from 'react'
-import type { FormEvent } from 'react'
 
 import { useRouter } from 'next/navigation'
 
+import { zodResolver } from '@hookform/resolvers/zod'
+import { ArrowRight, CircleAlert, Eye, EyeOff, Layers, LoaderCircle, X } from 'lucide-react'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
+
 import { getDefaultHomeForRoles } from '@/config/roles'
-import styles from '@/styles/login.module.css'
 import type { RoleCode } from '@/types/auth'
 
-const dataLayers = [
-  { label: 'Bronze', tone: 'bronze', icon: '01' },
-  { label: 'Silver', tone: 'silver', icon: '02' },
-  { label: 'Gold', tone: 'gold', icon: '03' },
-]
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+export const loginSchema = z.object({
+  username: z
+    .string()
+    .trim()
+    .min(1, 'Vui lòng nhập tên đăng nhập hoặc email.')
+    .refine((value) => !value.includes('@') || EMAIL_PATTERN.test(value), {
+      message: 'Email không đúng định dạng.',
+    }),
+  password: z.string().min(1, 'Vui lòng nhập mật khẩu.'),
+})
+
+export type LoginFormValues = z.infer<typeof loginSchema>
+
+interface ApiErrorBody {
+  error?: { code?: string; message?: string }
+  detail?: string
+  message?: string
+}
+
+const DEFAULT_LOGIN_ERROR = 'Tên đăng nhập hoặc mật khẩu chưa đúng. Vui lòng kiểm tra lại.'
+
+const fieldClass =
+  'h-10 w-full rounded-md border bg-white px-3 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2'
+const fieldOk = 'border-slate-300 focus-visible:border-indigo-500 focus-visible:ring-indigo-500/30'
+const fieldInvalid =
+  'border-2 border-rose-500 bg-rose-50 focus-visible:border-rose-500 focus-visible:ring-rose-500/30'
 
 export function LoginView() {
   const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
-  const [darkMode, setDarkMode] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
+  const [serverError, setServerError] = useState<string | null>(null)
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { username: '', password: '' },
+  })
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    void (async () => {
-      setIsLoading(true)
-      setErrorMessage(null)
+  async function onSubmit(values: LoginFormValues) {
+    setServerError(null)
+    try {
+      // Backend nhận JSON { username, password }.
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(values),
+      })
 
-      try {
-        const formData = new FormData()
-        formData.append('username', username)
-        formData.append('password', password)
-
-        const res = await fetch('/api/auth/login', {
-          method: 'POST',
-          body: formData,
-        })
-
-        if (!res.ok) {
-          const errorData = (await res.json().catch(() => ({}))) as {
-            detail?: string
-            message?: string
-          }
-          setErrorMessage(
-            errorData.detail ??
-              errorData.message ??
-              'Sai thông tin đăng nhập. Vui lòng kiểm tra lại username và mật khẩu.'
-          )
-          setIsLoading(false)
-          return
-        }
-
-        // Check current user role via /api/auth/me
-        const meRes = await fetch('/api/auth/me')
-        if (meRes.ok) {
-          const meData = (await meRes.json()) as { user?: { roles?: RoleCode[] } }
-          const roles = meData.user?.roles ?? []
-          const destination = getDefaultHomeForRoles(roles)
-          router.push(destination)
-        } else {
-          router.push('/home')
-        }
-        router.refresh()
-      } catch {
-        setErrorMessage('Không thể kết nối đến máy chủ. Vui lòng thử lại sau.')
-        setIsLoading(false)
+      if (!res.ok) {
+        const body = (await res.json().catch(() => ({}))) as ApiErrorBody
+        setServerError(body.error?.message ?? body.detail ?? body.message ?? DEFAULT_LOGIN_ERROR)
+        return
       }
-    })()
+
+      const meRes = await fetch('/api/auth/me')
+      if (meRes.ok) {
+        const meData = (await meRes.json()) as { user?: { roles?: RoleCode[] } }
+        router.push(getDefaultHomeForRoles(meData.user?.roles ?? []))
+      } else {
+        router.push('/home')
+      }
+      router.refresh()
+    } catch {
+      setServerError('Không thể kết nối đến máy chủ. Vui lòng thử lại sau.')
+    }
   }
 
   return (
-    <main className={`${styles.loginShell} ${darkMode ? styles.isDark : ''}`}>
-      <section className={styles.brandPanel} aria-label="Giới thiệu UniLake AI">
-        <div className={styles.brandGrid} aria-hidden="true" />
-        <div className={styles.brandContent}>
-          <div className={styles.brandMarkRow}>
-            <div className={styles.brandMark}>U</div>
-            <span className={styles.brandName}>
-              UNILAKE<span>_AI</span>
-            </span>
+    <main className="flex min-h-screen flex-col bg-white lg:grid lg:grid-cols-[2fr_3fr]">
+      <section
+        className="flex flex-col justify-between gap-6 bg-slate-900 px-6 py-8 lg:px-14 lg:py-12"
+        aria-label="Giới thiệu UniLake AI"
+      >
+        <div className="flex items-center gap-2.5">
+          <div className="flex size-9 items-center justify-center rounded-lg bg-indigo-600 text-white">
+            <Layers className="size-5" />
           </div>
-          <p className={styles.eyebrow}>Data lake đa nguồn</p>
-          <div className={styles.brandCopy}>
-            <h1>Dữ liệu quản trị đại học, hỏi bằng ngôn ngữ tự nhiên.</h1>
-            <div className={styles.modulePills} aria-label="Các phân hệ dữ liệu">
-              <span>Tuyển sinh</span>
-              <span>Đào tạo</span>
-              <span>Nhân sự</span>
-            </div>
-          </div>
-          <div className={styles.pipeline} aria-label="Luồng xử lý dữ liệu">
-            <div className={styles.pipelineLine} />
-            <span className={styles.pipelineSource}>Nguồn</span>
-            {dataLayers.map((layer) => (
-              <div className={`${styles.pipelineStep} ${styles[layer.tone]}`} key={layer.label}>
-                <span className={styles.stepIcon}>{layer.icon}</span>
-                <span>{layer.label}</span>
-              </div>
-            ))}
-          </div>
-          <div className={styles.trustNote}>
-            <span className={styles.lockIcon} aria-hidden="true">
-              ⌑
-            </span>
-            <span>Bảo mật theo chuẩn ISO 27001 & RBAC 6 nhóm quyền</span>
-          </div>
+          <span className="text-lg font-bold text-white">UniLake AI</span>
+          <span className="rounded border border-indigo-200 bg-indigo-50 px-1.5 py-px font-mono text-[10px] font-bold text-indigo-700">
+            v1.0
+          </span>
         </div>
-        <p className={styles.version}>
-          Phiên bản 1.0 <span>·</span> Tháng 9, 2026
+
+        <div className="space-y-5">
+          <p className="hidden font-mono text-[10px] font-medium uppercase tracking-widest text-indigo-200 lg:block">
+            Data lake đa nguồn · AI Analytics
+          </p>
+          <h1 className="text-2xl font-bold leading-tight text-white lg:text-[34px] lg:leading-[42px]">
+            Dữ liệu quản trị đại học, hỏi bằng ngôn ngữ tự nhiên.
+          </h1>
+          <p className="hidden text-sm leading-6 text-slate-400 lg:block">
+            Tích hợp dữ liệu Tuyển sinh, Đào tạo và Nhân sự trên kiến trúc Bronze – Silver – Gold,
+            có quản trị chất lượng và truy vết nguồn gốc.
+          </p>
+          <ul className="flex flex-wrap gap-2" aria-label="Các phân hệ dữ liệu">
+            {['Tuyển sinh', 'Đào tạo', 'Nhân sự'].map((domain) => (
+              <li
+                key={domain}
+                className="rounded-full border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-200"
+              >
+                {domain}
+              </li>
+            ))}
+          </ul>
+          <ol
+            className="hidden flex-wrap items-center gap-2 lg:flex"
+            aria-label="Luồng xử lý dữ liệu"
+          >
+            {['Nguồn', 'Bronze', 'Silver', 'Gold'].map((layer, index) => (
+              <li key={layer} className="flex items-center gap-2">
+                {index > 0 && <ArrowRight className="size-3.5 text-slate-500" aria-hidden="true" />}
+                <span
+                  className={`rounded-md bg-slate-800 px-2.5 py-1 font-mono text-[11px] font-bold ${
+                    layer === 'Bronze' || layer === 'Gold' ? 'text-amber-500' : 'text-slate-300'
+                  }`}
+                >
+                  {layer}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </div>
+
+        <p className="hidden font-mono text-[10px] font-medium text-slate-500 lg:block">
+          Phiên bản 1.0 · Capstone C1SE.11 · Đại học Duy Tân
         </p>
       </section>
 
-      <section className={styles.formPanel}>
-        <button
-          className={styles.themeToggle}
-          type="button"
-          aria-label={darkMode ? 'Chuyển sang giao diện sáng' : 'Chuyển sang giao diện tối'}
-          onClick={() => setDarkMode((current) => !current)}
-        >
-          <span aria-hidden="true">{darkMode ? '☼' : '◐'}</span>
-          <span>{darkMode ? 'Sáng' : 'Tối'}</span>
-        </button>
-        <div className={styles.formWrap}>
-          <div className={styles.mobileBrand}>
-            UNILAKE<span>_AI</span>
-          </div>
-          <header className={styles.formHeader}>
-            <p className={styles.formKicker}>Cổng truy cập</p>
-            <h2>Đăng nhập</h2>
-            <p>Dùng tài khoản username của trường để truy cập hệ thống.</p>
+      <section className="flex flex-1 items-start justify-center px-6 py-8 lg:items-center">
+        <div className="w-full max-w-[400px] space-y-4">
+          <p className="font-mono text-[10px] font-medium uppercase tracking-widest text-indigo-600">
+            Cổng truy cập
+          </p>
+          <header className="space-y-1">
+            <h2 className="text-[26px] font-bold leading-8 text-slate-900">Đăng nhập</h2>
+            <p className="text-[13px] leading-5 text-slate-500">
+              Dùng tài khoản của trường để truy cập hệ thống.
+            </p>
           </header>
-          {errorMessage && (
-            <div className={styles.errorBanner} role="alert">
-              <span className={styles.alertIcon} aria-hidden="true">
-                !
-              </span>
-              <p>
-                <strong>Lỗi đăng nhập:</strong> {errorMessage}
-              </p>
+
+          {serverError && (
+            <div
+              role="alert"
+              className="flex items-start gap-2.5 rounded-lg border border-rose-200 bg-rose-50 p-3"
+            >
+              <CircleAlert className="mt-0.5 size-4 shrink-0 text-rose-700" aria-hidden="true" />
+              <div className="flex-1 space-y-0.5">
+                <p className="text-xs font-bold text-rose-700">Đăng nhập không thành công</p>
+                <p className="text-xs leading-[17px] text-slate-700">{serverError}</p>
+              </div>
               <button
                 type="button"
                 aria-label="Đóng thông báo lỗi"
-                onClick={() => setErrorMessage(null)}
+                onClick={() => setServerError(null)}
+                className="rounded p-0.5 text-rose-700 hover:bg-rose-100"
               >
-                ×
+                <X className="size-3.5" />
               </button>
             </div>
           )}
-          {/* Tạm ẩn đăng nhập SSO và dải phân cách (không xóa) */}
-          {/*
-          <button className={styles.ssoButton} type="button">
-            <span className={styles.ssoLogo} aria-hidden="true">
-              <i />
-              <i />
-              <i />
-              <i />
-            </span>
-            Đăng nhập bằng tài khoản trường (SSO)
-            <span className={styles.buttonArrow} aria-hidden="true">
-              →
-            </span>
-          </button>
-          <div className={styles.divider}>
-            <span>hoặc dùng tài khoản riêng</span>
-          </div>
-          */}
+
           <form
-            className={`${styles.loginForm} ${errorMessage ? styles.hasError : ''}`}
-            onSubmit={handleSubmit}
+            noValidate
+            className="space-y-4"
+            onSubmit={(event) => void handleSubmit(onSubmit)(event)}
           >
-            <label htmlFor="username">Tên đăng nhập (Username)</label>
-            <input
-              id="username"
-              type="text"
-              placeholder="Nhập username của bạn"
-              value={username}
-              onChange={(event) => {
-                setUsername(event.target.value)
-                setErrorMessage(null)
-              }}
-              autoComplete="username"
-              required
-            />
-            <div className={styles.passwordLabelRow}>
-              <label htmlFor="password">Mật khẩu</label>
-              {errorMessage && <span className={styles.fieldError}>Kiểm tra mật khẩu</span>}
-            </div>
-            <div className={styles.passwordField}>
-              <input
-                id="password"
-                type={showPassword ? 'text' : 'password'}
-                placeholder="Nhập mật khẩu của bạn"
-                value={password}
-                onChange={(event) => {
-                  setPassword(event.target.value)
-                  setErrorMessage(null)
-                }}
-                autoComplete="current-password"
-                required
-              />
-              <button type="button" onClick={() => setShowPassword((current) => !current)}>
-                {showPassword ? 'Ẩn' : 'Hiện'}
-              </button>
-            </div>
-            <div className={styles.formOptions}>
-              <label className={styles.remember}>
-                <input type="checkbox" /> <span>Ghi nhớ đăng nhập</span>
+            <div className="space-y-1.5">
+              <label htmlFor="username" className="block text-xs font-semibold text-slate-700">
+                Email hoặc tên đăng nhập
               </label>
-              <a href="#forgot-password">Quên mật khẩu?</a>
+              <input
+                id="username"
+                type="text"
+                autoComplete="username"
+                placeholder="tenban@university.edu.vn"
+                aria-invalid={errors.username ? true : undefined}
+                aria-describedby={errors.username ? 'username-error' : undefined}
+                className={`${fieldClass} ${errors.username ? fieldInvalid : fieldOk}`}
+                {...register('username')}
+              />
+              {errors.username && (
+                <p id="username-error" className="text-xs text-rose-600">
+                  {errors.username.message}
+                </p>
+              )}
             </div>
-            <button className={styles.submitButton} type="submit" disabled={isLoading}>
-              {isLoading ? 'Đang xác thực...' : 'Đăng nhập'} <span aria-hidden="true">→</span>
+
+            <div className="space-y-1.5">
+              <label htmlFor="password" className="block text-xs font-semibold text-slate-700">
+                Mật khẩu
+              </label>
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="current-password"
+                  placeholder="Nhập mật khẩu của bạn"
+                  aria-invalid={errors.password ? true : undefined}
+                  aria-describedby={errors.password ? 'password-error' : undefined}
+                  className={`${fieldClass} pr-10 ${errors.password ? fieldInvalid : fieldOk}`}
+                  {...register('password')}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((current) => !current)}
+                  aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                  className="absolute right-1 top-1 flex size-8 items-center justify-center rounded text-slate-400 hover:text-slate-700"
+                >
+                  {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                </button>
+              </div>
+              {errors.password && (
+                <p id="password-error" className="text-xs text-rose-600">
+                  {errors.password.message}
+                </p>
+              )}
+            </div>
+
+            <div className="flex items-center justify-between gap-3">
+              <label className="flex items-center gap-2 text-xs text-slate-700">
+                <input
+                  type="checkbox"
+                  className="size-4 rounded border-slate-300 accent-indigo-600"
+                />
+                Ghi nhớ đăng nhập
+              </label>
+              <a
+                href="#forgot-password"
+                className="text-xs font-semibold text-indigo-600 hover:underline"
+              >
+                Quên mật khẩu?
+              </a>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="flex h-10 w-full items-center justify-center gap-2 rounded-md bg-indigo-600 text-sm font-semibold text-white transition-colors hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-indigo-600/70"
+            >
+              {isSubmitting && <LoaderCircle className="size-4 animate-spin" aria-hidden="true" />}
+              {isSubmitting ? 'Đang xác thực…' : 'Đăng nhập'}
             </button>
           </form>
-          <p className={styles.accessNote}>
-            Hệ thống phân quyền theo role_code (SUPER_ADMIN, DATA_ENGINEER, DATA_GOVERNANCE,
-            DATA_ANALYST, ACADEMIC_ADMIN, USER).
+
+          <p className="text-[11px] leading-4 text-slate-500">
+            Quyền truy cập được cấp theo vai trò. Liên hệ Quản trị Hệ thống nếu bị từ chối.
           </p>
         </div>
       </section>

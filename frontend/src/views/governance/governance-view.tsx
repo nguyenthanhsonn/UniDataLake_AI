@@ -72,7 +72,7 @@ export function GovernanceView() {
             <CardTitle className="text-xs font-semibold uppercase text-slate-500">
               Tổng số bảng Catalog
             </CardTitle>
-            <BookOpen className="size-4 text-sky-500" />
+            <BookOpen className="size-4 text-indigo-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">24 Bảng</div>

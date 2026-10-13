@@ -8,10 +8,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql.elements import ColumnElement
 
 from app.modules.datasources.models import DataSource, SourceSystem
+from app.modules.users.models import User as _User
 from app.repositories.base_repo import BaseRepository
 
 if TYPE_CHECKING:
     from app.modules.datasources.schemas import DataSourceCreate, DataSourceFilter
+
+# Import User ở runtime để SQLAlchemy resolve relationship("User") trên DataSource.
+_REGISTERED_RELATIONSHIP_MODELS = (_User,)
 
 
 REQUIRED_CONFIG: dict[str, dict[str, type[Any]]] = {
@@ -33,6 +37,20 @@ REQUIRED_CONFIG: dict[str, dict[str, type[Any]]] = {
         "headers": dict,
         "pagination": dict,
         "timeout_seconds": int,
+    },
+    "POSTGRESQL": {
+        "host": str,
+        "port": int,
+        "database": str,
+        "username": str,
+        "password": str,
+    },
+    "RDBMS": {
+        "host": str,
+        "port": int,
+        "database": str,
+        "username": str,
+        "password": str,
     },
 }
 

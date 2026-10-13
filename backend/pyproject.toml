@@ -91,12 +91,27 @@ indent-style = "space"
 docstring-code-format = true
 
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.13"
 strict = true
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
 plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = [
+    "duckdb",
+    "minio",
+    "openpyxl",
+]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = [
+    "numpy",
+    "numpy.*",
+]
+follow_imports = "skip"
 
 
 

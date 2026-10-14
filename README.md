@@ -204,6 +204,34 @@ Học phần: **CMU-SE 450 - Capstone Project 1**
 
 ## 🗃️ Database Migration
 
+### Xem database khi chạy Docker
+
+Kết nối PostgreSQL bằng DBeaver/pgAdmin: host `localhost`, port `5434`,
+database `unilake`, user/password theo `.env`. Mở `Schemas > app > Tables`
+và refresh để xem bảng. PostgreSQL không có giao diện web tại cổng 5434.
+
+Các script trong `infra/postgres/init/` tạo schema và nạp seed khi volume
+PostgreSQL được khởi tạo lần đầu. `docker compose up -d` không tự đồng bộ
+schema khi volume đã tồn tại. Log `Skipping initialization` cho biết bước
+khởi tạo đã bị bỏ qua. Không xóa volume để sửa lỗi nếu cần giữ dữ liệu.
+
+Với database đã có schema `app` nhưng chưa có bảng, áp dụng DDL có sẵn:
+
+```bash
+docker compose exec -T postgres psql -U unilake -d unilake -v ON_ERROR_STOP=1 --single-transaction -f /docker-entrypoint-initdb.d/02-schema.sql
+```
+
+Với database mới, chưa có dữ liệu, nạp tài khoản/quyền và nguồn mẫu bằng:
+
+```bash
+docker compose exec -T postgres sh /docker-entrypoint-initdb.d/03-seed.sh
+```
+
+Seed có cập nhật lại tài khoản mẫu; không chạy tùy tiện trên database đang sử dụng.
+Các bảng nghiệp vụ cần nhập dữ liệu riêng. Hiện checkout chưa có file revision
+trong `backend/alembic/versions/`, nên `alembic upgrade head` chưa thay thế
+được bước tạo bảng bằng DDL ở trên.
+
 Backend sử dụng Alembic để quản lý schema PostgreSQL.
 
 ```bash

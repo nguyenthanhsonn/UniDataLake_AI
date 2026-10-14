@@ -22,6 +22,10 @@ Owner dưới đây là vai trò cần phân công; tên thực tế chưa đư�
 | B04 | Xác nhận thẩm quyền ADM_SYS/ACA_SYS/HR_SYS ở cấp entity/field, thời điểm hiệu lực | Chủ ba domain | Trước G1 |
 | B05 | Review D05 Parquet/manifest và D06 strict snapshot | Tech lead + Data Administrator | Trước G1 |
 | B06 | Mở rộng fixtures toàn bộ entity và snapshot FK; khắc phục sample legacy riêng | Người triển khai S1 | Trong S1, không ghi đè Bronze |
+| B07 | Hoàn thiện môi trường reader: openpyxl (factory import trực tiếp), xác minh DuckDB postgres extension; thống nhất mypy 3.13 với runtime/Docker 3.11; chạy lại suite đầy đủ | Ingestion owner + người vận hành | Trước nghiệm thu môi trường G0 |
+| B08 | Chốt RDBMS engine dispatch, namespace và ReadResult → BronzeBatch adapter có object version/checksum/physical locator; chưa cần code normalization trong reader | Ingestion owner + người triển khai S2 | Chốt contract trước G1; hoàn tất handoff trước G2 |
+
+Review checkout 14/10/2026: schema hash không đổi; 27 reader tests độc lập pass, suite đầy đủ lỗi collection do thiếu openpyxl. Không coi sự có mặt của reader hoặc integration test là bằng chứng Bronze persistence đã chạy. Xem [post-pull-review.md](post-pull-review.md).
 
 ## Lệnh nghiệm thu môi trường sau khi Engine hoạt động
 

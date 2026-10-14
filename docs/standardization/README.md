@@ -2,6 +2,8 @@
 
 Ngày kiểm tra: **14/10/2026**. Phạm vi: P0.1–P0.5 trong roadmap, chuẩn bị S1–S4 và P5. Không phải triển khai normalization engine.
 
+Cập nhật sau đối chiếu checkout: xem [review sau pull](post-pull-review.md). Schema không đổi; có reader local mới cần tích hợp metadata và hoàn thiện môi trường test.
+
 ## Kết quả và cách sử dụng
 
 1. Đọc [baseline](baseline.md) và [scope matrix](scope-matrix.md) để biết hợp đồng nguồn, phạm vi entity và khoảng trống hiện tại.

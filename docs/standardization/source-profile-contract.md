@@ -2,6 +2,14 @@
 
 Đặc tả đề xuất P0; chưa phải API/ORM đã triển khai.
 
+## Điểm tích hợp với reader hiện có (review 14/10/2026)
+
+Working tree có `read_data_source(repo, data_source_id, source_table)` trả `ReadResult(columns, rows, source_table)`. Tái sử dụng reader; bổ sung adapter ở ingestion để mang source_system_id/data_source_id/dataset/entity/profile tới BronzeBatch. Không đưa mapping/PII vào reader và không coi source_table là entity ID.
+
+Adapter phải giữ locator vật lý trước khi parser bỏ dòng/trim header, cũng như original object key/version/checksum trước khi MinIO resolver xóa file tạm. Hiện resolver chỉ tải object hiện hành; replay chưa được đảm bảo. Excel/PostgreSQL có thể trả date/number native trong khi CSV trả string, vì vậy type converter cần xử lý cả hai và khai báo cách xử lý Excel formula cache/number formatting. Bronze gốc vẫn phải lưu nguyên file; parsed rows không thay thế bằng chứng nguồn.
+
+RDBMS trong catalog chưa được request_builder/factory hỗ trợ trực tiếp. Phải resolve engine rõ ràng hoặc báo unsupported trước chạy; không tự suy RDBMS = PostgreSQL. Dependencies openpyxl và DuckDB postgres extension là điều kiện môi trường của loader, không phải normalization rule.
+
 ## Source configuration
 
 `data_source_id` xác định cấu hình kết nối; `source_system_id` xác định hệ thống nguồn bền vững. Nhiều cấu hình upload/API/DB có thể cùng một hệ thống. Thay cấu hình không tạo namespace ID mới. FILE_SHARE chỉ là nơi vận chuyển: phải khai báo hệ thống phát sinh dữ liệu, không dùng FILE_SHARE làm namespace chung cho mọi file.

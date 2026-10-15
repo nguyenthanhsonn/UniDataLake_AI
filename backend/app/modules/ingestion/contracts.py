@@ -12,6 +12,18 @@ if TYPE_CHECKING:
 
 
 @dataclass(frozen=True)
+class MappingBinding:
+    """Pinned source/entity/profile identity for structural normalization."""
+
+    source_system_id: str
+    entity: str
+    source_schema_version: str
+    mapping_id: str
+    mapping_version: str
+    target_schema_version: str
+
+
+@dataclass(frozen=True)
 class BronzeBatch:
     """Immutable hand-off from ingestion to downstream consumers."""
 
@@ -20,6 +32,9 @@ class BronzeBatch:
     source_type: str
     records: tuple[Record, ...]
     metadata: Mapping[str, str] = field(default_factory=dict)
+    mapping_binding: MappingBinding | None = None
+    record_locators: tuple[str, ...] = ()
+    source_paths: tuple[str, ...] = ()
 
 
 class BronzeRepository(Protocol):

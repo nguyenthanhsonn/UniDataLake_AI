@@ -1,5 +1,17 @@
 # P0 — Baseline chuẩn hóa dữ liệu
 
+## S3 đã triển khai
+
+Xem [chuẩn hóa kiểu dữ liệu](data-types-s3.md) và [checklist G3](g3-checklist.md). Có converter/service nối với S2 và CLI preview; ID/enum chờ S4, chưa publish Silver.
+
+## S2 đã triển khai
+
+Xem [hướng dẫn Schema Mapping](schema-mapping-s2.md) và [checklist G2](g2-checklist.md). Có backend service và CLI preview với sáu ví dụ; chưa chuyển kiểu/resolve ID hoặc publish Silver.
+
+## S1 đã triển khai
+
+Bộ contract Silver draft và kết quả kiểm tra: [G1 checklist](g1-checklist.md), [quy tắc](rules.md), [quan hệ liên domain](cross-domain-links.md). Ba schema ở `silver-schemas/`, mapping ở `mapping-matrix.csv`. S1 chưa được phê duyệt nghiệp vụ; không đổi trạng thái G0.
+
 Ngày kiểm tra: **14/10/2026**. Phạm vi: P0.1–P0.5 trong roadmap, chuẩn bị S1–S4 và P5. Không phải triển khai normalization engine.
 
 Cập nhật sau đối chiếu checkout: xem [review sau pull](post-pull-review.md). Schema không đổi; có reader local mới cần tích hợp metadata và hoàn thiện môi trường test.

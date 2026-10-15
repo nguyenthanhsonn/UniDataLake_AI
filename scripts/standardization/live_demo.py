@@ -165,8 +165,9 @@ def initialize_crosswalk(engine):
 
 
 def main():
-    if hasattr(sys.stdout, "reconfigure"):
-        sys.stdout.reconfigure(encoding="utf-8")
+    reconfigure = getattr(sys.stdout, "reconfigure", None)
+    if callable(reconfigure):
+        reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("action", choices=("check", "init-crosswalk", "run", "inspect"))
     parser.add_argument("--domain", choices=DOMAINS)

@@ -65,6 +65,9 @@ jobs:
       - name: Type check
         run: mypy --config-file backend/pyproject.toml backend/app
 
+      - name: Editor type check
+        run: pyright --pythonpath "$(command -v python)"
+
       - name: Test migrations
         run: cd backend && alembic upgrade head
 

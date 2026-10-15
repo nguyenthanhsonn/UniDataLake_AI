@@ -26,6 +26,7 @@ dependencies = [
     "great-expectations>=1.22.0",
     "deltalake>=1.0",
     "pyarrow>=17",
+    "openpyxl>=3.1",
     "psycopg[binary]>=3.2",
     "sqlglot>=25",
     "pyjwt>=2.9",
@@ -35,12 +36,13 @@ dependencies = [
 
 [project.optional-dependencies]
 llm = ["langchain-openai>=0.3", "langchain-anthropic>=0.3"]
-ingest-docs = ["pdfplumber>=0.11", "python-docx>=1.1", "openpyxl>=3.1"]
+ingest-docs = ["pdfplumber>=0.11", "python-docx>=1.1"]
 ocr = ["pillow>=10", "pytesseract>=0.3"]
 dev = [
     "jsonschema>=4.18,<5",
     "ruff>=0.8",
     "mypy>=1.13",
+    "pyright>=1.1.414",
     "pre-commit>=4.0",
     "pytest>=8.3",
     "pytest-cov>=6.0",
@@ -93,7 +95,7 @@ indent-style = "space"
 docstring-code-format = true
 
 [tool.mypy]
-python_version = "3.13"
+python_version = "3.11"
 strict = true
 warn_return_any = true
 warn_unused_configs = true

@@ -459,7 +459,7 @@ def test_configuration_deeply_immutable_and_detached():
     assert service.spec["properties"]["max_score"]["x-scale"] == 2
     assert service.options["max_score"].decimal_separator == ","
     with pytest.raises(TypeError):
-        service.options["max_score"] = FieldOptions()
+        service.options["max_score"] = FieldOptions()  # pyright: ignore[reportIndexIssue] -- tests immutable mapping
     with pytest.raises(TypeError):
         service.spec["properties"]["max_score"]["x-scale"] = 0
     with pytest.raises(TypeError):
@@ -596,12 +596,12 @@ def test_invalid_contract_fails_at_construction(path, value, code):
 @pytest.mark.parametrize(
     "option",
     [
-        FieldOptions(null_tokens=[""]),
-        FieldOptions(true_tokens=("true", True)),
+        FieldOptions(null_tokens=[""]),  # pyright: ignore[reportArgumentType] -- invalid input under test
+        FieldOptions(true_tokens=("true", True)),  # pyright: ignore[reportArgumentType] -- invalid input under test
         FieldOptions(null_tokens=("", "")),
-        FieldOptions(trim="yes"),
-        FieldOptions(decimal_separator=[]),
-        FieldOptions(excel_epoch=[]),
+        FieldOptions(trim="yes"),  # pyright: ignore[reportArgumentType] -- invalid input under test
+        FieldOptions(decimal_separator=[]),  # pyright: ignore[reportArgumentType] -- invalid input under test
+        FieldOptions(excel_epoch=[]),  # pyright: ignore[reportArgumentType] -- invalid input under test
     ],
 )
 def test_mutable_or_invalid_options_rejected(option):

@@ -326,7 +326,11 @@ for year_id, y in YEARS.items():
             else:
                 app_date = rand_date(date(y, 4, 1), date(y, 6, 20))
                 score = None
-            eligible = (ability > 1.4) if method == 3 else score >= cutoff
+            if method == 3:
+                eligible = ability > 1.4
+            else:
+                assert score is not None  # Methods 1 and 2 always calculate a numeric score.
+                eligible = score >= cutoff
             if eligible and not accepted_done:
                 status, accepted_done = "Accepted", True
             elif eligible:

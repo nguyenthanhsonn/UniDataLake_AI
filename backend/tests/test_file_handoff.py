@@ -60,6 +60,7 @@ def test_snapshot_keeps_original_identity_and_logical_csv_locator(csv_path):
         handoff.metadata["input_version"]
         == "sha256:" + hashlib.sha256(csv_path.read_bytes()).hexdigest()
     )
+    assert handoff.provenance is not None
     assert handoff.provenance.source_ref == str(csv_path.resolve())
     assert handoff.provenance.dataset_id == "positions"
     assert handoff.provenance.data_source_id == "7"
@@ -79,6 +80,7 @@ def test_original_changes_after_capture_do_not_change_parsed_snapshot(csv_path):
 
     result = capture(csv_path, ChangeOriginal())
     assert result.rows[0][0] == "001"
+    assert result.provenance is not None
     assert result.provenance.content_sha256 == hashlib.sha256(original).hexdigest()
     assert not seen[0].exists()
 
@@ -96,6 +98,8 @@ def test_reader_cannot_mutate_snapshot_unnoticed(csv_path):
 def test_same_bytes_different_parser_has_different_fingerprint(csv_path):
     first = capture(csv_path)
     second = capture(csv_path, config={**CONFIG, "skip_rows": 0})
+    assert first.provenance is not None
+    assert second.provenance is not None
     assert first.provenance.input_version == second.provenance.input_version
     assert first.provenance.parser_fingerprint != second.provenance.parser_fingerprint
 
@@ -149,6 +153,7 @@ def test_bad_locators_rejected(csv_path, locators):
 
 def test_binding_namespace_and_column_shape_checked(csv_path):
     result = capture(csv_path)
+    assert result.provenance is not None
     with pytest.raises(ValueError, match="SOURCE_BINDING_MISMATCH"):
         batch(replace(result, provenance=replace(result.provenance, source_system_id="other")))
     with pytest.raises(ValueError, match="READER_COLUMNS_CHANGED"):
@@ -173,6 +178,7 @@ def test_minio_version_pinned_and_origin_survives_cleanup(version):
         return_value=client,
     ):
         result = capture("s3://bronze/hr/input.csv")
+    assert result.provenance is not None
     assert result.provenance.source_ref == "s3://bronze/hr/input.csv"
     assert result.provenance.object_version_id == ("v-old" if version == "v-old" else None)
     assert result.provenance.content_sha256 == hashlib.sha256(content).hexdigest()
@@ -193,6 +199,7 @@ def test_minio_explicit_historical_version_ignores_current():
         result = capture("s3://bronze/hr/input.csv", version="historical")
     client.stat_object.assert_not_called()
     assert client.fget_object.call_args.kwargs["version_id"] == "historical"
+    assert result.provenance is not None
     assert result.provenance.object_version_id == "historical"
 
 
@@ -231,6 +238,7 @@ async def test_catalog_loader_file_handoff(csv_path):
         binding=BINDING,
     )
     assert result.records[0]["id"] == "001"
+    assert result.provenance is not None
     assert result.provenance.source_system_id == "10"
     assert result.metadata["input_version"] == result.provenance.input_version
 

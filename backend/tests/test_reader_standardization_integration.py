@@ -83,6 +83,7 @@ def test_reader_s2_s3_s4_preserves_provenance_and_resolves_ids(
     assert result.accepted[0].values[pk] == canonical
     assert result.accepted[0].locator == typed.accepted[0].locator
     assert result.provenance == read.provenance
+    assert read.provenance is not None
     assert result.input_version == read.provenance.input_version
     assert not result.silver_ready
 
@@ -94,6 +95,7 @@ def run_file(tmp_path, domain, entity, transport="EXCEL", changes=None, options=
     if transport == "EXCEL":
         workbook = Workbook()
         sheet = workbook.active
+        assert sheet is not None
         sheet.title = "Data"
         if epoch:
             workbook.epoch = epoch
@@ -153,6 +155,7 @@ def run_file(tmp_path, domain, entity, transport="EXCEL", changes=None, options=
     ).standardize(mapped)
     assert typed.input_version == version
     assert typed.provenance == read.provenance
+    assert typed.provenance is not None
     assert typed.provenance.dataset_id == entity
     assert not typed.silver_ready
     assert typed.total_count == 1
@@ -247,6 +250,7 @@ def test_excel_serial_date_explicit_epoch(tmp_path, serial, epoch, label, expect
         options={"start_date": FieldOptions(excel_epoch=label)},
     )
     assert typed.accepted[0].values["start_date"] == expected
+    assert read.provenance is not None
     assert read.provenance.workbook_epoch == label
 
 
@@ -279,6 +283,7 @@ def test_excel_nullable_blank_is_preserved(tmp_path):
 def test_excel_data_without_header_is_not_silently_truncated(tmp_path):
     path = tmp_path / "extra.xlsx"
     workbook = Workbook()
+    assert workbook.active is not None
     workbook.active.append(["value"])
     workbook.active.append([1, "unmapped"])
     workbook.save(path)
@@ -294,6 +299,7 @@ def test_excel_data_without_header_is_not_silently_truncated(tmp_path):
 def test_excel_formula_only_row_is_not_dropped(tmp_path):
     path = tmp_path / "formula.xlsx"
     workbook = Workbook()
+    assert workbook.active is not None
     workbook.active.append(["value"])
     workbook.active.append(["=1+1"])
     workbook.save(path)

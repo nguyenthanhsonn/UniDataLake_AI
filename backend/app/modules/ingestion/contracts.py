@@ -7,8 +7,28 @@ from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
+    from datetime import datetime
+    from pathlib import Path
 
     from app.domains.base import Record
+
+
+@dataclass(frozen=True)
+class CapturedArtifact:
+    """A private raw snapshot ready for durable Bronze storage."""
+
+    path: Path
+    rows: int
+    sha256: str
+    source_version_id: str | None = None
+
+
+@dataclass(frozen=True)
+class BronzeWriteContext:
+    """Validated job identity needed by a storage adapter, without ORM state."""
+
+    ingestion_job_id: int
+    created_at: datetime
 
 
 @dataclass(frozen=True)

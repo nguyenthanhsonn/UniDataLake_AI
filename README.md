@@ -248,3 +248,10 @@ Migration mới sẽ được tạo trong `backend/alembic/versions/` và phải
 <p align="center">
   <i>Được xây dựng bởi C1SE.11 @ International School, Duy Tan University</i>
 </p>
+# Bronze storage setup
+
+Xem [hướng dẫn Bronze storage](docs/bronze-storage.md) để khởi tạo MinIO/local,
+upload dữ liệu gốc và phân vùng theo nguồn/ngày.
+
+Xem [Ingestion Execution Service](docs/ingestion-execution.md) để khởi chạy ingestion
+qua API, vận hành worker và theo dõi lịch sử job.

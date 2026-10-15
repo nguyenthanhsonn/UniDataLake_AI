@@ -373,8 +373,20 @@ CREATE TABLE IF NOT EXISTS ingestion_job (
     rows_read BIGINT,
     rows_written BIGINT,
     rows_rejected BIGINT,
-    error_message TEXT
+    error_message TEXT,
+    source_table VARCHAR(200),
+    created_at TIMESTAMP,
+    requested_by VARCHAR(100),
+    stage VARCHAR(30),
+    lease_expires_at TIMESTAMP,
+    output JSONB
 );
+
+CREATE UNIQUE INDEX IF NOT EXISTS uq_ingestion_execution_active_source
+    ON ingestion_job(data_source_id)
+    WHERE job_type = 'EXECUTION_V1' AND status IN ('QUEUED', 'RUNNING');
+CREATE INDEX IF NOT EXISTS ix_ingestion_execution_queue
+    ON ingestion_job(status, ingestion_job_id) WHERE job_type = 'EXECUTION_V1';
 
 CREATE TABLE IF NOT EXISTS transformation_step (
     transformation_step_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,

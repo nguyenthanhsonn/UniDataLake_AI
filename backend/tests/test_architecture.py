@@ -97,7 +97,24 @@ def test_architecture_settings_and_schemas() -> None:
     assert minio_settings.endpoint
     assert UserRead(id=1, email="a@example.com").roles == []
     assert DataSourceRead(id=1, name="SIS", source_type="postgres").name == "SIS"
-    assert IngestionJobRead(id=1, status="queued", datasource_id=1).status == "queued"
+    job = IngestionJobRead(
+        ingestion_job_id=1,
+        data_source_id=1,
+        dataset_id=1,
+        status="QUEUED",
+        stage="QUEUED",
+        source_table="input.csv",
+        created_at=None,
+        started_at=None,
+        finished_at=None,
+        requested_by="1",
+        rows_read=None,
+        rows_written=None,
+        rows_rejected=None,
+        error_message=None,
+        output=None,
+    )
+    assert job.status == "QUEUED"
     assert KpiRead(key="students", value=100).unit is None
     assert (
         QueryHistoryRead.model_validate(

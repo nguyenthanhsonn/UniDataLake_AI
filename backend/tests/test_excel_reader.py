@@ -29,10 +29,12 @@ def _write_workbook(path: Path, rows: list[list[object | None]], sheet_name: str
 
     workbook = Workbook()
     sheet = workbook.active
+    assert sheet is not None
     sheet.title = sheet_name
 
     # Mỗi phần tử trong rows là một dòng Excel cần ghi.
     for row in rows:
+        assert sheet is not None
         sheet.append(row)
 
     workbook.save(path)

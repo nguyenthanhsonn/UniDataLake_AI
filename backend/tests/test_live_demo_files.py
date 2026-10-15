@@ -18,6 +18,8 @@ ROOT = Path(__file__).resolve().parents[2]
 spec = importlib.util.spec_from_file_location(
     "live_demo", ROOT / "scripts/standardization/live_demo.py"
 )
+assert spec is not None
+assert spec.loader is not None
 demo = importlib.util.module_from_spec(spec)
 cwd = Path.cwd()
 try:
@@ -59,6 +61,7 @@ def test_delivered_files_publish_reject_retry_and_update(tmp_path, extension):
         ("05-unknown-id", "hr", "SOURCE_ID_UNMAPPED"),
         ("06-hr-updated", "hr", None),
     ]
+    tables = {}
     for name, domain, error in cases:
         result = demo.normalize(
             domain, str(ROOT / f"data/standardization/live-demo/{name}.{extension}"), snapshot

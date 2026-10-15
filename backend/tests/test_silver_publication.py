@@ -347,6 +347,7 @@ def test_real_reader_through_all_stages_to_parquet(environment, tmp_path, transp
     if transport == "EXCEL":
         path = tmp_path / "position.xlsx"
         workbook = Workbook()
+        assert workbook.active is not None
         workbook.active.append(list(raw))
         workbook.active.append(list(raw.values()))
         workbook.save(path)

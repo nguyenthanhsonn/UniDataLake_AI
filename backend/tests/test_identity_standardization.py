@@ -191,6 +191,7 @@ def test_crosswalk_effective_interval_and_ambiguity():
     cw = CrosswalkSnapshot("1", (entry,))
     types, engine = setup(cw=cw)
     assert engine.standardize(typed(types)).accepted[0].values["position_id"] == 50
+    assert entry.valid_to is not None
     expired = IdentityStandardizationService(
         types=types,
         version="s4",
@@ -240,9 +241,9 @@ def test_versions_fingerprints_and_config_immutable():
     dictionaries.clear()
     assert engine.standardize(typed(types)).accepted
     with pytest.raises(FrozenInstanceError):
-        engine.version = "changed"
+        engine.version = "changed"  # pyright: ignore[reportAttributeAccessIssue] -- tests frozen config
     with pytest.raises(TypeError):
-        engine.references["x"] = "bad"
+        engine.references["x"] = "bad"  # pyright: ignore[reportIndexIssue] -- tests immutable mapping
     with pytest.raises(IdentityConfigurationError, match="TYPE_HANDOFF_MISMATCH"):
         engine.standardize(replace(typed(types), configuration_fingerprint="changed"))
 

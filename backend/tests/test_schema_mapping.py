@@ -225,7 +225,7 @@ def test_version_required_and_no_legacy_publish():
         service().map_batch(replace(batch(), metadata={}))
 
     class NoPublisher:
-        def publish(self, *args):
+        def publish(self, domain_id, layer, datasets):
             pytest.fail("S2 must never publish")
 
     with pytest.raises(ValueError, match="S3/S4"):

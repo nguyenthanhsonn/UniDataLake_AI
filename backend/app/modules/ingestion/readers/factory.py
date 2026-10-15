@@ -55,7 +55,7 @@ def _normalize_source_type(source_type: str) -> str:
 
     if not isinstance(source_type, str) or not source_type.strip():
         raise ValueError(
-            "source_type không hợp lệ. " f"Supported types: {', '.join(SUPPORTED_SOURCE_TYPES)}"
+            f"source_type không hợp lệ. Supported types: {', '.join(SUPPORTED_SOURCE_TYPES)}"
         )
 
     normalized = source_type.strip().upper()

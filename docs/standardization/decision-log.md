@@ -1,5 +1,9 @@
 # Decision log P0
 
+Cập nhật 15/10/2026: xem [G1 resolution](g1-resolution.md) cho các lựa chọn kỹ thuật
+đã chốt, bằng chứng handoff mới và checklist xác nhận còn mở. Các trạng thái baseline
+bên dưới được giữ để phân biệt quyết định kỹ thuật với phê duyệt nghiệp vụ.
+
 Baseline 14/10/2026. `SELECTED` = lựa chọn kỹ thuật cho kế hoạch triển khai, không đồng nghĩa đã code hoặc được chủ nghiệp vụ phê duyệt. `PROPOSED` = cần xác nhận nghiệp vụ trước sử dụng dữ liệu thật. Người chuẩn bị: Codex theo yêu cầu triển khai P0; người xác nhận bên dưới là vai trò cần phân công, chưa phải người đã ký.
 
 | ID | Quyết định và lý do | Trạng thái | Người xác nhận / hạn | Tác động |

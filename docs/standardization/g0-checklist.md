@@ -1,5 +1,10 @@
 # G0 — Nghiệm thu và phụ thuộc
 
+Cập nhật 15/10/2026: phần file handoff B08 đã có provenance/version/locator và test;
+openpyxl đã dùng được trong .venv. Xem [G1 resolution](g1-resolution.md). B08 còn
+DB snapshot/engine dispatch nếu dùng RDBMS; G0 vẫn chưa đóng và các kết quả môi
+trường baseline bên dưới không phải bằng chứng live mới.
+
 Ngày baseline: 14/10/2026. **G0 = NOT PASSED**. Không có người xác nhận nghiệp vụ được suy diễn từ việc yêu cầu triển khai P0.
 
 | Hạng mục | Kết quả | Bằng chứng / việc còn lại |

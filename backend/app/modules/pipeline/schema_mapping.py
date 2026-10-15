@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from app.modules.ingestion.contracts import BronzeBatch
+    from app.modules.ingestion.contracts import BronzeBatch, FileProvenance
 
 
 @dataclass(frozen=True)
@@ -82,6 +82,7 @@ class MappingResult:
     preview: bool
     # This is an intermediate structure, not validated Silver.
     silver_ready: bool = False
+    provenance: FileProvenance | None = None
 
 
 def _tokens(pointer: str) -> tuple[str, ...]:
@@ -240,6 +241,12 @@ class SchemaMappingService:
         profile = self.registry.get(key)
         if not batch.metadata.get("input_version"):
             raise MappingConfigurationError("INPUT_VERSION_REQUIRED")
+        if batch.provenance is not None and (
+            batch.provenance.input_version != batch.metadata["input_version"]
+            or batch.provenance.source_system_id != binding.source_system_id
+            or batch.provenance.source_type != batch.source_type
+        ):
+            raise MappingConfigurationError("PROVENANCE_MISMATCH")
         if profile.source_type != batch.source_type:
             raise MappingConfigurationError("SOURCE_TYPE_MISMATCH")
         if (
@@ -303,6 +310,7 @@ class SchemaMappingService:
             len(inspected),
             len(batch.records),
             preview_limit is not None,
+            provenance=batch.provenance,
         )
 
     def preview(self, batch: BronzeBatch, *, limit: int = 20) -> MappingResult:

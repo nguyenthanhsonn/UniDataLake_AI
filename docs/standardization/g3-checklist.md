@@ -1,5 +1,7 @@
 # G3 — S3 Kiểu dữ liệu
 
+Cập nhật 15/10/2026: đã sửa format thiếu thành phần, làm bất biến cấu hình service và kiểm tra contract trước chạy batch. Result có configuration_fingerprint; **295 tests** của nhóm S1–S3/domain đạt, Ruff/mypy module đạt. Các số 237/55 bên dưới là mốc triển khai ban đầu. Kho profile/pinning môi trường và nghiệm thu dữ liệu thật vẫn còn phụ thuộc.
+
 Trạng thái 14/10/2026: **hoàn thành bộ converter/service và kiểm thử kỹ thuật; nghiệm thu tích hợp còn phụ thuộc G0/G1 và dữ liệu nguồn thực tế**.
 
 | Hạng mục | Bằng chứng |

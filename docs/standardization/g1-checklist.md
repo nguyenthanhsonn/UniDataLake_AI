@@ -13,6 +13,12 @@ Version **0.1.0-draft**, 14/10/2026. **Technical contract validated; approval PE
 
 ## Quyết định cần xác nhận trước G1 approved
 
+Cập nhật 15/10/2026: [bản chốt thiết kế và hồ sơ quyết định](g1-resolution.md).
+Handoff file version/locator đã có code và kiểm thử; S1-B06 đóng phần handoff trong
+bộ nhớ, còn mở G0/live storage và DB snapshot. 39 luật đã có phân loại kỹ thuật tại
+g1-rule-disposition.json, chưa phải domain approval. Schema vẫn 0.1.0-draft và
+activation_allowed=false; không đổi trạng thái G1 thành approved chỉ vì test đạt.
+
 | ID | Cần chốt | Owner / thời hạn |
 |---|---|---|
 | S1-B01 | D04 PII projection và birth_year; high_school/province/research_field/institution có cần thu gọn tiếp không | Data Administrator + chủ domain, trước approve |

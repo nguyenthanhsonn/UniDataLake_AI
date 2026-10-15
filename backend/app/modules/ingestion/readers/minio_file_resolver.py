@@ -66,21 +66,42 @@ def resolve_file_request(
     # 4. Tạo MinIO client từ settings chung của app.
     client = _create_minio_client()
 
+    # Pin a concrete version when the bucket supports versioning. "null" is
+    # replaceable in unversioned/suspended buckets and is not a replay guarantee.
+    version_id = request.object_version_id
+    if version_id is not None and (
+        not isinstance(version_id, str) or not version_id.strip() or version_id == "null"
+    ):
+        raise ValueError("INVALID_OBJECT_VERSION")
+    if version_id is None:
+        current = client.stat_object(bucket_name=bucket, object_name=object_key)
+        candidate = current.version_id
+        version_id = (
+            candidate if isinstance(candidate, str) and candidate and candidate != "null" else None
+        )
+
     # 5. File tạm chỉ sống trong phạm vi context manager này.
     # Khi reader đọc xong hoặc ném lỗi, TemporaryDirectory vẫn được dọn.
     with TemporaryDirectory(prefix=TEMP_DIR_PREFIX) as temp_dir:
         local_path = Path(temp_dir) / filename
 
-        _download_object(
+        downloaded = _download_object(
             client=client,
             bucket=bucket,
             object_key=object_key,
             local_path=local_path,
+            version_id=version_id,
         )
+        actual_version = getattr(downloaded, "version_id", None)
+        if isinstance(actual_version, str) and actual_version != "null":
+            if version_id is not None and actual_version != version_id:
+                raise ValueError("OBJECT_VERSION_MISMATCH")
+            version_id = actual_version
 
         local_request = replace(
             request,
             location=str(local_path),
+            object_version_id=version_id,
         )
 
         yield local_request
@@ -123,10 +144,18 @@ def _download_object(
     bucket: str,
     object_key: str,
     local_path: Path,
-) -> None:
+    version_id: str | None = None,
+) -> object:
     """Tải một object từ MinIO xuống đường dẫn local tạm."""
 
-    client.fget_object(
+    if version_id is not None:
+        return client.fget_object(
+            bucket_name=bucket,
+            object_name=object_key,
+            file_path=str(local_path),
+            version_id=version_id,
+        )
+    return client.fget_object(
         bucket_name=bucket,
         object_name=object_key,
         file_path=str(local_path),

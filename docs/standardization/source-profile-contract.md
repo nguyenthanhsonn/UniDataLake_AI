@@ -1,6 +1,10 @@
 # Source configuration và normalization profile
 
-Đặc tả đề xuất P0; chưa phải API/ORM đã triển khai.
+Baseline đề xuất P0 bên dưới. Cập nhật 15/10/2026: file handoff trong bộ nhớ đã
+triển khai qua `read_data_source_batch` / `read_file_snapshot` / `reader_to_batch`;
+xem [G1 resolution](g1-resolution.md) cho contract thực tế. Chưa có ORM/API job,
+Bronze persistence hoặc replay bền vững. CSV locator là ordinal record sau parse,
+không phải dòng vật lý; Excel có sheet/dòng vật lý.
 
 ## Điểm tích hợp với reader hiện có (review 14/10/2026)
 
@@ -36,4 +40,7 @@ Profile tham chiếu target schema version; field mapping; locale, timezone, dat
 
 Ngoài `batch_id`, `domain_id`, `source_type`, `records` hiện có: bắt buộc binding ở trên, bucket/object key/version/checksum, source record locator, ingestion timestamp, schema fingerprint. Nếu object storage không có version phải có bất biến theo key và checksum. Namespace FK được khai báo riêng khi FK trỏ hệ thống khác; không mặc định mọi FK thuộc hệ thống của record con.
 
-Run pin toàn bộ tham chiếu. Locator là số dòng CSV hoặc JSON path + object version; không lấy giá trị PII làm locator. Lỗi gồm run/batch/locator/entity/field/rule/version/code/severity; raw value nhạy cảm không ghi vào log thường.
+Run pin toàn bộ tham chiếu. Locator CSV là ordinal record, Excel là sheet/dòng vật lý,
+JSON là path; luôn đi cùng input version và parser fingerprint. Không lấy giá trị PII
+làm locator. Lỗi gồm run/batch/locator/entity/field/rule/version/code/severity; raw value
+nhạy cảm không ghi vào log thường.

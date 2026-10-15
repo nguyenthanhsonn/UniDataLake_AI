@@ -12,6 +12,28 @@ if TYPE_CHECKING:
 
 
 @dataclass(frozen=True)
+class FileProvenance:
+    """Evidence for one parsed file snapshot; not a durable Bronze receipt."""
+
+    source_system_id: str
+    data_source_id: str
+    dataset_id: str
+    source_type: str
+    source_ref: str
+    object_version_id: str | None
+    content_sha256: str
+    parser_fingerprint: str
+    columns_fingerprint: str
+    captured_at: str
+    locator_kind: str
+    workbook_epoch: str | None = None
+
+    @property
+    def input_version(self) -> str:
+        return "sha256:" + self.content_sha256
+
+
+@dataclass(frozen=True)
 class MappingBinding:
     """Pinned source/entity/profile identity for structural normalization."""
 
@@ -35,6 +57,7 @@ class BronzeBatch:
     mapping_binding: MappingBinding | None = None
     record_locators: tuple[str, ...] = ()
     source_paths: tuple[str, ...] = ()
+    provenance: FileProvenance | None = None
 
 
 class BronzeRepository(Protocol):

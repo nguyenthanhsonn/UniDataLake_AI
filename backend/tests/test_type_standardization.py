@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+import copy
 import json
 import subprocess
 import sys
-from dataclasses import replace
+from dataclasses import FrozenInstanceError, replace
 from datetime import UTC, date, datetime
 from decimal import Decimal
 from pathlib import Path
@@ -331,3 +332,300 @@ def test_s4_identity_policy_and_enum_string_type():
         )
     )
     assert {i.code for i in typed.issues} == {"SOURCE_ID_TYPE_ERROR", "STRING_TYPE_ERROR"}
+
+
+@pytest.mark.parametrize(
+    "fmt",
+    [
+        "%m-%d",
+        "%Y-%m",
+        "%d",
+        "%y-%m-%d",
+        "%%Y-%m-%d",
+        "%Y-%m-%d %H:%M:%S",
+        "%Y-%j",
+        "%x",
+        "%Y-%m-%d %",
+        "%Y-%m-%d %d",
+        "",
+    ],
+)
+def test_date_format_rejected_before_any_row(fmt):
+    options = FieldOptions(date_format=fmt)
+    with pytest.raises(ConversionConfigurationError, match="INVALID_DATE_FORMAT"):
+        make_service("academic", "semester", {"start_date": options})
+    # Invalid configuration must not be hidden by a nullable value.
+    with pytest.raises(ConversionConfigurationError, match="INVALID_DATE_FORMAT"):
+        convert_value(None, spec("date32", type=["string", "null"]), options)
+
+
+@pytest.mark.parametrize(
+    "fmt",
+    [
+        "%Y-%m-%d",
+        "%H:%M:%S",
+        "%Y-%m-%d %H:%M",
+        "%m-%d %H:%M:%S",
+        "%Y-%m-%d %%H:%M:%S",
+        "%Y-%m-%d %I:%M:%S",
+        "%Y-%m-%d %I:%M:%S %p",
+        "%c",
+        "%Y-%m-%d %H:%M:%S %Z",
+        "%Y-%m-%d %H:%M:%S %Q",
+        "",
+    ],
+)
+def test_timestamp_format_rejected_before_any_row(fmt):
+    options = FieldOptions(timestamp_format=fmt, source_timezone="UTC")
+    with pytest.raises(ConversionConfigurationError, match="INVALID_TIMESTAMP_FORMAT"):
+        make_service("admissions", "applicant", {"created_at": options})
+    with pytest.raises(ConversionConfigurationError, match="INVALID_TIMESTAMP_FORMAT"):
+        convert_value("2026-10-15", spec("timestamp[us,UTC]"), options)
+
+
+@pytest.mark.parametrize(
+    ("value", "fmt", "expected"),
+    [
+        (
+            "15/10/2026 12:34:56",
+            "%d/%m/%Y %H:%M:%S",
+            datetime(2026, 10, 15, 12, 34, 56, tzinfo=UTC),
+        ),
+        ("20261015123456", "%Y%m%d%H%M%S", datetime(2026, 10, 15, 12, 34, 56, tzinfo=UTC)),
+        (
+            "2026-10-15 12:34:56.12+0700",
+            "%Y-%m-%d %H:%M:%S.%f%z",
+            datetime(2026, 10, 15, 5, 34, 56, 120000, tzinfo=UTC),
+        ),
+        ("2026-10-15 00:00:00", "%Y-%m-%d %H:%M:%S", datetime(2026, 10, 15, tzinfo=UTC)),
+    ],
+)
+def test_complete_timestamp_formats_still_work(value, fmt, expected):
+    assert (
+        convert_value(
+            value,
+            spec("timestamp[us,UTC]"),
+            FieldOptions(timestamp_format=fmt, source_timezone="UTC"),
+        )
+        == expected
+    )
+
+
+@pytest.mark.parametrize("value", ["2026-10-15", "2026-10-15 12:34", "2026-10-15 1:2:3"])
+def test_complete_format_does_not_accept_partial_input(value):
+    with pytest.raises(ConversionError, match="TIMESTAMP_PARSE_ERROR"):
+        convert_value(
+            value,
+            spec("timestamp[us,UTC]"),
+            FieldOptions(timestamp_format="%Y-%m-%d %H:%M:%S", source_timezone="UTC"),
+        )
+
+
+def test_short_compact_timestamp_cannot_be_reinterpreted():
+    with pytest.raises(ConversionError, match="TIMESTAMP_PARSE_ERROR"):
+        convert_value(
+            "20261015123",
+            spec("timestamp[us,UTC]"),
+            FieldOptions(timestamp_format="%Y%m%d%H%M%S", source_timezone="UTC"),
+        )
+
+
+def test_literal_percent_does_not_count_as_directive():
+    assert convert_value(
+        "2026-10-15 %Y", spec("date32"), FieldOptions(date_format="%Y-%m-%d %%Y")
+    ) == date(2026, 10, 15)
+    assert convert_value("0001-01-01", spec("date32")) == date(1, 1, 1)
+
+
+def service_inputs():
+    contract = json.loads(
+        (ROOT / "docs/standardization/silver-schemas/admissions.json").read_text(encoding="utf-8")
+    )
+    key = MappingKey(
+        "sys", "admissions", "admission_method", "1", "mapping", "1", contract["x-version"]
+    )
+    return key, contract
+
+
+def test_configuration_deeply_immutable_and_detached():
+    key, contract = service_inputs()
+    options = {"max_score": FieldOptions(decimal_separator=",")}
+    service = TypeStandardizationService(
+        key=key, conversion_version="1", contract=contract, options=options
+    )
+    original = service.configuration_fingerprint
+    contract["$defs"]["admission_method"]["properties"]["max_score"]["x-scale"] = 0
+    options["max_score"] = FieldOptions()
+    assert service.spec["properties"]["max_score"]["x-scale"] == 2
+    assert service.options["max_score"].decimal_separator == ","
+    with pytest.raises(TypeError):
+        service.options["max_score"] = FieldOptions()
+    with pytest.raises(TypeError):
+        service.spec["properties"]["max_score"]["x-scale"] = 0
+    with pytest.raises(TypeError):
+        service.spec["required"][0] = "other"
+    for name, value in [
+        ("version", "other"),
+        ("spec", {}),
+        ("options", {}),
+        ("configuration_fingerprint", "fake"),
+        ("key", replace(key, entity="other")),
+    ]:
+        with pytest.raises(FrozenInstanceError):
+            setattr(service, name, value)
+    typed = service.standardize(
+        result(
+            key,
+            {
+                "admission_method_id": "007",
+                "method_code": "THPT",
+                "method_name": "Test",
+                "max_score": "30,00",
+                "is_active": True,
+            },
+        )
+    )
+    assert typed.accepted[0].values["max_score"] == Decimal("30.00")
+    assert typed.configuration_fingerprint == original
+
+
+def test_fingerprint_stable_for_equivalent_config_and_sensitive_to_content():
+    key, contract = service_inputs()
+
+    def build(c=contract, opts=None, version="1"):
+        return TypeStandardizationService(
+            key=key, conversion_version=version, contract=c, options=opts
+        )
+
+    first = build()
+    reordered = json.loads(json.dumps(contract, sort_keys=True))
+    assert (
+        first.configuration_fingerprint
+        == build(reordered, {"max_score": FieldOptions()}).configuration_fingerprint
+    )
+    assert (
+        first.configuration_fingerprint
+        != build(opts={"max_score": FieldOptions(decimal_separator=",")}).configuration_fingerprint
+    )
+    changed = copy.deepcopy(contract)
+    changed["$defs"]["admission_method"]["properties"]["max_score"]["x-minimum"] = 1
+    assert first.configuration_fingerprint != build(changed).configuration_fingerprint
+    assert first.configuration_fingerprint != build(version="2").configuration_fingerprint
+
+
+@pytest.mark.parametrize(
+    ("path", "value", "code"),
+    [
+        (["$defs"], {}, "ENTITY_NOT_FOUND"),
+        (["x-version"], "wrong", "CONVERSION_VERSION_MISMATCH"),
+        (["$defs", "admission_method", "x-owner"], "hr", "DOMAIN_MISMATCH"),
+        (["$defs", "admission_method", "required"], [], "INVALID_REQUIRED_FIELDS"),
+        (["$defs", "admission_method", "x-primary-key"], ["missing"], "INVALID_PRIMARY_KEY"),
+        (
+            ["$defs", "admission_method", "x-unique-together"],
+            [["missing"]],
+            "INVALID_UNIQUE_CONSTRAINT",
+        ),
+        (
+            ["$defs", "admission_method", "properties", "max_score", "x-physical-type"],
+            "money",
+            "UNSUPPORTED_PHYSICAL_TYPE",
+        ),
+        (
+            ["$defs", "admission_method", "properties", "max_score", "x-precision"],
+            7,
+            "INVALID_DECIMAL_CONTRACT",
+        ),
+        (
+            ["$defs", "admission_method", "properties", "max_score", "x-scale"],
+            True,
+            "INVALID_DECIMAL_CONTRACT",
+        ),
+        (
+            ["$defs", "admission_method", "properties", "max_score", "type"],
+            "number",
+            "PHYSICAL_LOGICAL_TYPE_MISMATCH",
+        ),
+        (
+            ["$defs", "admission_method", "properties", "max_score", "x-maximum"],
+            -1,
+            "INVALID_RANGE",
+        ),
+        (
+            ["$defs", "admission_method", "properties", "method_code", "pattern"],
+            "[",
+            "INVALID_PATTERN",
+        ),
+        (
+            ["$defs", "admission_method", "properties", "method_code", "maxLength"],
+            5,
+            "INVALID_STRING_CONTRACT",
+        ),
+        (
+            ["$defs", "admission_method", "properties", "method_code", "enum"],
+            [False],
+            "INVALID_ENUM",
+        ),
+        (
+            ["$defs", "admission_method", "properties", "admission_method_id", "x-references"],
+            {"entity": "x"},
+            "INVALID_REFERENCE",
+        ),
+        (
+            ["$defs", "admission_method", "properties", "admission_method_id", "type"],
+            ["integer", "null"],
+            "INVALID_PRIMARY_KEY",
+        ),
+        (
+            ["$defs", "admission_method", "properties", "max_score", "x-derived-from"],
+            "anything",
+            "UNSUPPORTED_DERIVATION",
+        ),
+    ],
+)
+def test_invalid_contract_fails_at_construction(path, value, code):
+    key, contract = service_inputs()
+    node = contract
+    for part in path[:-1]:
+        node = node[part]
+    node[path[-1]] = value
+    with pytest.raises(ConversionConfigurationError, match=code):
+        TypeStandardizationService(key=key, conversion_version="1", contract=contract)
+
+
+@pytest.mark.parametrize(
+    "option",
+    [
+        FieldOptions(null_tokens=[""]),
+        FieldOptions(true_tokens=("true", True)),
+        FieldOptions(null_tokens=("", "")),
+        FieldOptions(trim="yes"),
+        FieldOptions(decimal_separator=[]),
+        FieldOptions(excel_epoch=[]),
+    ],
+)
+def test_mutable_or_invalid_options_rejected(option):
+    key, contract = service_inputs()
+    with pytest.raises(ConversionConfigurationError):
+        TypeStandardizationService(
+            key=key, conversion_version="1", contract=contract, options={"max_score": option}
+        )
+
+
+def test_mapping_key_cannot_hold_mutable_values():
+    key, contract = service_inputs()
+    with pytest.raises(ConversionConfigurationError, match="INVALID_MAPPING_KEY"):
+        TypeStandardizationService(
+            key=replace(key, source_system_id=["sys"]), conversion_version="1", contract=contract
+        )
+
+
+def test_missing_physical_type_and_nonfinite_bound_are_config_errors():
+    key, contract = service_inputs()
+    del contract["$defs"]["admission_method"]["properties"]["max_score"]["x-physical-type"]
+    with pytest.raises(ConversionConfigurationError, match="PHYSICAL_TYPE_REQUIRED"):
+        TypeStandardizationService(key=key, conversion_version="1", contract=contract)
+    key, contract = service_inputs()
+    contract["$defs"]["admission_method"]["properties"]["max_score"]["x-minimum"] = float("nan")
+    with pytest.raises(ConversionConfigurationError, match="INVALID_CONTRACT"):
+        TypeStandardizationService(key=key, conversion_version="1", contract=contract)

@@ -16,7 +16,7 @@ from app.modules.pipeline.mapping_profiles import build_profile
 from app.modules.pipeline.schema_mapping import MappingKey, MappingRegistry, SchemaMappingService
 
 
-def preview_case(case_id, limit=20):
+def map_case(case_id, *, preview_limit=None):
     cases = json.loads((ROOT / 'data/standardization/s2/examples.json').read_text(encoding='utf-8'))
     case = next((c for c in cases if c['id'] == case_id), None)
     if case is None:
@@ -38,7 +38,11 @@ def preview_case(case_id, limit=20):
                                                         key.mapping_id,key.mapping_version,key.target_schema_version),
                          source_paths=tuple(case['source_paths']),
                          record_locators=tuple(f'fixture-v1:/records/{i}' for i in range(len(case['records']))))
-    return SchemaMappingService(MappingRegistry((profile,))).preview(batch, limit=limit)
+    return SchemaMappingService(MappingRegistry((profile,))).map_batch(batch, preview_limit=preview_limit)
+
+
+def preview_case(case_id, limit=20):
+    return map_case(case_id, preview_limit=limit)
 
 
 def main():

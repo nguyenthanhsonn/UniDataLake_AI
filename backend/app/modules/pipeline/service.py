@@ -49,7 +49,7 @@ class PipelineOrchestrator:
         if batch.mapping_binding is not None:
             raise ValueError(
                 "Versioned structural batches require S3/S4 validation before publishing; "
-                "use SchemaMappingService.map_batch or preview for S2"
+                "use SilverPipeline for the versioned S2/S3/S4 and Silver publication path"
             )
         definition = self._registry.get(batch.domain_id)
         mapping = definition.mapping_for(batch.source_type)

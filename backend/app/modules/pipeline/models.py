@@ -8,8 +8,23 @@ from sqlalchemy import BigInteger, DateTime, ForeignKey, Index, Integer, String,
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.infra.db.base import Base
+from app.modules.pipeline.identity_models import (
+    CanonicalIdentity,
+    CrosswalkRelease,
+    IdentityCrosswalk,
+)
+from app.modules.pipeline.silver_models import SilverHead, SilverRun, SilverSnapshot
 
-__all__ = ["DataProcessingRun", "TransformationStep"]
+__all__ = [
+    "CanonicalIdentity",
+    "CrosswalkRelease",
+    "DataProcessingRun",
+    "IdentityCrosswalk",
+    "SilverHead",
+    "SilverRun",
+    "SilverSnapshot",
+    "TransformationStep",
+]
 
 
 class TransformationStep(Base):

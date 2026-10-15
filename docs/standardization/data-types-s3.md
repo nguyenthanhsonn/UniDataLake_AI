@@ -6,9 +6,21 @@ Implementation: `backend/app/modules/pipeline/type_standardization.py`. Bộ chu
 
 MappingResult S2 → kiểm tra MappingKey/target schema version → đọc field spec S1 → chuyển đổi với FieldOptions per field → kiểm tra range/length/pattern → TypedRow hoặc issue/rejected locator.
 
-TypeStandardizationService nhận key, conversion_version, contract S1 và options. Không tự lấy profile mới nhất. Result giữ key, input_version, batch_id, conversion_version, mapping_issues, preview/counts và lỗi S3. Không chứa lại toàn bộ raw input hoặc preview before của S2. `conversion_version` do caller quản lý; kho profile bất biến và kiểm soát kích hoạt thuộc tích hợp P5, chưa có persistent registry S3.
+TypeStandardizationService nhận key, conversion_version, contract S1 và options. Không tự lấy profile mới nhất. Result giữ key, input_version, batch_id, conversion_version, configuration_fingerprint, mapping_issues, preview/counts và lỗi S3. Không chứa lại toàn bộ raw input hoặc preview before của S2. `conversion_version` do caller quản lý; kho profile và kiểm soát kích hoạt thuộc tích hợp P5, chưa có persistent registry S3.
+
+## Cấu hình bất biến và kiểm tra sớm (15/10/2026)
+
+Service là frozen dataclass. Schema được chụp riêng qua JSON, khóa đệ quy bằng mapping proxy và tuple; options được sao chép vào mapping chỉ đọc, mỗi FieldOptions là frozen với token tuple. Không thể sửa version/key/spec/options qua phép gán thông thường; thay dictionary/list contract ban đầu không đổi service đã tạo. Muốn đổi rule phải tạo service/cấu hình mới. Đây là bảo đảm chống sửa vô tình qua API Python, không phải sandbox chống code cố ý gọi cơ chế thấp cấp như object.__setattr__.
+
+Constructor kiểm tra dialect contract S1 của entity được chọn: field required/PK/unique, type vật lý–logic, Decimal precision/scale, length/range/pattern, enum, cấu trúc reference và derived birth_year. Contract thiếu physical type, bound NaN/Infinity, regex sai hoặc kiểu không hỗ trợ trả ConversionConfigurationError trước xử lý batch, kể cả batch rỗng. FK chỉ được kiểm tra khai báo; sự tồn tại của record đích và identity resolution vẫn thuộc S4/P5. Đây không phải validator cho mọi tính năng JSON Schema tùy ý.
+
+`configuration_fingerprint` là SHA-256 của key, version, snapshot contract, options hiệu lực (kể cả defaults) và nhãn dialect engine. Thứ tự key trong JSON/dictionary không đổi fingerprint; thay rule/schema/version làm fingerprint đổi. Fingerprint được trả trên TypeResult và hiển thị trong CLI preview. P5 cần lưu cùng run và so sánh khi replay/đăng ký profile; S3 chưa có kho toàn cục để cấm caller tạo hai service khác nội dung nhưng cùng conversion_version. Fingerprint cũng không thay cho việc pin phiên bản phần mềm và timezone database của môi trường.
 
 ## Chuyển đổi đã có
+
+Cập nhật 15/10/2026: format tùy chỉnh được kiểm tra trước xử lý dữ liệu. Date bắt buộc `%Y`, `%m`, `%d`; timestamp bắt buộc thêm `%H`, `%M`, `%S`, có thể dùng `%f` và `%z`. Mỗi directive chỉ xuất hiện một lần; `%%` là ký tự phần trăm, không tính là thành phần ngày giờ. Không nhận năm hai chữ số, format theo locale (`%x`/`%c`), tên timezone `%Z`, week-date hoặc giờ 12 tiếng. Cần đổi profile cũ dùng các format này sang format số tường minh.
+
+Format thiếu thành phần trả `ConversionConfigurationError` với `INVALID_DATE_FORMAT` hoặc `INVALID_TIMESTAMP_FORMAT`, kể cả dữ liệu null; không bị policy optional-to-null che mất. Input thiếu thành phần so với format hợp lệ trả lỗi parse theo bản ghi. Tháng/ngày/giờ/phút/giây phải đủ hai chữ số; `%Y` đủ bốn chữ số. Timestamp chỉ có ngày không được tự điền 00:00:00, date thiếu năm không được tự điền 1900. Giá trị 00:00:00 ghi rõ trong nguồn vẫn hợp lệ.
 
 | Kiểu | Quy tắc |
 |---|---|
@@ -67,3 +79,14 @@ Sáu case sẵn có dùng dữ liệu giả lập S2. JSON CLI gắn type/value 
 ## Kiểm chứng
 
 55 tests S3: valid/error cases, locale, scale/overflow, 22 entity fixtures, null policy, birth_year, DST, Excel, version mismatch, kế thừa lỗi S2 và 6 CLI previews. Cùng S1/S2/domain: **237 passed**. Ruff + mypy module S3 đạt. Không chạy storage/Parquet round-trip, không chứng minh toàn bộ business rules hoặc toàn repo xanh.
+
+Sau sửa format ngày/giờ ngày 15/10/2026: thêm 31 regression cases; tổng nhóm S1–S3/domain **268 passed**. Ruff và mypy module S3 đạt. Kết quả 237 phía trên là mốc triển khai ban đầu.
+
+Sau khóa cấu hình và kiểm tra contract sớm: thêm 27 regression cases, tổng nhóm **295 passed**. Đã kiểm tra sửa schema lồng/tuple/options/version bị chặn, thay input gốc không ảnh hưởng, fingerprint ổn định và đổi theo nội dung, contract/options/key không hợp lệ bị từ chối ngay. Ruff và mypy module đạt.
+
+## Cập nhật handoff S4 (15/10/2026)
+
+Enum và các field chuỗi khai báo qua `value_mapping_fields` được giữ trong pending_s4.
+S3 kiểm tra kiểu/null nhưng hoãn pattern/length đích của chúng đến sau dictionary
+mapping ở S4; alias nguồn không bắt buộc có cùng độ dài với code đích. Danh sách
+value_mapping_fields được pin trong configuration_fingerprint. Xem identity-values-s4.md.

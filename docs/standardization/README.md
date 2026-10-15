@@ -1,8 +1,21 @@
 # P0 — Baseline chuẩn hóa dữ liệu
 
+## P5 đã triển khai phần tích hợp kỹ thuật
+
+Xem [Silver integration](silver-integration-p5.md) và [checklist G5](g5-checklist.md).
+Có Silver-only pipeline, Parquet read-back, manifest, metadata CAS, retry/resume và
+CLI rehearsal. Production vẫn chặn bởi G1/DQ; migration chưa áp dụng môi trường thật.
+
+## S4 đã triển khai
+
+Xem [Identity & Value Standardization](identity-values-s4.md) và [checklist G4](g4-checklist.md).
+Có engine nhận pending_s4, repository crosswalk bền vững, migration PostgreSQL và
+preview ba domain. Hồi quy S1–S4/handoff: 440 tests pass. Chưa áp dụng migration
+PostgreSQL hoặc publish Silver; G1 vẫn pending.
+
 ## S3 đã triển khai
 
-Xem [chuẩn hóa kiểu dữ liệu](data-types-s3.md) và [checklist G3](g3-checklist.md). Có converter/service nối với S2 và CLI preview; ID/enum chờ S4, chưa publish Silver.
+Xem [chuẩn hóa kiểu dữ liệu](data-types-s3.md) và [checklist G3](g3-checklist.md). Có converter/service nối với S2 và CLI preview; ID/enum bàn giao qua pending_s4 cho S4, chưa publish Silver.
 
 ## S2 đã triển khai
 

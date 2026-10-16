@@ -1,6 +1,7 @@
 """Manual Bronze -> Silver rehearsal using real MinIO and PostgreSQL metadata.
 
-Explicit synthetic source profiles replace the catalog/API for this demo only.
+Direct mode uses synthetic source IDs. Job mode verifies a published demo catalog job.
+Both modes use fixed synthetic normalization profiles; neither is a production API.
 Never creates buckets/tables or enables production; apply migrations separately.
 """
 
@@ -13,6 +14,7 @@ import sys
 from dataclasses import asdict
 from datetime import datetime
 from pathlib import Path
+from urllib.parse import urlsplit
 from uuid import uuid4
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -45,11 +47,12 @@ from app.modules.pipeline.type_standardization import (
     TypeStandardizationService,
 )
 from minio import Minio
-from sqlalchemy import URL, create_engine, inspect, select
+from sqlalchemy import URL, create_engine, inspect, select, text
 
 DOMAINS = ("admissions", "academic", "hr")
 RELEASE = "manual-live-demo-crosswalk-v1"
 WHEN = datetime.fromisoformat("2026-01-01T00:00:00+00:00")
+JOB_RELEASE = "manual-ingestion-demo-v1"
 
 
 def read_json(path):
@@ -64,12 +67,12 @@ def profiles():
     ]
 
 
-def normalize(domain, location, snapshot, *, version=None):
+def normalize(domain, location, snapshot, *, version=None, job_context=None):
     case = next(c for c in profiles() if c["domain"] == domain)
     contract = read_json(f"docs/standardization/silver-schemas/{domain}.json")
     source_type = "EXCEL" if location.lower().endswith(".xlsx") else "CSV"
     key = MappingKey(
-        f"DEMO_live_{domain}",
+        str(job_context["source_system_id"]) if job_context else f"DEMO_live_{domain}",
         domain,
         case["entity"],
         "1",
@@ -87,9 +90,13 @@ def normalize(domain, location, snapshot, *, version=None):
         request,
         SourceReaderFactory.get_reader(source_type),
         source_system_id=key.source_system_id,
-        data_source_id=f"manual-{domain}",
-        dataset_id=case["entity"],
+        data_source_id=str(job_context["data_source_id"])
+        if job_context
+        else f"manual-{domain}",
+        dataset_id=str(job_context["dataset_id"]) if job_context else case["entity"],
     )
+    if job_context:
+        verify_job_capture(raw, job_context)
     binding = MappingBinding(
         key.source_system_id,
         key.entity,
@@ -146,6 +153,102 @@ def normalize(domain, location, snapshot, *, version=None):
     return identity.standardize(types.standardize(mapped))
 
 
+def validate_job_input(row, bucket):
+    """Only the dedicated fixture catalog may use these synthetic profiles."""
+    if not row or row["status"] != "SUCCESS" or row["job_type"] != "EXECUTION_V1":
+        raise ValueError("SUCCESSFUL_BRONZE_JOB_REQUIRED")
+    domain = row["domain"]
+    if (
+        domain not in DOMAINS
+        or row["source_code"] != f"DEMO_FLOW_{domain}"
+        or row["dataset_code"] != f"DEMO_FLOW_{domain}_BRONZE"
+        or row["dataset_source_id"] != row["source_system_id"]
+        or row["layer_code"] != "BRONZE"
+    ):
+        raise ValueError("DEDICATED_DEMO_CATALOG_REQUIRED")
+    output = row["output"] or {}
+    uri = urlsplit(output.get("uri", ""))
+    parts = uri.path.lstrip("/").split("/")
+    if (
+        uri.scheme != "s3"
+        or uri.netloc != bucket
+        or uri.query
+        or uri.fragment
+        or len(parts) != 6
+        or parts[0] != domain
+        or parts[4] != f"job-{row['ingestion_job_id']}"
+        or parts[-1] != row["source_table"]
+        or not parts[-1].endswith((".xlsx", ".csv"))
+    ):
+        raise ValueError("BRONZE_JOB_OUTPUT_INVALID_OR_UNSUPPORTED")
+    if (
+        not output.get("version_id")
+        or output["version_id"] == "null"
+        or not isinstance(output.get("sha256"), str)
+        or len(output["sha256"]) != 64
+        or not isinstance(output.get("size_bytes"), int)
+    ):
+        raise ValueError("BRONZE_JOB_EVIDENCE_REQUIRED")
+    return {**dict(row), "object": "/".join(parts)}
+
+
+def read_job_input(engine, job_id):
+    with engine.connect() as conn:
+        row = (
+            conn.execute(
+                text("""
+            SELECT j.ingestion_job_id,j.status,j.job_type,j.output,j.source_table,
+                   j.rows_read,j.data_source_id,j.dataset_id,s.source_system_id,
+                   s.source_code,d.domain,d.dataset_code,
+                   d.source_system_id AS dataset_source_id,l.layer_code
+            FROM app.ingestion_job j
+            JOIN app.data_source ds ON ds.data_source_id=j.data_source_id
+            JOIN app.source_system s ON s.source_system_id=ds.source_system_id
+            JOIN app.dataset d ON d.dataset_id=j.dataset_id
+            JOIN app.data_layer l ON l.data_layer_id=j.target_layer_id
+            WHERE j.ingestion_job_id=:job_id
+        """),
+                {"job_id": job_id},
+            )
+            .mappings()
+            .first()
+        )
+    return validate_job_input(row, settings.minio_bucket_bronze)
+
+
+def verify_job_capture(raw, context):
+    if (
+        raw.provenance.content_sha256 != context["output"]["sha256"]
+        or raw.provenance.object_version_id != context["output"]["version_id"]
+        or raw.rows_read != context["rows_read"]
+    ):
+        raise ValueError("BRONZE_JOB_CAPTURE_MISMATCH")
+
+
+def initialize_job_crosswalk(engine):
+    with engine.begin() as conn:
+        repo = CrosswalkRepository(conn)
+        if conn.execute(
+            select(RELEASES.c.version).where(RELEASES.c.version == JOB_RELEASE)
+        ).first():
+            return repo.load(JOB_RELEASE)
+        for c in profiles():
+            source_id = conn.execute(
+                text(
+                    "SELECT source_system_id FROM app.source_system WHERE source_code=:code"
+                ),
+                {"code": f"DEMO_FLOW_{c['domain']}"},
+            ).scalar_one()
+            repo.register(
+                namespace=str(source_id),
+                entity=c["entity"],
+                source=(c["records"][0]["id"],),
+                evidence="Synthetic ingestion demo v1",
+                valid_from=WHEN,
+            )
+        return repo.freeze(JOB_RELEASE)
+
+
 def initialize_crosswalk(engine):
     with engine.begin() as conn:
         repo = CrosswalkRepository(conn)
@@ -169,10 +272,18 @@ def main():
     if callable(reconfigure):
         reconfigure(encoding="utf-8")
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("action", choices=("check", "init-crosswalk", "run", "inspect"))
+    parser.add_argument(
+        "action",
+        choices=("check", "init-crosswalk", "init-job-crosswalk", "run", "inspect"),
+    )
     parser.add_argument("--domain", choices=DOMAINS)
     parser.add_argument("--object", help="Object key inside configured Bronze bucket")
     parser.add_argument("--version", help="Pin a specific Bronze object version")
+    parser.add_argument(
+        "--ingestion-job",
+        type=int,
+        help="SUCCESS job from the dedicated DEMO_FLOW catalog",
+    )
     parser.add_argument("--session", default="buoi1")
     parser.add_argument(
         "--base", default="none", help="none, active, or exact parent snapshot UUID"
@@ -184,11 +295,25 @@ def main():
         or len(args.session) > 40
     ):
         parser.error("session: use 1-40 ASCII letters/digits/hyphens")
-    if args.action == "run" and (not args.domain or not args.object):
+    if args.ingestion_job is not None and (
+        args.ingestion_job <= 0 or args.object or args.version or args.domain
+    ):
+        parser.error(
+            "--ingestion-job must be positive and cannot combine with domain/object/version"
+        )
+    if (
+        args.action == "run"
+        and args.ingestion_job is None
+        and (not args.domain or not args.object)
+    ):
         parser.error("run requires --domain and --object")
-    if args.action == "run" and (
-        not args.object.startswith("demo/")
-        or not args.object.lower().endswith((".csv", ".xlsx"))
+    if (
+        args.action == "run"
+        and args.ingestion_job is None
+        and (
+            not args.object.startswith("demo/")
+            or not args.object.lower().endswith((".csv", ".xlsx"))
+        )
     ):
         parser.error("Demo only accepts .csv/.xlsx objects under demo/")
     engine = create_engine(
@@ -243,8 +368,12 @@ def main():
                 if not missing and all(buckets.values()) and versioning == "Enabled"
                 else 1
             )
-        if args.action == "init-crosswalk":
-            snapshot = initialize_crosswalk(engine)
+        if args.action in {"init-crosswalk", "init-job-crosswalk"}:
+            snapshot = (
+                initialize_job_crosswalk(engine)
+                if args.action == "init-job-crosswalk"
+                else initialize_crosswalk(engine)
+            )
             print(
                 json.dumps(
                     {
@@ -252,7 +381,14 @@ def main():
                         "demo_entries": [
                             asdict(e)
                             for e in snapshot.entries
-                            if e.namespace.startswith("DEMO_live_")
+                            if (
+                                args.action == "init-crosswalk"
+                                and e.namespace.startswith("DEMO_live_")
+                            )
+                            or (
+                                args.action == "init-job-crosswalk"
+                                and e.evidence == "Synthetic ingestion demo v1"
+                            )
                         ],
                     },
                     default=str,
@@ -285,8 +421,17 @@ def main():
                 )
             )
             return 0
+        job_context = (
+            read_job_input(engine, args.ingestion_job) if args.ingestion_job else None
+        )
+        if job_context:
+            args.domain = job_context["domain"]
+            args.object = job_context["object"]
+            args.version = job_context["output"]["version_id"]
         with engine.begin() as conn:
-            crosswalk = CrosswalkRepository(conn).load(RELEASE)
+            crosswalk = CrosswalkRepository(conn).load(
+                JOB_RELEASE if job_context else RELEASE
+            )
         stat = client.stat_object(
             settings.minio_bucket_bronze, args.object, version_id=args.version
         )
@@ -294,11 +439,14 @@ def main():
             raise ValueError(
                 "BRONZE_VERSIONING_REQUIRED: upload again after enabling versioning"
             )
+        if job_context and stat.size != job_context["output"]["size_bytes"]:
+            raise ValueError("BRONZE_JOB_SIZE_MISMATCH")
         result = normalize(
             args.domain,
             f"s3://{settings.minio_bucket_bronze}/{args.object}",
             crosswalk,
             version=stat.version_id,
+            job_context=job_context,
         )
         base = (
             before
@@ -308,6 +456,7 @@ def main():
             else args.base
         )
         report = {
+            "ingestion_job_id": args.ingestion_job,
             "scope": publisher.scope,
             "source": args.object,
             "source_version": stat.version_id,

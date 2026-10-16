@@ -1,0 +1,44 @@
+{
+  "ingestion_job_id": 1,
+  "scope": "rehearsal:manual-demo-flow1",
+  "source": "admissions/2026/10/16/job-1/01-admissions.xlsx",
+  "source_version": "2a44f5d8-ff31-46e8-a933-2957526a37e6",
+  "base_snapshot": null,
+  "head_before": "d0801628-0590-40d4-a5e5-bfcc606a784b",
+  "input_rows": 1,
+  "accepted_rows": 1,
+  "rejected_locators": [],
+  "issues": [],
+  "status": "PUBLISHED",
+  "receipt": {
+    "snapshot_id": "d0801628-0590-40d4-a5e5-bfcc606a784b",
+    "manifest": {
+      "key": "silver/rehearsal/80f646428dd0802f5dc98c174a77c0c85dc090768981b10987cd0a6de9231095/d0801628-0590-40d4-a5e5-bfcc606a784b/manifest-e17739572a9ac051939f5d7e0753b9ca0d60e6591decc3747e5f3bb6d1df5fcd.json",
+      "sha256": "e17739572a9ac051939f5d7e0753b9ca0d60e6591decc3747e5f3bb6d1df5fcd",
+      "size": 4406,
+      "version_id": null
+    },
+    "scope": "rehearsal:manual-demo-flow1",
+    "mode": "rehearsal",
+    "reused": true
+  },
+  "tables": {
+    "admission_method": [
+      {
+        "admission_method_id": 1,
+        "method_code": "THPT",
+        "method_name": "Xét tuyển giả lập",
+        "max_score": "30.00",
+        "is_active": true,
+        "_source_system_id": "5",
+        "_source_record_id": "sha256:65af5c485c21b2a3d9c84cb37a3417e07f02ffe3396d23467e030a0050e6fcd6",
+        "_batch_id": "270ac76a-b948-4316-9d1f-b3fc43528098",
+        "_run_id": "d0801628-0590-40d4-a5e5-bfcc606a784b",
+        "_processed_at": "2026-10-16 13:53:05.213063+00:00",
+        "_schema_version": "0.1.0-draft",
+        "_mapping_version": "1"
+      }
+    ]
+  },
+  "head_after": "d0801628-0590-40d4-a5e5-bfcc606a784b"
+}

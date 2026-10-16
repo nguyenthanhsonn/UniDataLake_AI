@@ -1,0 +1,25 @@
+{
+  "ingestion_job_id": 5,
+  "scope": "rehearsal:manual-demo-flow1",
+  "source": "academic/2026/10/16/job-5/04-bad-date.xlsx",
+  "source_version": "79ef25d7-2735-4d9d-9e27-fd5223a7c07a",
+  "base_snapshot": "aafc240c-7cf9-4646-acdb-f45b96c0e6f3",
+  "head_before": "aafc240c-7cf9-4646-acdb-f45b96c0e6f3",
+  "input_rows": 1,
+  "accepted_rows": 0,
+  "rejected_locators": [
+    "sheet:Data:row:2"
+  ],
+  "issues": [
+    {
+      "locator": "sheet:Data:row:2",
+      "field": "start_date",
+      "code": "DATE_PARSE_ERROR",
+      "severity": "error",
+      "rule_version": "manual-types-1"
+    }
+  ],
+  "status": "FAILED",
+  "error": "SNAPSHOT_REJECTED",
+  "head_after": "aafc240c-7cf9-4646-acdb-f45b96c0e6f3"
+}

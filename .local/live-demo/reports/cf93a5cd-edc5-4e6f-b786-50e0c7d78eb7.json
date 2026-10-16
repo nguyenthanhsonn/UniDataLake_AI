@@ -1,0 +1,61 @@
+{
+  "ingestion_job_id": 4,
+  "scope": "rehearsal:manual-demo-flow1",
+  "source": "academic/2026/10/16/job-4/02-academic.xlsx",
+  "source_version": "9c247642-5a2e-453d-b2c5-08c37a483b34",
+  "base_snapshot": "d0801628-0590-40d4-a5e5-bfcc606a784b",
+  "head_before": "d0801628-0590-40d4-a5e5-bfcc606a784b",
+  "input_rows": 1,
+  "accepted_rows": 1,
+  "rejected_locators": [],
+  "issues": [],
+  "status": "PUBLISHED",
+  "receipt": {
+    "snapshot_id": "00e434d6-a188-4c93-a39a-ec10c812f827",
+    "manifest": {
+      "key": "silver/rehearsal/80f646428dd0802f5dc98c174a77c0c85dc090768981b10987cd0a6de9231095/00e434d6-a188-4c93-a39a-ec10c812f827/manifest-d1e8e78dfcd2874ce18801ea804015079c958fb89ad9718f1224cb908bf0ac22.json",
+      "sha256": "d1e8e78dfcd2874ce18801ea804015079c958fb89ad9718f1224cb908bf0ac22",
+      "size": 6827,
+      "version_id": null
+    },
+    "scope": "rehearsal:manual-demo-flow1",
+    "mode": "rehearsal",
+    "reused": false
+  },
+  "tables": {
+    "admission_method": [
+      {
+        "admission_method_id": 1,
+        "method_code": "THPT",
+        "method_name": "Xét tuyển giả lập",
+        "max_score": "30.00",
+        "is_active": true,
+        "_source_system_id": "5",
+        "_source_record_id": "sha256:65af5c485c21b2a3d9c84cb37a3417e07f02ffe3396d23467e030a0050e6fcd6",
+        "_batch_id": "270ac76a-b948-4316-9d1f-b3fc43528098",
+        "_run_id": "d0801628-0590-40d4-a5e5-bfcc606a784b",
+        "_processed_at": "2026-10-16 13:53:05.213063+00:00",
+        "_schema_version": "0.1.0-draft",
+        "_mapping_version": "1"
+      }
+    ],
+    "semester": [
+      {
+        "semester_id": 2,
+        "semester_code": "2026-1",
+        "academic_year": "2026-2027",
+        "start_date": "2026-09-01",
+        "end_date": "2027-01-15",
+        "status": "Ongoing",
+        "_source_system_id": "6",
+        "_source_record_id": "sha256:88e35bc90a68b40f565422497555c7f5281b9c9f9b1909198e6907812bbe31b0",
+        "_batch_id": "4cdc83d6-b226-4ad8-b6c0-817874f7c937",
+        "_run_id": "00e434d6-a188-4c93-a39a-ec10c812f827",
+        "_processed_at": "2026-10-16 14:01:27.568375+00:00",
+        "_schema_version": "0.1.0-draft",
+        "_mapping_version": "1"
+      }
+    ]
+  },
+  "head_after": "00e434d6-a188-4c93-a39a-ec10c812f827"
+}

@@ -11,6 +11,7 @@ class LLMPort(Protocol):
 
     async def complete(self, prompt: str) -> str:
         """Return a completion for the supplied prompt."""
+        ...
 
 
 class GoldQueryPort(Protocol):
@@ -18,6 +19,7 @@ class GoldQueryPort(Protocol):
 
     async def execute(self, sql: str) -> list[dict[str, object]]:
         """Execute validated read-only SQL against published Gold data."""
+        ...
 
 
 @dataclass(frozen=True)

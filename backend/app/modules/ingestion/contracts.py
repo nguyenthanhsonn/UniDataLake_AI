@@ -7,8 +7,62 @@ from typing import TYPE_CHECKING, Protocol
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
+    from datetime import datetime
+    from pathlib import Path
 
     from app.domains.base import Record
+
+
+@dataclass(frozen=True)
+class CapturedArtifact:
+    """A private raw snapshot ready for durable Bronze storage."""
+
+    path: Path
+    rows: int
+    sha256: str
+    source_version_id: str | None = None
+
+
+@dataclass(frozen=True)
+class BronzeWriteContext:
+    """Validated job identity needed by a storage adapter, without ORM state."""
+
+    ingestion_job_id: int
+    created_at: datetime
+
+
+@dataclass(frozen=True)
+class FileProvenance:
+    """Evidence for one parsed file snapshot; not a durable Bronze receipt."""
+
+    source_system_id: str
+    data_source_id: str
+    dataset_id: str
+    source_type: str
+    source_ref: str
+    object_version_id: str | None
+    content_sha256: str
+    parser_fingerprint: str
+    columns_fingerprint: str
+    captured_at: str
+    locator_kind: str
+    workbook_epoch: str | None = None
+
+    @property
+    def input_version(self) -> str:
+        return "sha256:" + self.content_sha256
+
+
+@dataclass(frozen=True)
+class MappingBinding:
+    """Pinned source/entity/profile identity for structural normalization."""
+
+    source_system_id: str
+    entity: str
+    source_schema_version: str
+    mapping_id: str
+    mapping_version: str
+    target_schema_version: str
 
 
 @dataclass(frozen=True)
@@ -20,6 +74,10 @@ class BronzeBatch:
     source_type: str
     records: tuple[Record, ...]
     metadata: Mapping[str, str] = field(default_factory=dict)
+    mapping_binding: MappingBinding | None = None
+    record_locators: tuple[str, ...] = ()
+    source_paths: tuple[str, ...] = ()
+    provenance: FileProvenance | None = None
 
 
 class BronzeRepository(Protocol):

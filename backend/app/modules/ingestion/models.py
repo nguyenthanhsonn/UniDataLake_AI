@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Any
 
 from sqlalchemy import BigInteger, DateTime, ForeignKey, Index, String, Text
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.infra.db.base import Base
@@ -44,3 +46,9 @@ class IngestionJob(Base):
     rows_written: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     rows_rejected: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    source_table: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    created_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    requested_by: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    stage: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    lease_expires_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    output: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)

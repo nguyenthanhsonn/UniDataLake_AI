@@ -86,17 +86,21 @@ class QualityRule(Protocol):
     @property
     def rule_id(self) -> str:
         """Stable rule identifier."""
+        ...
 
     @property
     def dataset(self) -> str:
         """Dataset evaluated by this rule."""
+        ...
 
     @property
     def description(self) -> str:
         """Human-readable rule intent."""
+        ...
 
     def evaluate(self, records: Sequence[Record]) -> QualityResult:
         """Evaluate records and return a serializable result."""
+        ...
 
 
 class DomainTransformer(Protocol):
@@ -108,9 +112,11 @@ class DomainTransformer(Protocol):
         mapping: SourceMapping,
     ) -> list[Record]:
         """Normalize Bronze records into the mapping's Silver dataset."""
+        ...
 
     def to_gold(self, records: Sequence[Record]) -> dict[str, list[Record]]:
         """Build declared Gold datasets from validated Silver records."""
+        ...
 
 
 @dataclass(frozen=True)

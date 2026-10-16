@@ -1,0 +1,146 @@
+"""Source -> Bronze orchestration. Queue metadata lives in PostgreSQL."""
+
+from __future__ import annotations
+
+import asyncio
+import contextlib
+import re
+from typing import TYPE_CHECKING, Any, ParamSpec, Protocol, TypeVar
+
+from app.core.exceptions import AppException
+from app.modules.ingestion.contracts import BronzeWriteContext
+from app.modules.ingestion.readers.request_builder import build_read_request
+from app.repositories.ingestion_repo import IngestionRepository, utcnow
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+    from contextlib import AbstractContextManager
+
+    from app.modules.ingestion.contracts import CapturedArtifact
+    from app.modules.ingestion.models import IngestionJob
+    from app.modules.ingestion.readers.contract import ReadRequest
+    from app.modules.ingestion.schemas import IngestionStart
+    from app.repositories.ingestion_repo import SourceContext
+
+P = ParamSpec("P")
+R = TypeVar("R")
+
+
+class CaptureReader(Protocol):
+    """Reader port for the execution service; persistence DTOs remain independent."""
+
+    def read(self, request: ReadRequest) -> CapturedArtifact: ...
+
+
+def authorize(user: dict[str, Any], *, write: bool = False) -> None:
+    roles = user.get("roles", [])
+    roles = [roles] if isinstance(roles, str) else roles
+    allowed = {"ADMIN", "DATA_ADMIN"} if write else {"ADMIN", "DATA_ADMIN", "ANALYST", "VIEWER"}
+    if not isinstance(roles, (list, tuple, set)) or allowed.isdisjoint(roles):
+        raise AppException(
+            "Không có quyền thực thi thao tác ingestion", code="FORBIDDEN", status_code=403
+        )
+
+
+def validate_context(context: SourceContext, source_table: str) -> ReadRequest:
+    source, dataset, layer, system = context
+    if not system or not system.is_active or not source.is_active:
+        raise ValueError("SOURCE_INACTIVE")
+    if not layer or layer.layer_code.upper() != "BRONZE":
+        raise ValueError("BRONZE_DATASET_REQUIRED")
+    if dataset.source_system_id != source.source_system_id or dataset.status != "ACTIVE":
+        raise ValueError("DATASET_SOURCE_MISMATCH_OR_INACTIVE")
+    if not re.fullmatch(r"[a-z][a-z0-9_-]{0,62}", dataset.domain):
+        raise ValueError("INVALID_PARTITION_DOMAIN")
+    try:
+        request = build_read_request(source, source_table=source_table)
+    except ValueError:
+        raise ValueError("SOURCE_CONFIGURATION_INVALID_OR_UNSUPPORTED") from None
+    if request.source_type in {"CSV", "EXCEL"}:
+        if not re.fullmatch(r"[A-Za-z0-9_][A-Za-z0-9_.-]{0,199}", source_table):
+            raise ValueError("INVALID_SOURCE_TABLE")
+    elif not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)?", source_table):
+        raise ValueError("INVALID_SOURCE_TABLE")
+    return request
+
+
+async def run_io(function: Callable[P, R], *args: P.args, **kwargs: P.kwargs) -> R:
+    """Finish thread I/O before releasing its temporary files on cancellation."""
+    task = asyncio.create_task(asyncio.to_thread(function, *args, **kwargs))
+    try:
+        return await asyncio.shield(task)
+    except asyncio.CancelledError:
+        with contextlib.suppress(Exception):
+            await task
+        raise
+
+
+class IngestionExecutionService:
+    def __init__(self, repository: IngestionRepository) -> None:
+        self.repository = repository
+
+    async def start(self, request: IngestionStart, user: dict[str, Any]) -> IngestionJob:
+        authorize(user, write=True)
+        repo = self.repository
+        context = await repo.context(request.data_source_id, request.dataset_id, lock=True)
+        existing = await repo.active(request.data_source_id)
+        error = "SOURCE_ALREADY_RUNNING" if existing else None
+        if not error:
+            try:
+                validate_context(context, request.source_table)
+            except ValueError as exc:
+                error = str(exc)
+        job = await repo.create(
+            data_source_id=request.data_source_id,
+            dataset_id=request.dataset_id,
+            target_layer_id=context[1].data_layer_id,
+            source_table=request.source_table,
+            requested_by=str(user.get("sub", ""))[:100],
+            status="REJECTED" if error else "QUEUED",
+            stage="VALIDATION" if error else "QUEUED",
+            error_message=error,
+            finished_at=utcnow() if error else None,
+        )
+        if error:
+            raise AppException(
+                "Không thể khởi chạy ingestion",
+                code=error,
+                status_code=409 if existing else 422,
+                details={"ingestion_job_id": job.ingestion_job_id},
+            )
+        return job
+
+    async def execute(
+        self,
+        job: IngestionJob,
+        capture: Callable[[], AbstractContextManager[CaptureReader]],
+        store: Callable[[CapturedArtifact, str, BronzeWriteContext], dict[str, Any]],
+    ) -> None:
+        """Called only for a claimed job; adapters run outside the event loop."""
+        repo = self.repository
+        stage = "READING"
+        job_id = job.ingestion_job_id
+        try:
+            if job.source_table is None or job.created_at is None:
+                raise ValueError("INGESTION_JOB_CONTEXT_REQUIRED")
+            write_context = BronzeWriteContext(job_id, job.created_at)
+            context = await repo.context(job.data_source_id, job.dataset_id)
+            request = validate_context(context, job.source_table)
+            domain = context[1].domain
+            # Release read transaction before slow source I/O.
+            await repo.db.commit()
+            with capture() as captured:
+                artifact = await run_io(captured.read, request)
+                stage = "WRITING"
+                await repo.stage(job_id, stage, artifact.rows)
+                output = await run_io(store, artifact, domain, write_context)
+                stage = "COMMITTING"
+                await repo.finish(job_id, output=output)
+        except asyncio.CancelledError:
+            # Leave lease to expire: thread-backed I/O may still be in flight.
+            raise
+        except Exception:
+            # Connector exceptions may contain credentials or source row values.
+            # Expose only controlled stage-specific codes.
+            await repo.db.rollback()
+            await repo.finish(job_id, error=f"INGESTION_{stage}_FAILED")

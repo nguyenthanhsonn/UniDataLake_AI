@@ -63,6 +63,9 @@ RUN chown -R appuser:appuser /app
 
 USER appuser
 
+# PostgreSQLReader uses LOAD postgres; install for the same runtime user/version.
+RUN python -c "import duckdb; connection = duckdb.connect(); connection.execute('INSTALL postgres'); connection.close()"
+
 EXPOSE 8000
 
 # Health check configuration

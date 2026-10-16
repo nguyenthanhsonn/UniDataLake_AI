@@ -46,6 +46,11 @@ class PipelineOrchestrator:
 
     def run(self, batch: BronzeBatch) -> PipelineRunResult:
         """Transform, validate, publish, and report one Bronze batch."""
+        if batch.mapping_binding is not None:
+            raise ValueError(
+                "Versioned structural batches require S3/S4 validation before publishing; "
+                "use SilverPipeline for the versioned S2/S3/S4 and Silver publication path"
+            )
         definition = self._registry.get(batch.domain_id)
         mapping = definition.mapping_for(batch.source_type)
         silver_records = definition.transformer.to_silver(batch.records, mapping)

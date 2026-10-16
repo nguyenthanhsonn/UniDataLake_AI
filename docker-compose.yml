@@ -113,7 +113,7 @@ services:
     volumes:
       - ./backend:/app
 
-    environment:
+    environment: &backend-environment
       - ENVIRONMENT=${ENVIRONMENT:-development}
       - DEBUG=${DEBUG:-true}
       - DB_HOST=postgres
@@ -143,10 +143,33 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
 
   # ============================================================================
-  # 5. Frontend Service (Next.js)
+  # 5. Durable Ingestion Worker (PostgreSQL queue -> Bronze)
   # ============================================================================
+  ingestion-worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    command: python -m app.ingestion_worker
+    environment: *backend-environment
+    volumes:
+      - ./backend:/app
+      - ./data:/data:ro
+    networks:
+      - unilake-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio-init:
+        condition: service_completed_successfully
+    healthcheck:
+      disable: true
+
+  # 6. Frontend Service (Next.js)
   frontend:
     build:
       context: ./frontend
@@ -157,6 +180,7 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
+      - API_BASE_URL=http://backend:8000/api/v1
       - NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
     networks:
       - unilake-network

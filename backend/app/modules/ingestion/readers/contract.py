@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Protocol
+from typing import TYPE_CHECKING, Any, Protocol
+
+if TYPE_CHECKING:
+    from app.modules.ingestion.contracts import FileProvenance
 
 
 @dataclass
@@ -10,6 +13,7 @@ class ReadRequest:
     location: str | None
     configuration: dict[str, Any]
     source_table: str | None = None
+    object_version_id: str | None = None
 
 
 @dataclass
@@ -17,6 +21,9 @@ class ReadResult:
     columns: list[str]
     rows: list[tuple[Any, ...]]
     source_table: str | None
+    record_locators: tuple[str, ...] = ()
+    provenance: FileProvenance | None = None
+    workbook_epoch: str | None = None
 
     @property
     def rows_read(self) -> int:

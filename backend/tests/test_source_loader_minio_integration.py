@@ -46,4 +46,4 @@ async def test_read_data_source_from_real_minio(
 
     assert result.rows_read == 3
 
-    print(f"\nPASSED: DataSource {source_id}, " f"rows_read={result.rows_read}")
+    print(f"\nPASSED: DataSource {source_id}, rows_read={result.rows_read}")

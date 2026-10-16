@@ -60,21 +60,21 @@ class ExcelReader:
         if path.suffix.lower() not in SUPPORTED_EXCEL_SUFFIXES:
             raise ValueError("Chỉ hỗ trợ file .xlsx và .xlsm")
 
-        # 5. Mở workbook ở read_only để tiết kiệm memory, data_only=True để lấy giá trị
-        # đã tính của công thức nếu file có lưu cache kết quả.
+        # Read formulas explicitly: cached results may be missing or stale.
         workbook = load_workbook(
             filename=path,
             read_only=True,
-            data_only=True,
+            data_only=False,
         )
 
+        iterator = None
         try:
             # 6. Kiểm tra sheet trước khi đọc dữ liệu.
             if sheet_name not in workbook.sheetnames:
                 raise ValueError(f"Không tìm thấy sheet: {sheet_name}")
 
             sheet = workbook[sheet_name]
-            iterator = sheet.iter_rows(values_only=True)
+            iterator = sheet.iter_rows()
 
             # header_row được tính sau skip_rows.
             # Ví dụ skip_rows=2, header_row=1 nghĩa là bỏ 2 dòng metadata,
@@ -90,7 +90,9 @@ class ExcelReader:
             if header_values is None:
                 raise ValueError("Không tìm thấy dòng header")
 
-            columns = _normalize_columns(header_values)
+            if any(cell.data_type in {"f", "e"} for cell in header_values):
+                raise ValueError("EXCEL_UNSUPPORTED_HEADER_CELL")
+            columns = _normalize_columns(tuple(cell.value for cell in header_values))
 
             if not columns or any(not col for col in columns):
                 raise ValueError("Header chứa tên cột trống")
@@ -101,22 +103,40 @@ class ExcelReader:
             # 8. Đọc các dòng dữ liệu theo đúng số cột header.
             # Bỏ dòng hoàn toàn trống để tránh sinh record rỗng ở cuối sheet.
             rows = []
-            for row in iterator:
-                normalized_row = tuple(row[: len(columns)])
+            locators = []
+            for row_number, row in enumerate(iterator, start=rows_to_skip + 2):
+                # Fail the batch before mapping, including formula-only rows.
+                # Never report raw values or formula text in an error.
+                for cell in row:
+                    if cell.data_type in {"f", "e"}:
+                        code = (
+                            "EXCEL_FORMULA_UNSUPPORTED"
+                            if cell.data_type == "f"
+                            else "EXCEL_CELL_ERROR"
+                        )
+                        raise ValueError(f"{code}: row={row_number}, cell={cell.coordinate}")
+                if any(cell.value is not None for cell in row[len(columns) :]):
+                    raise ValueError(f"EXCEL_UNNAMED_COLUMN: row={row_number}")
+                normalized_row = tuple(cell.value for cell in row[: len(columns)])
 
                 if all(value is None for value in normalized_row):
                     continue
 
                 rows.append(normalized_row)
+                locators.append(f"sheet:{sheet_name}:row:{row_number}")
 
             # 9. Trả dữ liệu về format chung của ingestion reader.
             return ReadResult(
                 columns=columns,
                 rows=rows,
                 source_table=request.source_table or path.name,
+                record_locators=tuple(locators),
+                workbook_epoch="1904" if workbook.epoch.year == 1904 else "1900",
             )
 
         finally:
+            if iterator is not None:
+                iterator.close()
             workbook.close()
 
 

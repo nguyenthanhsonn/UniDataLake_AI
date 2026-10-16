@@ -1,13 +1,19 @@
 from __future__ import annotations
 
 import asyncio
+from dataclasses import replace
 from typing import TYPE_CHECKING
 
+from app.modules.ingestion.contracts import MappingBinding
+from app.modules.ingestion.reader_batch import reader_to_batch
+
 from .factory import SourceReaderFactory
+from .file_snapshot import read_file_snapshot
 from .minio_file_resolver import resolve_file_request
 from .request_builder import build_read_request
 
 if TYPE_CHECKING:
+    from app.modules.ingestion.contracts import BronzeBatch
     from app.modules.ingestion.readers.contract import ReadResult
     from app.repositories.datasource_repo import DataSourceRepository
 
@@ -70,6 +76,60 @@ async def read_data_source(
 
     # 8. Trả dữ liệu cho Ingestion Service. Loader không ghi Bronze và không update status.
     return result
+
+
+async def read_data_source_batch(
+    repo: DataSourceRepository,
+    *,
+    data_source_id: int,
+    source_table: str,
+    dataset_id: str,
+    domain_id: str,
+    batch_id: str,
+    binding: MappingBinding,
+    object_version_id: str | None = None,
+    expected_input_version: str | None = None,
+) -> BronzeBatch:
+    """Normalization entrypoint with pinned file evidence; no storage writes.
+
+    DB readers need a durable export/snapshot contract before this hand-off.
+    Legacy read_data_source remains a raw read API and cannot certify provenance.
+    """
+    _validate_data_source_id(data_source_id)
+    if not isinstance(binding, MappingBinding) or any(
+        not isinstance(v, str) or not v.strip() for v in vars(binding).values()
+    ):
+        raise ValueError("INVALID_MAPPING_BINDING")
+    if any(not isinstance(v, str) or not v.strip() for v in (dataset_id, domain_id, batch_id)):
+        raise ValueError("INVALID_BATCH_CONTEXT")
+    record = await repo.get_with_source_system(data_source_id)
+    if record is None:
+        raise LookupError(f"Không tìm thấy DataSource: {data_source_id}")
+    data_source, _ = record
+    request = build_read_request(data_source, source_table=source_table)
+    if binding.source_system_id != str(data_source.source_system_id):
+        raise ValueError("SOURCE_BINDING_MISMATCH")
+    if not await repo.check_exist_source_system(data_source.source_system_id):
+        raise ValueError("SourceSystem không tồn tại hoặc đã bị vô hiệu hóa")
+    if request.source_type not in {"CSV", "EXCEL"}:
+        raise ValueError("FILE_SNAPSHOT_REQUIRED")
+    request = replace(request, object_version_id=object_version_id)
+    result = await asyncio.to_thread(
+        read_file_snapshot,
+        request,
+        SourceReaderFactory.get_reader(request.source_type),
+        source_system_id=str(data_source.source_system_id),
+        data_source_id=str(data_source_id),
+        dataset_id=dataset_id,
+    )
+    return reader_to_batch(
+        result,
+        batch_id=batch_id,
+        domain_id=domain_id,
+        source_type=request.source_type,
+        binding=binding,
+        input_version=expected_input_version,
+    )
 
 
 def _validate_data_source_id(data_source_id: int) -> None:

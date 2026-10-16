@@ -222,6 +222,8 @@ class IdentityStandardizationService:
             issues.append(IdentityIssue(locator, field, code, "error", self.version))
 
         def resolve(namespace: str, entity: str, raw: object) -> int | None:
+            # Mã chỉ có nghĩa trong namespace + entity và thời gian hiệu lực crosswalk.
+            # Không đoán hai mã giống nhau ở hai hệ thống là cùng một đối tượng.
             try:
                 key = source_key((raw,))
             except IdentityConfigurationError:
@@ -305,6 +307,8 @@ class IdentityStandardizationService:
         groups: dict[tuple[object, ...], list[StandardizedRow]] = {}
         for standardized in accepted:
             groups.setdefault(tuple(standardized.values[n] for n in pk), []).append(standardized)
+        # Nếu nhiều dòng quy về cùng khóa chuẩn, loại toàn bộ nhóm xung đột.
+        # Giữ dòng đầu/cuối sẽ khiến kết quả phụ thuộc thứ tự đọc và có thể mất dữ liệu.
         collisions = {r.locator for group in groups.values() if len(group) > 1 for r in group}
         for standardized in accepted:
             if standardized.locator in collisions:

@@ -53,13 +53,14 @@ class BronzeCapture:
                 if origin.name != request.source_table:
                     raise ValueError("SOURCE_TABLE_MISMATCH")
                 path = Path(self.temp.name) / origin.name
+                # Đọc và lưu Bronze từ cùng một bản sao, tránh nguồn bị sửa giữa hai bước.
                 shutil.copyfile(origin, path)
                 version = resolved.object_version_id
             result = reader.read(replace(request, location=str(path)))
         else:
             result = reader.read(request)
             path = Path(self.temp.name) / "snapshot.parquet"
-            # Durable typed DB export; never stringify decimals/dates with default=str.
+            # Xuất DB sang Parquet để giữ kiểu số/ngày; đổi sang chuỗi sẽ mất thông tin kiểu.
             table = pa.table(
                 {name: [row[i] for row in result.rows] for i, name in enumerate(result.columns)}
             )
@@ -76,6 +77,7 @@ def store_bronze(
 ) -> dict[str, Any]:
     storage = client()
     bucket = settings.minio_bucket_bronze
+    # URI chưa đủ để đọc lại đúng dữ liệu: cần version_id của lần ghi cụ thể.
     if storage.get_bucket_versioning(bucket).status != "Enabled":
         raise RuntimeError("BRONZE_VERSIONING_REQUIRED")
     day = job.created_at.replace(tzinfo=UTC).astimezone(ZoneInfo("Asia/Ho_Chi_Minh")).date()
@@ -85,6 +87,7 @@ def store_bronze(
     )
     if not uploaded.version_id or uploaded.version_id == "null":
         raise RuntimeError("BRONZE_VERSION_REQUIRED")
+    # Đọc lại đúng phiên bản vừa ghi và kiểm tra nội dung trước khi báo lưu thành công.
     response = storage.get_object(bucket, key, version_id=uploaded.version_id)
     try:
         digest = hashlib.sha256()

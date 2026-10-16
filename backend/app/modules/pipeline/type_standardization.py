@@ -48,6 +48,8 @@ class FieldOptions:
 
 
 def _format_pattern(fmt: str, *, timestamp: bool) -> str:
+    # Bắt buộc format mô tả đủ ngày/giờ trước khi gọi strptime; nếu thiếu thành phần,
+    # strptime có thể tự điền năm 1900 hoặc giờ 00:00:00 mà không báo lỗi.
     """Require explicit calendar/time components; escaped %% is only a literal.
 
     Numeric directives avoid locale-dependent parsing and implicit century/year,
@@ -141,6 +143,7 @@ def _nullable(spec: Mapping[str, Any]) -> bool:
 
 
 def _freeze(value: Any) -> Any:
+    # Khóa cả các cấu trúc lồng nhau, tránh người gọi sửa contract sau khi khởi tạo.
     if isinstance(value, dict):
         return MappingProxyType({key: _freeze(item) for key, item in value.items()})
     if isinstance(value, list):
@@ -149,6 +152,7 @@ def _freeze(value: Any) -> Any:
 
 
 def _validate_contract(contract: Mapping[str, Any], key: MappingKey) -> dict[str, Any]:
+    # Lỗi contract phải được phát hiện trước khi xử lý dữ liệu, kể cả batch rỗng.
     """Validate executable S1 dialect, including constraints JSON Schema ignores."""
     try:
         # A detached JSON snapshot also rejects opaque objects and non-finite numbers.
@@ -287,6 +291,7 @@ def _validate_contract(contract: Mapping[str, Any], key: MappingKey) -> dict[str
 
 
 def _decimal(value: object, spec: Mapping[str, Any], options: FieldOptions) -> Decimal:
+    # Giữ độ chính xác Decimal theo precision/scale; không âm thầm làm tròn dữ liệu.
     if isinstance(value, (bool, float)):
         raise ConversionError("DECIMAL_PARSE_ERROR")
     if isinstance(value, str):
@@ -327,6 +332,8 @@ def _date(value: object, options: FieldOptions) -> date:
         serial = Decimal(str(value))
         if not serial.is_finite() or serial != serial.to_integral_value() or serial < 0:
             raise ConversionError("EXCEL_DATE_ERROR")
+        # Excel hệ 1900 có ngày giả 29/02/1900 ở serial 60: phải từ chối.
+        # Các serial sau đó cần trừ một ngày để khớp lịch thực tế.
         if options.excel_epoch == "1900" and serial == 60:
             raise ConversionError("EXCEL_FICTITIOUS_DATE")
         epoch = date(1899, 12, 31) if options.excel_epoch == "1900" else date(1904, 1, 1)
@@ -373,6 +380,8 @@ def _timestamp(value: object, options: FieldOptions) -> datetime:
         if not options.source_timezone:
             raise ConversionError("TIMEZONE_REQUIRED")
         zone = ZoneInfo(options.source_timezone)
+        # Khi đổi giờ mùa hè, giờ địa phương có thể không tồn tại hoặc xảy ra hai lần.
+        # Thử cả hai fold rồi kiểm tra vòng về UTC để phát hiện, thay vì tự đoán giờ.
         candidates = [value.replace(tzinfo=zone, fold=i) for i in (0, 1)]
         valid = [
             dt
@@ -561,6 +570,7 @@ class TypeStandardizationService:
         ).hexdigest()
         object.__setattr__(self, "key", key)
         object.__setattr__(self, "version", conversion_version)
+        # Fingerprint và cấu hình bất biến phải đi cùng nhau để kết quả có thể tái lập.
         object.__setattr__(self, "spec", _freeze(spec))
         object.__setattr__(self, "options", MappingProxyType(effective))
         object.__setattr__(self, "configuration_fingerprint", fingerprint)
@@ -637,6 +647,8 @@ class TypeStandardizationService:
                                 isinstance(raw, bool) or not isinstance(raw, (str, int))
                             ):
                                 raise ConversionError("SOURCE_ID_TYPE_ERROR")
+                            # Giữ nguyên mã nguồn cho S4 đối chiếu; ép "007" thành 7
+                            # ở bước này có thể làm mất thông tin nhận diện.
                             pending[name] = deepcopy(raw)
                         continue
                     values[name] = convert_value(raw, spec, option)

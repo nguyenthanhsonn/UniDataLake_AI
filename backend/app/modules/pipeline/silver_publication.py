@@ -157,6 +157,8 @@ class SilverPublicationService:
     def _gate(
         self, tables: Mapping[str, Sequence[dict[str, object]]], manifest: Mapping[str, Any]
     ) -> tuple[SilverIssue, ...]:
+        # Demo bỏ qua cổng phê duyệt nghiệp vụ; không phải bằng chứng đạt production.
+        # Production còn yêu cầu schema được duyệt và bằng chứng thực thi bộ DQ rules.
         if self.mode == "rehearsal":
             return ()
         policy = json.loads(self.policy_json)
@@ -265,6 +267,8 @@ class SilverPublicationService:
                 }
             )
         )
+        # Cùng yêu cầu logic thì tái sử dụng snapshot đã công bố (idempotency).
+        # Không đưa active head về snapshot cũ khi người dùng gửi lại yêu cầu cũ.
         existing = self.repository.find(self.scope, request_hash)
         if existing:
             manifest, reused_tables = self._read_manifest(
@@ -342,6 +346,8 @@ class SilverPublicationService:
                     )
                 ):
                     raise SilverError("BRONZE_REPLAY_REFERENCE_REQUIRED")
+                # Gộp các batch cùng entity trước khi tạo snapshot, tránh batch sau
+                # ghi đè mất dữ liệu batch trước ngay trong cùng lần công bố.
                 records = updates.setdefault(entity, [])
                 meta = asdict(result)
                 meta.pop("accepted")
@@ -383,6 +389,9 @@ class SilverPublicationService:
                     meta["record_locators"].append(
                         {"source_record_id": record_id, "locator": row.locator}
                     )
+            # Đây là thay thế TOÀN BỘ entity được gửi lên, không phải upsert từng dòng.
+            # Entity không gửi giữ dữ liệu từ snapshot cha; kiểm tra FK trên toàn bộ
+            # snapshot ứng viên để phát hiện tham chiếu bị đứt sau khi thay thế.
             tables.update(updates)
             issues.extend(validate_snapshot(tables, specs))
             if issues:
@@ -440,6 +449,8 @@ class SilverPublicationService:
             raise SilverError("STORAGE_OR_METADATA_FAILURE") from exc
 
     def resume(self, run_id: str) -> PublicationReceipt:
+        # Khôi phục phải đọc và kiểm chứng lại artifact/quy tắc trước khi công bố,
+        # không chỉ đổi trạng thái lần chạy dở dang thành thành công.
         run = self.repository.run(run_id)
         if run["scope"] != self.scope or not run["manifest_ref"]:
             raise SilverError("RUN_NOT_STAGED")

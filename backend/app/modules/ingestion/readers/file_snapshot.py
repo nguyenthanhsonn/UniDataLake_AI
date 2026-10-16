@@ -52,6 +52,8 @@ def read_file_snapshot(
     request = replace(
         request, source_type=source_type, configuration=deepcopy(request.configuration)
     )
+    # Cùng file nhưng khác cấu hình/phiên bản parser có thể cho kết quả đọc khác nhau.
+    # Lưu dấu vân tay này trong provenance để truy vết cách dữ liệu được diễn giải.
     parser_hash = fingerprint(
         {
             "reader_contract": "file-v1",
@@ -79,7 +81,7 @@ def read_file_snapshot(
                 raise ValueError("OBJECT_VERSION_REQUIRES_S3")
             original_ref = str(path.resolve())
         snapshot = Path(directory) / path.name
-        # Hash the bytes in our copy, not a separately re-opened source path.
+        # Băm chính bản sao sẽ được parser đọc, không mở lại nguồn để tính checksum.
         with path.open("rb") as source, snapshot.open("wb") as target:
             shutil.copyfileobj(source, target)
         with snapshot.open("rb") as stream:
@@ -88,6 +90,8 @@ def read_file_snapshot(
         with snapshot.open("rb") as stream:
             if hashlib.file_digest(stream, "sha256").hexdigest() != checksum:
                 raise ValueError("SNAPSHOT_CHANGED_DURING_READ")
+        # Excel giữ tọa độ sheet/dòng thực tế. CSV dùng thứ tự bản ghi đã parse,
+        # vì một bản ghi CSV có thể chứa xuống dòng và chiếm nhiều dòng vật lý.
         if source_type == "EXCEL":
             if len(result.record_locators) != len(result.rows):
                 raise ValueError("EXCEL_LOCATORS_REQUIRED")

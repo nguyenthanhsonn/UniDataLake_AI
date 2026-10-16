@@ -103,6 +103,8 @@ class SilverRepository:
             return dict(row)
 
     def publish(self, run_id: str) -> dict[str, Any]:
+        # PostgreSQL quyết định snapshot nào được nhìn thấy qua active head.
+        # File trên MinIO có thể đã tồn tại, nhưng chưa được xem là công bố thành công.
         try:
             with self.engine.begin() as conn:
                 run = conn.execute(select(RUNS).where(RUNS.c.run_id == run_id)).mappings().one()
@@ -142,6 +144,9 @@ class SilverRepository:
                     .where(HEADS.c.scope == run["scope"], condition)
                     .values(snapshot_id=run_id)
                 )
+                # Chỉ đổi head khi snapshot cha vẫn đúng như lúc bắt đầu (CAS).
+                # Nếu lần chạy khác đã đổi head, rollback cả transaction để tránh
+                # công bố đè lên dữ liệu mới từ một snapshot cha đã lỗi thời.
                 if changed.rowcount != 1:
                     raise SilverError("ACTIVE_SNAPSHOT_CHANGED")
                 conn.execute(

@@ -101,6 +101,8 @@ def _tokens(pointer: str) -> tuple[str, ...]:
 
 
 def _lookup(record: object, pointer: str) -> tuple[bool, object]:
+    # Tách trạng thái tồn tại khỏi giá trị: thiếu trường khác với trường có giá trị null.
+    # S2 kiểm tra cấu trúc; việc null có hợp lệ hay không được xử lý ở bước sau.
     node = record
     for part in _tokens(pointer):
         if isinstance(node, dict) and part in node:
@@ -146,6 +148,8 @@ def validate_profile(profile: MappingProfile) -> None:
         raise MappingConfigurationError("DUPLICATE_DEFERRED_FIELD")
     if set(targets) & set(profile.deferred_fields):
         raise MappingConfigurationError("TARGET_PRODUCER_CONFLICT")
+    # Mỗi trường đích phải được ánh xạ hoặc giao rõ cho bước sau sinh ra.
+    # Không tự lấp trường chưa có quy tắc bằng null vì có thể che lỗi cấu hình.
     if set(targets) | set(profile.deferred_fields) != set(profile.target_fields):
         raise MappingConfigurationError("TARGET_COVERAGE_ERROR")
     used = {p for field in profile.fields for p in field.sources}
@@ -181,6 +185,7 @@ class MappingRegistry:
             self.register(profile)
 
     def register(self, profile: MappingProfile) -> None:
+        # Một khóa phiên bản chỉ có một cấu hình, để chạy lại không đổi ý nghĩa mapping.
         validate_profile(profile)
         if profile.key in self._profiles:
             raise MappingConfigurationError("MAPPING_VERSION_ALREADY_REGISTERED")
@@ -194,6 +199,8 @@ class MappingRegistry:
 
 
 def _value(record: Mapping[str, object], field: FieldMapping) -> tuple[object, str | None]:
+    # Chỉ biến đổi cấu trúc ở S2; không ép kiểu hoặc suy đoán định danh tại đây.
+    # Sao chép giá trị để kết quả mapping không làm thay đổi bản ghi nguồn.
     values = [_lookup(record, pointer) for pointer in field.sources]
     if field.operation == "coalesce":
         present = [value for exists, value in values if exists]

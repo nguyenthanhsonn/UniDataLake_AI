@@ -153,6 +153,8 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      args:
+        REQUIREMENTS_FILE: requirements-worker.txt
     restart: unless-stopped
     command: python -m app.ingestion_worker
     environment: *backend-environment

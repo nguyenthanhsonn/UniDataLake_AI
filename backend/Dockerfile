@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1
 # ==============================================================================
 # Stage 1: Build & Dependencies
 # ==============================================================================
@@ -8,7 +9,6 @@ WORKDIR /build
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
 # Install system build tools
@@ -22,13 +22,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Copy dependency files
-COPY requirements.txt pyproject.toml ./
+# Worker chọn danh sách gọn; backend vẫn dùng requirements.txt mặc định.
+ARG REQUIREMENTS_FILE=requirements.txt
+COPY ${REQUIREMENTS_FILE} ./requirements.txt
 
-# Install python dependencies into virtualenv
-RUN pip install --upgrade pip setuptools wheel && \
-    pip install --no-cache-dir -r requirements.txt && \
-    pip install --no-cache-dir --no-deps -e .
+# Cache tải package tồn tại qua các lần build, không được đưa vào runtime image.
+RUN --mount=type=cache,target=/root/.cache/pip,sharing=locked \
+    pip install --upgrade pip setuptools wheel && \
+    pip install -r requirements.txt
+
+COPY pyproject.toml ./
+RUN --mount=type=cache,target=/root/.cache/pip,sharing=locked \
+    pip install --no-deps -e .
 
 # ==============================================================================
 # Stage 2: Production Runtime

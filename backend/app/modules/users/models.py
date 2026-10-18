@@ -1,4 +1,4 @@
-"""SQLAlchemy models for users and core business dimensions."""
+"""Các mô hình SQLAlchemy cho người dùng và các chiều nghiệp vụ cốt lõi."""
 
 from __future__ import annotations
 
@@ -51,7 +51,7 @@ __all__ = [
 
 
 class Department(Base):
-    """Organization unit shared by academic, HR, and governance records."""
+    """Đơn vị tổ chức dùng chung cho dữ liệu đào tạo, nhân sự và quản trị."""
 
     __tablename__ = "department"
     __table_args__ = (
@@ -520,7 +520,7 @@ class EmployeeQualification(Base):
 
 
 class User(Base):
-    """User entity mapping to app.app_user table."""
+    """Thực thể người dùng ánh xạ tới bảng app.app_user."""
 
     __tablename__ = "app_user"
     __table_args__ = (

@@ -1,4 +1,4 @@
-"""Source -> Bronze orchestration. Queue metadata lives in PostgreSQL."""
+"""Điều phối nguồn → Bronze. Metadata hàng đợi được lưu trong PostgreSQL."""
 
 from __future__ import annotations
 
@@ -27,7 +27,7 @@ R = TypeVar("R")
 
 
 class CaptureReader(Protocol):
-    """Reader port for the execution service; persistence DTOs remain independent."""
+    """Cổng đọc cho dịch vụ thực thi; các DTO lưu trữ vẫn độc lập."""
 
     def read(self, request: ReadRequest) -> CapturedArtifact: ...
 
@@ -36,7 +36,7 @@ def authorize(user: dict[str, Any], *, write: bool = False) -> None:
     roles = user.get("roles", [])
     roles = [roles] if isinstance(roles, str) else roles
     allowed = {"ADMIN", "DATA_ADMIN"} if write else {"ADMIN", "DATA_ADMIN", "ANALYST", "VIEWER"}
-    if not isinstance(roles, (list, tuple, set)) or allowed.isdisjoint(roles):
+    if not isinstance(roles, list | tuple | set) or allowed.isdisjoint(roles):
         raise AppException(
             "Không có quyền thực thi thao tác ingestion", code="FORBIDDEN", status_code=403
         )
@@ -65,7 +65,7 @@ def validate_context(context: SourceContext, source_table: str) -> ReadRequest:
 
 
 async def run_io(function: Callable[P, R], *args: P.args, **kwargs: P.kwargs) -> R:
-    """Finish thread I/O before releasing its temporary files on cancellation."""
+    """Hoàn tất I/O trên luồng trước khi giải phóng tệp tạm khi bị hủy."""
     task = asyncio.create_task(asyncio.to_thread(function, *args, **kwargs))
     try:
         return await asyncio.shield(task)
@@ -116,18 +116,25 @@ class IngestionExecutionService:
         capture: Callable[[], AbstractContextManager[CaptureReader]],
         store: Callable[[CapturedArtifact, str, BronzeWriteContext], dict[str, Any]],
     ) -> None:
-        """Called only for a claimed job; adapters run outside the event loop."""
+        """Chỉ gọi cho job đã được nhận xử lý; các bộ điều hợp chạy ngoài vòng lặp sự kiện."""
         repo = self.repository
         stage = "READING"
         job_id = job.ingestion_job_id
         try:
             if job.source_table is None or job.created_at is None:
                 raise ValueError("INGESTION_JOB_CONTEXT_REQUIRED")
-            write_context = BronzeWriteContext(job_id, job.created_at)
             context = await repo.context(job.data_source_id, job.dataset_id)
             request = validate_context(context, job.source_table)
             domain = context[1].domain
-            # Release read transaction before slow source I/O.
+            # Thời điểm lấy dữ liệu khác thời điểm enqueue; không dùng created_at làm giả
+            # thời gian capture khi job phải chờ lâu trong hàng đợi.
+            write_context = BronzeWriteContext(
+                ingestion_job_id=job_id,
+                created_at=job.created_at,
+                source_system_id=context[0].source_system_id,
+                ingestion_timestamp=utcnow(),
+            )
+            # Kết thúc giao dịch đọc trước khi thực hiện I/O nguồn có thể kéo dài.
             await repo.db.commit()
             with capture() as captured:
                 artifact = await run_io(captured.read, request)
@@ -137,10 +144,10 @@ class IngestionExecutionService:
                 stage = "COMMITTING"
                 await repo.finish(job_id, output=output)
         except asyncio.CancelledError:
-            # Leave lease to expire: thread-backed I/O may still be in flight.
+            # Để thời hạn giữ job tự hết hạn: I/O trên luồng có thể vẫn đang chạy.
             raise
         except Exception:
-            # Connector exceptions may contain credentials or source row values.
-            # Expose only controlled stage-specific codes.
+            # Ngoại lệ từ bộ kết nối có thể chứa thông tin xác thực hoặc giá trị dữ liệu nguồn.
+            # Chỉ công khai các mã lỗi có kiểm soát theo từng giai đoạn.
             await repo.db.rollback()
             await repo.finish(job_id, error=f"INGESTION_{stage}_FAILED")

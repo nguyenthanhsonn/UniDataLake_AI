@@ -1,4 +1,4 @@
-"""Strict physical types, PK/unique/FK validation over a complete candidate snapshot."""
+"""Kiểm tra kiểu vật lý nghiêm ngặt, PK/unique/FK trên toàn bộ bản chụp ứng viên."""
 
 from __future__ import annotations
 
@@ -8,8 +8,8 @@ from datetime import date, datetime, timedelta
 from decimal import Decimal
 from typing import Any
 
-import pyarrow as pa  # type: ignore[import-untyped]
-import pyarrow.parquet as pq  # type: ignore[import-untyped]
+import pyarrow as pa
+import pyarrow.parquet as pq
 
 from app.modules.pipeline.silver_storage import SilverError
 from app.modules.pipeline.type_standardization import ConversionError, convert_value
@@ -49,7 +49,7 @@ def arrow_schema(spec: Mapping[str, Any]) -> pa.Schema:
             pa.field(
                 n,
                 arrow_type(p),
-                nullable=isinstance(p["type"], (list, tuple)) and "null" in p["type"],
+                nullable=isinstance(p["type"], list | tuple) and "null" in p["type"],
             )
             for n, p in spec["properties"].items()
         ]
@@ -58,7 +58,7 @@ def arrow_schema(spec: Mapping[str, Any]) -> pa.Schema:
 
 def native(value: object, spec: Mapping[str, Any]) -> bool:
     if value is None:
-        return isinstance(spec["type"], (list, tuple)) and "null" in spec["type"]
+        return isinstance(spec["type"], list | tuple) and "null" in spec["type"]
     physical = spec["x-physical-type"]
     if physical in {"int", "int32", "bigint", "int64"}:
         return type(value) is int

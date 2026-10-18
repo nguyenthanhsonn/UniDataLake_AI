@@ -1,4 +1,4 @@
-"""SQLAlchemy models for the governance module."""
+"""Các mô hình SQLAlchemy cho mô-đun quản trị dữ liệu."""
 
 from __future__ import annotations
 

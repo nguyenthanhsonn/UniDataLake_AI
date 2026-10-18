@@ -1,4 +1,4 @@
-"""SQLAlchemy model exports for the pipeline module."""
+"""Các mô hình SQLAlchemy được xuất cho mô-đun pipeline."""
 
 from __future__ import annotations
 
@@ -28,7 +28,7 @@ __all__ = [
 
 
 class TransformationStep(Base):
-    """A transformation step executed between source and target datasets."""
+    """Một bước biến đổi được thực thi giữa dataset nguồn và đích."""
 
     __tablename__ = "transformation_step"
     __table_args__ = (
@@ -62,7 +62,7 @@ class TransformationStep(Base):
 
 
 class DataProcessingRun(Base):
-    """Pipeline run metadata across ingestion and transformation work."""
+    """Metadata lần chạy pipeline xuyên suốt ingestion và biến đổi dữ liệu."""
 
     __tablename__ = "data_processing_run"
     __table_args__ = (

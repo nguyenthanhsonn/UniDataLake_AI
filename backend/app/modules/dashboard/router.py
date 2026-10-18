@@ -1,4 +1,4 @@
-"""Dashboard API routes."""
+"""Các tuyến API bảng điều khiển."""
 
 from __future__ import annotations
 

@@ -1,4 +1,4 @@
-"""Shared API response schemas and OpenAPI response metadata."""
+"""Schema phản hồi API dùng chung và metadata phản hồi OpenAPI."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 
 
 class ErrorBody(BaseModel):
-    """Standard error object returned inside the API error envelope."""
+    """Đối tượng lỗi chuẩn bên trong cấu trúc lỗi API."""
 
     code: str
     message: str
@@ -17,7 +17,7 @@ class ErrorBody(BaseModel):
 
 
 class ErrorResponse(BaseModel):
-    """Standard API error response shape used by AppException."""
+    """Cấu trúc phản hồi lỗi API chuẩn được AppException sử dụng."""
 
     success: Literal[False] = False
     error: ErrorBody

@@ -1,11 +1,14 @@
-"""Manual Bronze -> Silver rehearsal using real MinIO and PostgreSQL metadata.
+"""Diễn tập Bronze → Silver thủ công bằng MinIO và metadata PostgreSQL thật.
 
-Direct mode uses synthetic source IDs. Job mode verifies a published demo catalog job.
-Both modes use fixed synthetic normalization profiles; neither is a production API.
-Never creates buckets/tables or enables production; apply migrations separately.
+Chế độ trực tiếp dùng mã nguồn giả lập. Chế độ job kiểm chứng job từ catalog demo đã công bố.
+Cả hai dùng profile chuẩn hóa giả lập cố định; không chế độ nào là API production.
+Không tạo bucket/bảng hay bật production; áp dụng migration riêng.
 """
 
 from __future__ import annotations
+
+# Script chạy trực tiếp cần thiết lập sys.path và .env trước khi import ứng dụng.
+# ruff: noqa: E402
 
 import argparse
 import json
@@ -19,7 +22,7 @@ from uuid import uuid4
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "backend"))
-# Settings use relative .env paths, including the reader's MinIO client.
+# Cấu hình dùng đường dẫn .env tương đối, kể cả máy khách MinIO của reader.
 os.chdir(ROOT / "backend")
 
 from app.core.config import settings
@@ -154,7 +157,7 @@ def normalize(domain, location, snapshot, *, version=None, job_context=None):
 
 
 def validate_job_input(row, bucket):
-    """Only the dedicated fixture catalog may use these synthetic profiles."""
+    """Chỉ catalog dữ liệu mẫu chuyên dụng mới được dùng các profile giả lập này."""
     if not row or row["status"] != "SUCCESS" or row["job_type"] != "EXECUTION_V1":
         raise ValueError("SUCCESSFUL_BRONZE_JOB_REQUIRED")
     domain = row["domain"]

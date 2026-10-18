@@ -1,4 +1,4 @@
-"""Natural-language query API routes."""
+"""Các tuyến API truy vấn bằng ngôn ngữ tự nhiên."""
 
 from __future__ import annotations
 
@@ -15,6 +15,6 @@ async def ask_nlq(
     payload: NaturalLanguageQueryRequest,
     service: NLQServiceDependency,
 ) -> NaturalLanguageQueryResponse:
-    """Run the NLQ flow from intent parsing to read-only execution."""
+    """Chạy luồng NLQ từ phân tích ý định đến thực thi chỉ đọc."""
     result = await service.ask(payload.question)
     return NaturalLanguageQueryResponse(sql=result.sql, rows=list(result.rows))

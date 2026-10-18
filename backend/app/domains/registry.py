@@ -1,4 +1,4 @@
-"""Domain registration, validation, and convention-based discovery."""
+"""Đăng ký, kiểm tra và phát hiện miền nghiệp vụ theo quy ước."""
 
 from __future__ import annotations
 
@@ -19,31 +19,31 @@ DOMAIN_EXPORT = "DOMAIN_DEFINITION"
 
 
 class DomainRegistryError(ValueError):
-    """Raised when a domain cannot be registered safely."""
+    """Phát sinh khi không thể đăng ký miền nghiệp vụ một cách an toàn."""
 
 
 class DomainRegistry:
-    """Validated in-memory registry shared by generic application modules."""
+    """Bộ đăng ký trong bộ nhớ đã kiểm tra, dùng chung cho các mô-đun ứng dụng."""
 
     def __init__(self) -> None:
         self._domains: dict[str, DomainDefinition] = {}
 
     def register(self, definition: DomainDefinition) -> None:
-        """Validate and register one immutable domain definition."""
+        """Kiểm tra và đăng ký một định nghĩa miền bất biến."""
         self._validate(definition)
         if definition.domain_id in self._domains:
             raise DomainRegistryError(f"Duplicate domain id: {definition.domain_id}")
         self._domains[definition.domain_id] = definition
 
     def get(self, domain_id: str) -> DomainDefinition:
-        """Resolve a domain by its stable id."""
+        """Tra cứu miền nghiệp vụ bằng mã định danh ổn định."""
         try:
             return self._domains[domain_id]
         except KeyError as exc:
             raise LookupError(f"Unknown domain: {domain_id}") from exc
 
     def all(self) -> tuple[DomainDefinition, ...]:
-        """Return definitions in deterministic id order."""
+        """Trả về các định nghĩa theo thứ tự mã định danh xác định."""
         return tuple(self._domains[key] for key in sorted(self._domains))
 
     def __iter__(self) -> Iterator[DomainDefinition]:
@@ -104,7 +104,7 @@ class DomainRegistry:
 
 
 def discover_domains(package_name: str = "app.domains") -> DomainRegistry:
-    """Discover child domain packages exporting ``DOMAIN_DEFINITION``."""
+    """Phát hiện các gói miền con xuất ``DOMAIN_DEFINITION``."""
     package = importlib.import_module(package_name)
     registry = DomainRegistry()
     package_paths = getattr(package, "__path__", None)
@@ -131,5 +131,5 @@ def _read_definition(module: ModuleType) -> DomainDefinition:
 
 @lru_cache(maxsize=1)
 def get_domain_registry() -> DomainRegistry:
-    """Return the process-wide, startup-validated domain registry."""
+    """Trả về bộ đăng ký miền dùng chung toàn tiến trình, đã kiểm tra khi khởi động."""
     return discover_domains()

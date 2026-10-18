@@ -1,4 +1,4 @@
-"""Application exceptions and HTTP handlers."""
+"""Ngoại lệ ứng dụng và các hàm xử lý HTTP."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from fastapi.responses import JSONResponse
 
 
 class AppException(Exception):  # noqa: N818
-    """Domain exception rendered through the standard API error envelope."""
+    """Ngoại lệ nghiệp vụ được biểu diễn theo cấu trúc lỗi API chuẩn."""
 
     def __init__(
         self,
@@ -30,7 +30,7 @@ async def app_exception_handler(
     request: Request,
     exc: Exception,
 ) -> JSONResponse:
-    """Render AppException using the project-wide error envelope."""
+    """Biểu diễn AppException theo cấu trúc lỗi chung của dự án."""
     if not isinstance(exc, AppException):
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

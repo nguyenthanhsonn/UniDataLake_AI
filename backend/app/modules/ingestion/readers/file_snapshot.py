@@ -1,4 +1,4 @@
-"""Capture bytes once, fingerprint and parse that private copy in the worker."""
+"""Chụp byte một lần, tính dấu vân tay và phân tích bản sao riêng đó trong worker."""
 
 from __future__ import annotations
 
@@ -37,7 +37,7 @@ def read_file_snapshot(
     data_source_id: str,
     dataset_id: str,
 ) -> ReadResult:
-    """No durable storage or DB snapshot implied. Only CSV/EXCEL supported."""
+    """Không ngụ ý lưu bền vững hay chụp cơ sở dữ liệu. Chỉ hỗ trợ CSV/EXCEL."""
     source_type = request.source_type.strip().upper()
     if source_type not in {"CSV", "EXCEL"}:
         raise ValueError("FILE_SNAPSHOT_REQUIRED")

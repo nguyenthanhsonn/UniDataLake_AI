@@ -1,4 +1,4 @@
-"""Load the source DB design, dataset schemas (docs/data-schema/<name>_v1.schema.json) and sample CSVs."""
+"""Nạp thiết kế cơ sở dữ liệu nguồn, schema dataset (docs/data-schema/<name>_v1.schema.json) và CSV mẫu."""
 
 from __future__ import annotations
 
@@ -23,10 +23,10 @@ SOURCE_DB = SCHEMA_DIR / "unilake-db-architecture.txt"
 
 @cache
 def source_db() -> dict[str, list[dict]]:
-    """Parse the team's DB design (Eraser syntax) into {table: [column, ...]}.
+    """Phân tích thiết kế cơ sở dữ liệu của nhóm (cú pháp Eraser) thành {table: [column, ...]}.
 
-    Each column is {"name", "db_type", "nullable", "pk", "unique", "references"}; a column
-    without the ``nullable`` flag is NOT NULL, and ``references`` comes from the relation lines.
+    Mỗi cột là {"name", "db_type", "nullable", "pk", "unique", "references"}; cột
+    không có cờ ``nullable`` là NOT NULL, còn ``references`` lấy từ các dòng quan hệ.
     """
     text = SOURCE_DB.read_text(encoding="utf-8")
     refs = {
@@ -59,7 +59,7 @@ def load_schema(dataset: str) -> dict:
 
 
 def entity_spec(dataset: str, entity: str) -> dict:
-    """Entity spec, following {"from_dataset": ...} to the dataset that defines it."""
+    """Đặc tả thực thể, lần theo {"from_dataset": ...} tới dataset định nghĩa nó."""
     spec = load_schema(dataset)["entities"][entity]
     if "from_dataset" in spec:
         return {**entity_spec(spec["from_dataset"], entity), "owned_by_dataset": False}
@@ -86,7 +86,7 @@ def index(dataset: str, entity: str) -> dict[str, dict[str, str]]:
 
 
 def parse(value: str, sql_type: str) -> object:
-    """Parse a CSV cell by its DBML type; raise ValueError when it does not fit."""
+    """Phân tích ô CSV theo kiểu DBML; báo ValueError khi giá trị không phù hợp."""
     base, _, args = sql_type.partition("(")
     args = args.rstrip(")")
     if base in {"int", "bigint"}:

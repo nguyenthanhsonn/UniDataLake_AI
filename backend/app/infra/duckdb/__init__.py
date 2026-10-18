@@ -1,4 +1,4 @@
-"""DuckDB infrastructure for read-only Gold layer queries."""
+"""Hạ tầng DuckDB cho các truy vấn chỉ đọc tầng Gold."""
 
 from __future__ import annotations
 

@@ -1,6 +1,6 @@
-"""Academic/Training business rules (ACA-DQ-04..11) on the sample data.
+"""Quy tắc nghiệp vụ Đào tạo (ACA-DQ-04..11) trên dữ liệu mẫu.
 
-Generic schema, key and FK checks live in test_dataset_schemas.py.
+Các kiểm tra schema, khóa và FK chung nằm trong test_dataset_schemas.py.
 """
 
 from __future__ import annotations

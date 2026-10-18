@@ -54,7 +54,7 @@ export const ROLE_DEFINITIONS: Record<RoleCode, RoleDefinition> = {
   },
 }
 
-/** Priority hierarchy used when determining default home for users with multiple roles */
+/** Thứ tự ưu tiên để xác định trang chủ mặc định cho người dùng có nhiều vai trò */
 export const ROLE_PRIORITY: RoleCode[] = [
   'SUPER_ADMIN',
   'DATA_ENGINEER',

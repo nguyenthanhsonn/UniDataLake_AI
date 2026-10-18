@@ -1,4 +1,4 @@
-"""Deterministic S3 converters and S2 handoff; no I/O or identity resolution."""
+"""Bộ chuyển đổi S3 có kết quả xác định và bàn giao từ S2; không I/O hay phân giải định danh."""
 
 from __future__ import annotations
 
@@ -43,17 +43,17 @@ class FieldOptions:
     source_timezone: str | None = None
     true_tokens: tuple[str, ...] = ("true",)
     false_tokens: tuple[str, ...] = ("false",)
-    excel_epoch: str | None = None  # 1900 or 1904; only when explicitly configured.
+    excel_epoch: str | None = None  # 1900 hoặc 1904; chỉ dùng khi được cấu hình tường minh.
     invalid_optional_to_null: bool = False
 
 
 def _format_pattern(fmt: str, *, timestamp: bool) -> str:
     # Bắt buộc format mô tả đủ ngày/giờ trước khi gọi strptime; nếu thiếu thành phần,
     # strptime có thể tự điền năm 1900 hoặc giờ 00:00:00 mà không báo lỗi.
-    """Require explicit calendar/time components; escaped %% is only a literal.
+    """Yêu cầu thành phần lịch/thời gian tường minh; %% đã thoát chỉ là ký tự nguyên văn.
 
-    Numeric directives avoid locale-dependent parsing and implicit century/year,
-    AM/PM, week-date or timezone-name assumptions in strptime.
+    Chỉ thị dạng số giúp tránh phân tích phụ thuộc vùng miền và các giả định ngầm về thế kỷ/năm,
+    AM/PM, ngày theo tuần hay tên múi giờ trong strptime.
     """
     code = "INVALID_TIMESTAMP_FORMAT" if timestamp else "INVALID_DATE_FORMAT"
     if not isinstance(fmt, str) or not fmt:
@@ -116,7 +116,7 @@ def _check_options(options: FieldOptions) -> None:
     }:
         raise ConversionConfigurationError("INVALID_DECIMAL_SEPARATOR")
     if (
-        not isinstance(options.thousands_separator, (str, type(None)))
+        not isinstance(options.thousands_separator, str | type(None))
         or options.thousands_separator not in {None, ".", ",", " "}
         or options.thousands_separator == options.decimal_separator
     ):
@@ -125,7 +125,7 @@ def _check_options(options: FieldOptions) -> None:
         raise ConversionConfigurationError("BOOLEAN_TOKEN_CONFLICT")
     if set(options.null_tokens) & (set(options.true_tokens) | set(options.false_tokens)):
         raise ConversionConfigurationError("NULL_TOKEN_CONFLICT")
-    if not isinstance(options.excel_epoch, (str, type(None))) or options.excel_epoch not in {
+    if not isinstance(options.excel_epoch, str | type(None)) or options.excel_epoch not in {
         None,
         "1900",
         "1904",
@@ -139,7 +139,7 @@ def _check_options(options: FieldOptions) -> None:
 
 
 def _nullable(spec: Mapping[str, Any]) -> bool:
-    return isinstance(spec.get("type"), (list, tuple)) and "null" in spec["type"]
+    return isinstance(spec.get("type"), list | tuple) and "null" in spec["type"]
 
 
 def _freeze(value: Any) -> Any:
@@ -153,9 +153,9 @@ def _freeze(value: Any) -> Any:
 
 def _validate_contract(contract: Mapping[str, Any], key: MappingKey) -> dict[str, Any]:
     # Lỗi contract phải được phát hiện trước khi xử lý dữ liệu, kể cả batch rỗng.
-    """Validate executable S1 dialect, including constraints JSON Schema ignores."""
+    """Kiểm tra biến thể S1 có thể thực thi, gồm các ràng buộc JSON Schema bỏ qua."""
     try:
-        # A detached JSON snapshot also rejects opaque objects and non-finite numbers.
+        # Bản chụp JSON độc lập cũng từ chối đối tượng không thể biểu diễn và số không hữu hạn.
         snapshot: dict[str, Any] = json.loads(json.dumps(dict(contract), allow_nan=False))
         if snapshot.get("x-version") != key.target_schema_version:
             raise ConversionConfigurationError("CONVERSION_VERSION_MISMATCH")
@@ -292,7 +292,7 @@ def _validate_contract(contract: Mapping[str, Any], key: MappingKey) -> dict[str
 
 def _decimal(value: object, spec: Mapping[str, Any], options: FieldOptions) -> Decimal:
     # Giữ độ chính xác Decimal theo precision/scale; không âm thầm làm tròn dữ liệu.
-    if isinstance(value, (bool, float)):
+    if isinstance(value, bool | float):
         raise ConversionError("DECIMAL_PARSE_ERROR")
     if isinstance(value, str):
         point = re.escape(options.decimal_separator)
@@ -303,7 +303,7 @@ def _decimal(value: object, spec: Mapping[str, Any], options: FieldOptions) -> D
         if options.thousands_separator:
             value = value.replace(options.thousands_separator, "")
         value = value.replace(options.decimal_separator, ".")
-    if not isinstance(value, (str, int, Decimal)):
+    if not isinstance(value, str | int | Decimal):
         raise ConversionError("DECIMAL_PARSE_ERROR")
     try:
         number = Decimal(value)
@@ -326,7 +326,7 @@ def _date(value: object, options: FieldOptions) -> date:
         raise ConversionError("DATE_TIME_LOSS")
     if isinstance(value, date):
         return value
-    if isinstance(value, (int, float, Decimal)) and not isinstance(value, bool):
+    if isinstance(value, int | float | Decimal) and not isinstance(value, bool):
         if not options.excel_epoch:
             raise ConversionError("EXCEL_EPOCH_REQUIRED")
         serial = Decimal(str(value))
@@ -355,7 +355,7 @@ def _date(value: object, options: FieldOptions) -> date:
 
 def _timestamp(value: object, options: FieldOptions) -> datetime:
     if isinstance(value, str):
-        # Python silently truncates extra fractional digits; S3 must reject instead.
+        # Python âm thầm cắt bớt chữ số thập phân dư; S3 phải từ chối trường hợp này.
         if re.search(r"[.,][0-9]{7,}", value):
             raise ConversionError("TIMESTAMP_PRECISION_ERROR")
         try:
@@ -402,7 +402,7 @@ def _timestamp(value: object, options: FieldOptions) -> datetime:
 def convert_value(
     value: object, spec: Mapping[str, Any], options: FieldOptions = FieldOptions()
 ) -> object:
-    """Return native typed value; never apply optional-error-to-null silently here."""
+    """Trả về giá trị đúng kiểu gốc; không âm thầm chuyển lỗi tùy chọn thành null ở đây."""
     _check_options(options)
     if isinstance(value, str) and options.trim:
         value = value.strip()
@@ -412,7 +412,7 @@ def convert_value(
         return None
     physical = spec["x-physical-type"]
     if physical in {"bigint", "int", "int32", "int64"}:
-        if isinstance(value, bool) or not isinstance(value, (str, int)):
+        if isinstance(value, bool) or not isinstance(value, str | int):
             raise ConversionError("INTEGER_PARSE_ERROR")
         if isinstance(value, str) and not re.fullmatch(r"[+-]?[0-9]+", value):
             raise ConversionError("INTEGER_PARSE_ERROR")
@@ -452,7 +452,7 @@ def convert_value(
             raise ConversionError("PATTERN_ERROR")
     else:
         raise ConversionConfigurationError("UNSUPPORTED_PHYSICAL_TYPE")
-    if isinstance(value, (int, Decimal)) and not isinstance(value, bool):
+    if isinstance(value, int | Decimal) and not isinstance(value, bool):
         low, high = (
             spec.get("minimum", spec.get("x-minimum")),
             spec.get("maximum", spec.get("x-maximum")),
@@ -604,7 +604,7 @@ class TypeStandardizationService:
                 raise ConversionConfigurationError("UNDECLARED_TARGET_FIELD")
             for name, spec in properties.items():
                 if name.startswith("_"):
-                    continue  # Run/audit enrichment belongs to P5.
+                    continue  # Bổ sung thông tin lần chạy/kiểm toán thuộc P5.
                 option = self.options.get(name, FieldOptions())
                 raw: object
                 try:
@@ -629,12 +629,12 @@ class TypeStandardizationService:
                         or "enum" in spec
                         or name in self.value_mapping_fields
                     ):
-                        # Preserve source identity and unrecognized labels until S4.
+                        # Giữ định danh nguồn và nhãn chưa nhận diện đến S4.
                         if raw is None and not _nullable(spec):
                             raise ConversionError("REQUIRED_VALUE_MISSING")
                         if "enum" in spec or name in self.value_mapping_fields:
-                            # Source aliases may be longer/different than target codes.
-                            # S4 validates the mapped value against the full target spec.
+                            # Bí danh nguồn có thể dài hơn hoặc khác mã đích.
+                            # S4 kiểm tra giá trị đã ánh xạ theo toàn bộ đặc tả đích.
                             pending[name] = convert_value(
                                 raw, {"type": spec["type"], "x-physical-type": "utf8"}, option
                             )
@@ -644,7 +644,7 @@ class TypeStandardizationService:
                             if raw is None and not _nullable(spec):
                                 raise ConversionError("REQUIRED_VALUE_MISSING")
                             if raw is not None and (
-                                isinstance(raw, bool) or not isinstance(raw, (str, int))
+                                isinstance(raw, bool) or not isinstance(raw, str | int)
                             ):
                                 raise ConversionError("SOURCE_ID_TYPE_ERROR")
                             # Giữ nguyên mã nguồn cho S4 đối chiếu; ép "007" thành 7

@@ -1,4 +1,4 @@
-"""Opt-in full execution tests in an isolated PostgreSQL schema and MinIO bucket."""
+"""API/worker thật bằng SA runtime; schema và prefix UUID riêng cho dữ liệu kiểm thử."""
 
 from __future__ import annotations
 
@@ -20,7 +20,8 @@ from app import ingestion_worker
 from app.core.config import settings
 from app.core.deps import get_current_user, get_db
 from app.core.exceptions import AppException, app_exception_handler
-from app.infra.minio.bronze import client, setup_minio
+from app.infra.minio.bronze import client
+from app.infra.minio.client import bronze_reader_client, bronze_verifier_client
 from app.modules.datasources.models import DataSource
 from app.modules.ingestion.models import IngestionJob
 from app.modules.ingestion.router import router
@@ -32,16 +33,17 @@ pytestmark = pytest.mark.skipif(
 
 
 @pytest.mark.asyncio
-async def test_api_queue_worker_storage_failures_and_recovery(tmp_path, monkeypatch):
+@pytest.mark.parametrize("domain", ["admissions", "academic", "hr"])
+async def test_api_queue_worker_storage_failures_and_recovery(tmp_path, monkeypatch, domain):
     suffix = uuid4().hex
-    schema, bucket = "ingestion_test_" + suffix, "ingestion-test-" + suffix
+    schema, bucket = "ingestion_test_" + suffix, settings.minio_bucket_bronze
+    # Policy SA chỉ cấp bucket Bronze thật; không nới policy để test bucket tùy ý.
+    partition = f"{domain}-iam-{suffix}"
     root = Path(__file__).resolve().parents[2]
     ddl = (root / "infra/postgres/init/02-schema.sql").read_text(encoding="utf-8")
     ddl = ddl.replace("CREATE SCHEMA IF NOT EXISTS app;", f"CREATE SCHEMA {schema};")
     ddl = ddl.replace("SET search_path TO app, public;", f"SET search_path TO {schema}, public;")
     storage = client()
-    setup_minio(storage, bucket)
-    monkeypatch.setattr(settings, "minio_bucket_bronze", bucket)
     engine = create_async_engine(
         settings.database_url,
         poolclass=NullPool,
@@ -67,7 +69,8 @@ async def test_api_queue_worker_storage_failures_and_recovery(tmp_path, monkeypa
             "INSERT INTO data_layer(layer_code, layer_name) VALUES ('BRONZE', 'Bronze')"
         )
         await conn.execute(
-            "INSERT INTO dataset(dataset_code,dataset_name,domain,source_system_id,data_layer_id) VALUES ('test','Test','admissions',1,1)"
+            "INSERT INTO dataset(dataset_code,dataset_name,domain,source_system_id,data_layer_id) VALUES ('test','Test',$1,1,1)",
+            partition,
         )
         await conn.execute(
             "INSERT INTO data_source(source_system_id,source_name,source_type,location,configuration) VALUES (1,'Test','CSV',$1,$2::jsonb)",
@@ -100,7 +103,7 @@ async def test_api_queue_worker_storage_failures_and_recovery(tmp_path, monkeypa
             )
             assert sorted(r.status_code for r in responses) == [202, 409]
             job_id = next(r.json()["ingestion_job_id"] for r in responses if r.status_code == 202)
-            # Real worker, separate sessions, actual capture/read/write/checksum.
+            # Worker thật, phiên riêng biệt, thực sự chụp/đọc/ghi/kiểm tra checksum.
             assert sorted(
                 await asyncio.gather(ingestion_worker.run_once(), ingestion_worker.run_once())
             ) == [False, True]
@@ -110,7 +113,18 @@ async def test_api_queue_worker_storage_failures_and_recovery(tmp_path, monkeypa
             assert result["rows_written"] == 1
             assert result["output"]["version_id"]
             key = result["output"]["uri"].split(f"s3://{bucket}/", 1)[1]
-            response = storage.get_object(bucket, key, version_id=result["output"]["version_id"])
+            # Kiểm tra metadata thật trên đúng version đã được job công bố.
+            stat = bronze_verifier_client().stat_object(
+                bucket, key, version_id=result["output"]["version_id"]
+            )
+            tags = {name.lower(): value for name, value in stat.metadata.items()}
+            for name, value in result["output"]["metadata"].items():
+                assert tags[f"x-amz-meta-{name}"] == value
+            assert tags["x-amz-meta-source-system-id"] == "1"
+            assert tags["x-amz-meta-batch-id"] == f"job-{job_id}"
+            response = bronze_reader_client().get_object(
+                bucket, key, version_id=result["output"]["version_id"]
+            )
             try:
                 assert response.read() == path.read_bytes()
             finally:
@@ -121,13 +135,13 @@ async def test_api_queue_worker_storage_failures_and_recovery(tmp_path, monkeypa
                 assert source is not None
                 assert source.ingestion_count == 1
                 assert source.last_ingested_at is not None
-            # Worker revalidates source existence/configuration; missing input fails durably.
+            # Worker kiểm tra lại sự tồn tại/cấu hình nguồn; đầu vào thiếu được ghi nhận lỗi bền vững.
             path.unlink()
             failed_id = (await api.post("/ingestion/jobs", json=payload)).json()["ingestion_job_id"]
             assert await ingestion_worker.run_once()
             failed = (await api.get(f"/ingestion/jobs/{failed_id}")).json()
             assert failed["error_message"] == "INGESTION_READING_FAILED"
-            # Simulate dead worker; expired jobs cannot publish success or heartbeat.
+            # Giả lập worker dừng đột ngột; job hết hạn không thể công bố thành công hay gửi heartbeat.
             dead_id = (await api.post("/ingestion/jobs", json=payload)).json()["ingestion_job_id"]
             async with factory() as session:
                 repo = IngestionRepository(session)
@@ -176,7 +190,9 @@ async def test_api_queue_worker_storage_failures_and_recovery(tmp_path, monkeypa
         await engine.dispose()
         await conn.execute(f"DROP SCHEMA IF EXISTS {schema} CASCADE")
         await conn.close()
-        for obj in storage.list_objects(bucket, recursive=True, include_version=True):
+        # Chỉ admin fixture dọn dữ liệu test trong prefix UUID này, không xóa bucket.
+        for obj in storage.list_objects(
+            bucket, prefix=partition + "/", recursive=True, include_version=True
+        ):
             assert obj.object_name is not None
             storage.remove_object(bucket, obj.object_name, version_id=obj.version_id)
-        storage.remove_bucket(bucket)

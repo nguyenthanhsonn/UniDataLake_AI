@@ -1,4 +1,4 @@
-"""Generic pipeline results and outbound ports."""
+"""Kết quả pipeline dùng chung và các cổng ra."""
 
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True)
 class PipelineEvent:
-    """Runtime lineage and quality evidence emitted by a pipeline run."""
+    """Bằng chứng nguồn gốc và chất lượng dữ liệu được phát ra khi chạy pipeline."""
 
     run_id: str
     domain_id: str
@@ -24,7 +24,7 @@ class PipelineEvent:
 
 @dataclass(frozen=True)
 class PipelineRunResult:
-    """Published output of one Bronze-to-Silver-to-Gold run."""
+    """Kết quả đã công bố của một lần chạy Bronze → Silver → Gold."""
 
     run_id: str
     domain_id: str
@@ -34,7 +34,7 @@ class PipelineRunResult:
 
 
 class LayerPublisher(Protocol):
-    """Storage port used by the pipeline to publish validated datasets."""
+    """Cổng lưu trữ mà pipeline dùng để công bố dataset đã kiểm tra."""
 
     def publish(
         self,
@@ -42,18 +42,18 @@ class LayerPublisher(Protocol):
         layer: DataLayer,
         datasets: Mapping[str, Sequence[Record]],
     ) -> None:
-        """Atomically publish datasets for a logical layer."""
+        """Công bố các dataset cho một tầng logic theo cách nguyên tử."""
 
 
 class PipelineEventSink(Protocol):
-    """Governance port receiving runtime pipeline evidence."""
+    """Cổng quản trị tiếp nhận bằng chứng thực thi pipeline."""
 
     def publish(self, event: PipelineEvent) -> None:
-        """Record one successful pipeline event."""
+        """Ghi nhận một sự kiện pipeline thành công."""
 
 
 class InMemoryLayerPublisher:
-    """Reference publisher used by tests and local proof-of-concept runs."""
+    """Bộ công bố tham chiếu cho kiểm thử và thử nghiệm cục bộ."""
 
     def __init__(self) -> None:
         self.datasets: dict[tuple[str, DataLayer, str], tuple[Record, ...]] = {}

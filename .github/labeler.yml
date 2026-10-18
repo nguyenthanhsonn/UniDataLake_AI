@@ -1,4 +1,4 @@
-# Limit automatic area labels on very large PRs to avoid noisy labeling.
+# Giới hạn nhãn khu vực tự động trên PR rất lớn để tránh gắn quá nhiều nhãn.
 changed-files-labels-limit: 8
 max-files-changed: 100
 

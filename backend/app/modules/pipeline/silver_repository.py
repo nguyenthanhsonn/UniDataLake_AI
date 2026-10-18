@@ -1,4 +1,4 @@
-"""Metadata transactions own visibility. Object storage is not in this transaction."""
+"""Giao dịch metadata quyết định dữ liệu nào được nhìn thấy. Kho đối tượng không thuộc giao dịch này."""
 
 from __future__ import annotations
 

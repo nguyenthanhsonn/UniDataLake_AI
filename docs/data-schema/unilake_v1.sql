@@ -1,15 +1,15 @@
 -- =============================================================================
--- UniLake AI - PostgreSQL Database Schema Definition DDL
--- Generated from DBML specification (database.md)
--- Target DBMS: PostgreSQL 16+
--- Schema: app
+-- UniLake AI - DDL định nghĩa schema cơ sở dữ liệu PostgreSQL
+-- Sinh từ đặc tả DBML (database.md)
+-- Hệ quản trị cơ sở dữ liệu đích: PostgreSQL 16+
+-- Schema cơ sở dữ liệu: app
 -- =============================================================================
 
 CREATE SCHEMA IF NOT EXISTS app;
 SET search_path TO app, public;
 
 -- -----------------------------------------------------------------------------
--- 1. BUSINESS DATA - ACADEMIC & DEPARTMENTS
+-- 1. DỮ LIỆU NGHIỆP VỤ - ĐÀO TẠO VÀ ĐƠN VỊ
 -- -----------------------------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS department (
@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS program (
 );
 
 -- -----------------------------------------------------------------------------
--- 2. BUSINESS DATA - ADMISSIONS & STUDENTS
+-- 2. DỮ LIỆU NGHIỆP VỤ - TUYỂN SINH VÀ SINH VIÊN
 -- -----------------------------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS admission_year (
@@ -113,7 +113,7 @@ CREATE TABLE IF NOT EXISTS student (
 COMMENT ON TABLE student IS 'Ho so sinh vien chinh thuc';
 
 -- -----------------------------------------------------------------------------
--- 3. BUSINESS DATA - ACADEMIC COURSES & CLASSES
+-- 3. DỮ LIỆU NGHIỆP VỤ - HỌC PHẦN VÀ LỚP HỌC
 -- -----------------------------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS curriculum (
@@ -188,7 +188,7 @@ CREATE TABLE IF NOT EXISTS enrollment_grade (
 );
 
 -- -----------------------------------------------------------------------------
--- 4. BUSINESS DATA - HUMAN RESOURCES & LECTURERS
+-- 4. DỮ LIỆU NGHIỆP VỤ - NHÂN SỰ VÀ GIẢNG VIÊN
 -- -----------------------------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS employee (
@@ -254,7 +254,7 @@ CREATE TABLE IF NOT EXISTS employee_qualification (
 );
 
 -- -----------------------------------------------------------------------------
--- 5. SECURITY & RBAC
+-- 5. BẢO MẬT VÀ PHÂN QUYỀN RBAC
 -- -----------------------------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS app_user (
@@ -302,7 +302,7 @@ CREATE TABLE IF NOT EXISTS login_session (
 );
 
 -- -----------------------------------------------------------------------------
--- 6. DATA PLATFORM & LAKE ENGINE
+-- 6. NỀN TẢNG DỮ LIỆU VÀ BỘ XỬ LÝ DATA LAKE
 -- -----------------------------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS source_system (
@@ -400,7 +400,7 @@ CREATE TABLE IF NOT EXISTS data_processing_run (
 );
 
 -- -----------------------------------------------------------------------------
--- 7. DATA GOVERNANCE (CATALOG, LINEAGE, QUALITY)
+-- 7. QUẢN TRỊ DỮ LIỆU (CATALOG, NGUỒN GỐC, CHẤT LƯỢNG)
 -- -----------------------------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS catalog_table (
@@ -462,7 +462,7 @@ CREATE TABLE IF NOT EXISTS data_quality_run (
 );
 
 -- -----------------------------------------------------------------------------
--- 8. AI ANALYTICS & TEXT-TO-SQL
+-- 8. PHÂN TÍCH AI VÀ CHUYỂN VĂN BẢN THÀNH SQL
 -- -----------------------------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS ai_model (
@@ -526,7 +526,7 @@ CREATE TABLE IF NOT EXISTS query_execution (
 );
 
 -- -----------------------------------------------------------------------------
--- 9. DASHBOARD & VISUALIZATION
+-- 9. BẢNG ĐIỀU KHIỂN VÀ TRỰC QUAN HÓA
 -- -----------------------------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS dashboard (

@@ -1,4 +1,4 @@
-"""Immutable S4 crosswalk evidence. Source keys never pass through numeric casts."""
+"""Bằng chứng đối chiếu định danh S4 bất biến. Không ép khóa nguồn sang kiểu số."""
 
 from __future__ import annotations
 
@@ -14,10 +14,10 @@ class IdentityConfigurationError(ValueError):
 
 def source_key(values: tuple[object, ...]) -> tuple[str, ...]:
     if not values or any(
-        isinstance(v, bool) or not isinstance(v, (str, int)) or not str(v).strip() for v in values
+        isinstance(v, bool) or not isinstance(v, str | int) or not str(v).strip() for v in values
     ):
         raise IdentityConfigurationError("SOURCE_ID_INVALID")
-    # Native integer 7 and text '7' are equivalent, but '007' remains distinct.
+    # Số nguyên 7 và chuỗi '7' tương đương, nhưng '007' vẫn được phân biệt.
     return tuple(str(v) for v in values)
 
 

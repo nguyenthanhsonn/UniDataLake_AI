@@ -60,7 +60,7 @@ class ExcelReader:
         if path.suffix.lower() not in SUPPORTED_EXCEL_SUFFIXES:
             raise ValueError("Chỉ hỗ trợ file .xlsx và .xlsm")
 
-        # Read formulas explicitly: cached results may be missing or stale.
+        # Đọc công thức tường minh: kết quả lưu đệm có thể thiếu hoặc đã cũ.
         workbook = load_workbook(
             filename=path,
             read_only=True,
@@ -105,8 +105,8 @@ class ExcelReader:
             rows = []
             locators = []
             for row_number, row in enumerate(iterator, start=rows_to_skip + 2):
-                # Fail the batch before mapping, including formula-only rows.
-                # Never report raw values or formula text in an error.
+                # Đánh dấu batch lỗi trước khi ánh xạ, kể cả các dòng chỉ chứa công thức.
+                # Không đưa giá trị thô hoặc nội dung công thức vào thông báo lỗi.
                 for cell in row:
                     if cell.data_type in {"f", "e"}:
                         code = (

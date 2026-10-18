@@ -1,2 +1,2 @@
-# Reference backend dependencies
+# Tham chiếu các thư viện phụ thuộc của backend
 -r backend/requirements.txt

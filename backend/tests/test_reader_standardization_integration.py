@@ -1,4 +1,4 @@
-"""Real local files through reader -> Bronze hand-off -> S2 -> S3."""
+"""Tệp cục bộ thật đi qua reader → bàn giao Bronze → S2 → S3."""
 
 from __future__ import annotations
 

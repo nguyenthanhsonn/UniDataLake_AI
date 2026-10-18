@@ -2,7 +2,7 @@ name: unilake-ai
 
 services:
   # ============================================================================
-  # 1. PostgreSQL Database (Structured Data & App DB)
+  # 1. Cơ sở dữ liệu PostgreSQL (dữ liệu có cấu trúc và cơ sở dữ liệu ứng dụng)
   # ============================================================================
   postgres:
     image: postgres:16-alpine
@@ -34,7 +34,7 @@ services:
       retries: 10
 
   # ============================================================================
-  # 2. MinIO Object Storage (Raw & Data Lake Bronze/Silver/Gold)
+  # 2. Kho đối tượng MinIO (dữ liệu thô và data lake Bronze/Silver/Gold)
   # ============================================================================
   minio:
     image: elestio/minio:latest
@@ -59,7 +59,7 @@ services:
       retries: 10
 
   # ============================================================================
-  # 2b. MinIO Auto Bucket Initializer (Bronze, Silver, Gold)
+  # 2b. Tự động khởi tạo bucket MinIO (Bronze, Silver, Gold)
   # ============================================================================
   minio-init:
     image: pgsty/mc:RELEASE.2026-09-16T00-00-00Z
@@ -80,7 +80,7 @@ services:
       - unilake-network
 
   # ============================================================================
-  # 3. Redis Cache & Task Queue
+  # 3. Bộ nhớ đệm và hàng đợi tác vụ Redis
   # ============================================================================
   redis:
     image: redis:7-alpine
@@ -99,7 +99,7 @@ services:
       retries: 5
 
   # ============================================================================
-  # 4. Backend Service (FastAPI & DuckDB Processing Engine)
+  # 4. Dịch vụ backend (FastAPI và bộ xử lý DuckDB)
   # ============================================================================
   backend:
     build:
@@ -113,6 +113,10 @@ services:
     volumes:
       - ./backend:/app
 
+    # Chỉ nạp SA đọc Bronze/nguồn; không cấp writer hoặc credentials root cho web.
+    env_file:
+      - .env.bronze-backend.local
+
     environment: &backend-environment
       - ENVIRONMENT=${ENVIRONMENT:-development}
       - DEBUG=${DEBUG:-true}
@@ -124,8 +128,6 @@ services:
       - DB_READONLY_USER=${DB_READONLY_USER:-unilake_reader}
       - DB_READONLY_PASSWORD=${DB_READONLY_PASSWORD:-unilake_reader}
       - MINIO_ENDPOINT=minio:9000
-      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-minioadmin}
-      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-minioadmin}
       - MINIO_SECURE=${MINIO_SECURE:-false}
       - MINIO_BUCKET_BRONZE=${MINIO_BUCKET_BRONZE:-bronze}
       - MINIO_BUCKET_SILVER=${MINIO_BUCKET_SILVER:-silver}
@@ -147,7 +149,7 @@ services:
         condition: service_completed_successfully
 
   # ============================================================================
-  # 5. Durable Ingestion Worker (PostgreSQL queue -> Bronze)
+  # 5. Worker ingestion bền vững (hàng đợi PostgreSQL → Bronze)
   # ============================================================================
   ingestion-worker:
     build:
@@ -158,6 +160,9 @@ services:
     restart: unless-stopped
     command: python -m app.ingestion_worker
     environment: *backend-environment
+    # Writer và verifier tách client; worker vẫn là cùng một process có hai quyền.
+    env_file:
+      - .env.bronze-worker.local
     volumes:
       - ./backend:/app
       - ./data:/data:ro
@@ -171,7 +176,7 @@ services:
     healthcheck:
       disable: true
 
-  # 6. Frontend Service (Next.js)
+  # 6. Dịch vụ frontend (Next.js)
   frontend:
     build:
       context: ./frontend
@@ -190,7 +195,7 @@ services:
       - backend
 
 # ============================================================================
-# Networks & Persistent Volumes
+# Mạng và volume lưu trữ bền vững
 # ============================================================================
 networks:
   unilake-network:

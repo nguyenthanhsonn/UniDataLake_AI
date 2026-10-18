@@ -1,4 +1,4 @@
-"""Demo domain proving that generic modules need no domain-specific branches."""
+"""Miền demo chứng minh các mô-đun chung không cần rẽ nhánh theo miền nghiệp vụ."""
 
 from __future__ import annotations
 

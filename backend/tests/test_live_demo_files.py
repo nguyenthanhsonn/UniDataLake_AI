@@ -1,4 +1,4 @@
-"""Verify the delivered manual-demo files through actual readers and publication."""
+"""Kiểm chứng các tệp demo thủ công đã bàn giao bằng reader và luồng công bố thật."""
 
 from __future__ import annotations
 

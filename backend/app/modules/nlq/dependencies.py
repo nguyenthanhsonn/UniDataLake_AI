@@ -1,4 +1,4 @@
-"""Dependency tokens exposed by the NLQ delivery adapter."""
+"""Các token dependency được bộ điều hợp giao tiếp NLQ cung cấp."""
 
 from __future__ import annotations
 
@@ -10,7 +10,7 @@ from app.modules.nlq.service import NLQService
 
 
 def get_nlq_service() -> NLQService:
-    """Require the composition root to provide the NLQ application service."""
+    """Yêu cầu điểm lắp ghép ứng dụng cung cấp dịch vụ ứng dụng NLQ."""
     raise RuntimeError("NLQ service provider is not configured")
 
 

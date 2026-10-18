@@ -1,8 +1,8 @@
-# Virtual env
+# Môi trường ảo
 .venv/
 venv/
 
-# IDE
+# Môi trường phát triển tích hợp
 .vscode/
 .idea/
 .crossnote/
@@ -31,7 +31,7 @@ dist/
 build/
 *.tsbuildinfo
 
-# Jupyter Notebooks
+# Notebook Jupyter
 .ipynb_checkpoints/
 
 # Data (KHÔNG commit data vào git)
@@ -43,16 +43,16 @@ data/processed/
 *.db
 *.sqlite
 
-# Environment
+# Môi trường
 .env
 .env.local
 .env*.local
 
-# OS
+# Hệ điều hành
 .DS_Store
 Thumbs.db
 
-# Logs
+# Nhật ký
 *.log
 logs/
 

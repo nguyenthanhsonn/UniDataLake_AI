@@ -1,4 +1,4 @@
-"""Application settings loaded from environment variables."""
+"""Cấu hình ứng dụng được nạp từ biến môi trường."""
 
 from __future__ import annotations
 
@@ -7,10 +7,17 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    """Application settings with environment variable support."""
+    """Cấu hình ứng dụng có hỗ trợ biến môi trường."""
 
     model_config = SettingsConfigDict(
-        env_file=("../.env", ".env"),
+        env_file=(
+            "../.env",
+            ".env",
+            "../.env.bronze-accounts.local",
+            ".env.bronze-accounts.local",
+            "../.env.source-reader.local",
+            ".env.source-reader.local",
+        ),
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",
@@ -19,8 +26,8 @@ class Settings(BaseSettings):
     app_name: str = "UniLake AI"
     app_env: str = Field(default="development", alias="ENVIRONMENT")
     debug: bool = Field(default=False, alias="DEBUG")
-    api_v1_prefix: str = Field(default="/api/v1", alias="API_V1_PREFIX")  # NEW
-    cors_origins: str = Field(default="http://localhost:3000", alias="CORS_ORIGINS")  # NEW
+    api_v1_prefix: str = Field(default="/api/v1", alias="API_V1_PREFIX")  # MỚI
+    cors_origins: str = Field(default="http://localhost:3000", alias="CORS_ORIGINS")  # MỚI
 
     db_host: str = Field(default="localhost", alias="DB_HOST")
     db_port: int = Field(default=5432, alias="DB_PORT")
@@ -35,8 +42,19 @@ class Settings(BaseSettings):
     db_source_name: str = Field(default="unilake_source", alias="DB_SOURCE_NAME")
 
     minio_endpoint: str = Field(default="localhost:9000", alias="MINIO_ENDPOINT")
-    minio_access_key: str = Field(default="minioadmin", alias="MINIO_ACCESS_KEY")
-    minio_secret_key: str = Field(default="minioadmin", alias="MINIO_SECRET_KEY")
+    # Credentials quản trị chỉ dùng cho provisioning/CLI, không dùng trong runtime.
+    minio_access_key: str = Field(default="", alias="MINIO_ACCESS_KEY")
+    minio_secret_key: str = Field(default="", alias="MINIO_SECRET_KEY")
+    bronze_writer_access_key: str = Field(default="", alias="BRONZE_WRITER_ACCESS_KEY")
+    bronze_writer_secret_key: str = Field(default="", alias="BRONZE_WRITER_SECRET_KEY", repr=False)
+    bronze_verifier_access_key: str = Field(default="", alias="BRONZE_VERIFIER_ACCESS_KEY")
+    bronze_verifier_secret_key: str = Field(
+        default="", alias="BRONZE_VERIFIER_SECRET_KEY", repr=False
+    )
+    bronze_reader_access_key: str = Field(default="", alias="BRONZE_READER_ACCESS_KEY")
+    bronze_reader_secret_key: str = Field(default="", alias="BRONZE_READER_SECRET_KEY", repr=False)
+    source_minio_access_key: str = Field(default="", alias="SOURCE_MINIO_ACCESS_KEY")
+    source_minio_secret_key: str = Field(default="", alias="SOURCE_MINIO_SECRET_KEY", repr=False)
     minio_secure: bool = Field(default=False, alias="MINIO_SECURE")
     # NEW: region và bucket cho Bronze / Silver / Gold
     minio_region: str = Field(default="us-east-1", alias="MINIO_REGION")
@@ -44,7 +62,7 @@ class Settings(BaseSettings):
     minio_bucket_silver: str = Field(default="silver", alias="MINIO_BUCKET_SILVER")
     minio_bucket_gold: str = Field(default="gold", alias="MINIO_BUCKET_GOLD")
 
-    # NEW: DuckDB
+    # MỚI: DuckDB
     duckdb_path: str = Field(default=":memory:", alias="DUCKDB_PATH")
     duckdb_threads: int = Field(default=4, alias="DUCKDB_THREADS")
     duckdb_memory_limit: str = Field(default="2GB", alias="DUCKDB_MEMORY_LIMIT")
@@ -62,11 +80,11 @@ class Settings(BaseSettings):
     llm_provider: str = Field(default="mock", alias="LLM_PROVIDER")  # đổi default openai -> mock
     llm_api_key: str = Field(default="", alias="LLM_API_KEY")
     llm_model: str = Field(default="", alias="LLM_MODEL")
-    llm_timeout_seconds: int = Field(default=30, alias="LLM_TIMEOUT_SECONDS")  # NEW
+    llm_timeout_seconds: int = Field(default=30, alias="LLM_TIMEOUT_SECONDS")  # MỚI
 
     @property
     def database_url(self) -> str:
-        """Build async PostgreSQL connection URL."""
+        """Tạo URL kết nối PostgreSQL bất đồng bộ."""
         return (
             f"postgresql+asyncpg://{self.db_user}:{self.db_password}"
             f"@{self.db_host}:{self.db_port}/{self.db_name}"
@@ -74,37 +92,37 @@ class Settings(BaseSettings):
 
     @property
     def sync_database_url(self) -> str:
-        """Build sync PostgreSQL connection URL."""
+        """Tạo URL kết nối PostgreSQL đồng bộ."""
         return (
             f"postgresql://{self.db_user}:{self.db_password}"
             f"@{self.db_host}:{self.db_port}/{self.db_name}"
         )
 
     @property
-    def readonly_database_url(self) -> str:  # NEW
-        """Build async URL for the read-only Gold role used by NLQ and Dashboard."""
+    def readonly_database_url(self) -> str:  # MỚI
+        """Tạo URL bất đồng bộ cho vai trò Gold chỉ đọc mà NLQ và Dashboard sử dụng."""
         return (
             f"postgresql+asyncpg://{self.db_readonly_user}:{self.db_readonly_password}"
             f"@{self.db_host}:{self.db_port}/{self.db_name}"
         )
 
     @property
-    def duckdb_postgres_dsn(self) -> str:  # NEW
-        """Build libpq DSN for DuckDB `ATTACH ... (TYPE postgres)` to write Gold."""
+    def duckdb_postgres_dsn(self) -> str:  # MỚI
+        """Tạo DSN libpq để DuckDB ghi Gold qua `ATTACH ... (TYPE postgres)`."""
         return (
             f"host={self.db_host} port={self.db_port} dbname={self.db_name} "
             f"user={self.db_user} password={self.db_password}"
         )
 
     @property
-    def minio_endpoint_url(self) -> str:  # NEW
-        """Build full MinIO URL (with scheme) for deltalake storage options."""
+    def minio_endpoint_url(self) -> str:  # MỚI
+        """Tạo URL MinIO đầy đủ (kèm giao thức) cho tùy chọn lưu trữ deltalake."""
         scheme = "https" if self.minio_secure else "http"
         return f"{scheme}://{self.minio_endpoint}"
 
     @property
-    def cors_origin_list(self) -> list[str]:  # NEW
-        """Split comma-separated CORS_ORIGINS into a list."""
+    def cors_origin_list(self) -> list[str]:  # MỚI
+        """Tách CORS_ORIGINS được phân cách bằng dấu phẩy thành danh sách."""
         return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
 
 

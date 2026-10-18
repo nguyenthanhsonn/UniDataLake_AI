@@ -1,4 +1,4 @@
-"""S3 -> S4 identity/dictionary resolution, without publishing or guessing matches."""
+"""Phân giải định danh/từ điển từ S3 → S4, không công bố hay suy đoán giá trị khớp."""
 
 from __future__ import annotations
 
@@ -303,7 +303,7 @@ class IdentityStandardizationService:
                 accepted.append(StandardizedRow(row.locator, values))
             else:
                 rejected.append(row.locator)
-        # Reject every row in a canonical collision, not whichever arrived last.
+        # Từ chối mọi dòng có xung đột sau chuẩn hóa, không chỉ dòng đến sau cùng.
         groups: dict[tuple[object, ...], list[StandardizedRow]] = {}
         for standardized in accepted:
             groups.setdefault(tuple(standardized.values[n] for n in pk), []).append(standardized)

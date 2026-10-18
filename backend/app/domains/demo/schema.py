@@ -1,4 +1,4 @@
-"""Schemas and semantic metadata for the extension proof-of-concept."""
+"""Schema và metadata ngữ nghĩa cho bản thử nghiệm mở rộng."""
 
 from __future__ import annotations
 

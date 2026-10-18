@@ -1,8 +1,8 @@
-"""Generate deterministic synthetic Admissions sample data (schema: unilake-db.dbml).
+"""Sinh dữ liệu mẫu Tuyển sinh giả lập có kết quả xác định (schema: unilake-db.dbml).
 
-Usage (from repo root, after generate_hr.py): python data/synthetic/generate_admissions.py
-Writes data/samples/admissions/*.csv and training/student.csv. Same seed -> same output.
-All people, IDs, phones and emails are fake.
+Cách chạy (từ thư mục gốc repo, sau generate_hr.py): python data/synthetic/generate_admissions.py
+Ghi data/samples/admissions/*.csv và training/student.csv. Cùng seed cho cùng kết quả.
+Mọi người, mã định danh, số điện thoại và email đều là giả lập.
 """
 
 import csv
@@ -41,7 +41,7 @@ def ascii_slug(s):
     ).lower()
 
 
-# ---------- reference data ----------
+# ---------- dữ liệu tham chiếu ----------
 # department_id theo data/samples/hr/department.csv (generate_hr.py): 7 KCNTT, 8 KKT, 9 KNN, 10 KXD
 majors = [
     (1, "7480201", "Công nghệ thông tin", 7),
@@ -59,7 +59,7 @@ write(
     majors,
 )
 
-# program_id, code, name, major_id, degree, years, fee, THPT cutoff 2024, popularity weight
+# program_id, mã, tên, major_id, bậc học, số năm, học phí, điểm chuẩn THPT 2024, trọng số phổ biến
 programs = [
     (1, "CNTT-CQ", "Công nghệ thông tin", 1, "Bachelor", "4.0", "520000.00", 23.50, 22),
     (
@@ -154,7 +154,7 @@ write(
     ],
 )
 
-# province, CCCD province code, weight, high schools
+# tỉnh, mã tỉnh CCCD, trọng số, trường THPT
 provinces = [
     (
         "Đà Nẵng",
@@ -292,7 +292,7 @@ for year_id, y in YEARS.items():
             )
         )
 
-        # ---------- wishes ----------
+        # ---------- nguyện vọng ----------
         ability = rng.gauss(0, 1)
         n_wish = rng.choices([1, 2, 3], [30, 40, 30])[0]
         wishes = []
@@ -329,7 +329,9 @@ for year_id, y in YEARS.items():
             if method == 3:
                 eligible = ability > 1.4
             else:
-                assert score is not None  # Methods 1 and 2 always calculate a numeric score.
+                assert (
+                    score is not None
+                )  # Phương thức 1 và 2 luôn tính ra điểm dạng số.
                 eligible = score >= cutoff
             if eligible and not accepted_done:
                 status, accepted_done = "Accepted", True

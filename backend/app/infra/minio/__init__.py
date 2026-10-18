@@ -1,4 +1,4 @@
-"""MinIO infrastructure."""
+"""Hạ tầng MinIO."""
 
 from __future__ import annotations
 

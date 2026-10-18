@@ -1,4 +1,4 @@
-"""Run with python -m app.ingestion_worker. PostgreSQL is the durable queue."""
+"""Chạy bằng python -m app.ingestion_worker. PostgreSQL là hàng đợi bền vững."""
 
 from __future__ import annotations
 
@@ -48,7 +48,7 @@ async def main() -> None:
         try:
             worked = await run_once()
         except Exception as exc:
-            # Avoid printing source credentials from exception messages.
+            # Tránh in thông tin xác thực nguồn từ thông báo ngoại lệ.
             logger.error("Ingestion worker cycle failed (%s)", type(exc).__name__)
             worked = False
         if not worked:

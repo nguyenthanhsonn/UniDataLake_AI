@@ -1,4 +1,4 @@
-"""Async SQLAlchemy database configuration for UniLake AI."""
+"""Cấu hình cơ sở dữ liệu SQLAlchemy bất đồng bộ cho UniLake AI."""
 
 from __future__ import annotations
 
@@ -27,7 +27,7 @@ async_session_factory = async_sessionmaker(
 
 
 async def get_db() -> AsyncGenerator[AsyncSession]:
-    """Yield a transactional database session for FastAPI dependencies."""
+    """Cung cấp phiên cơ sở dữ liệu có giao dịch cho các dependency FastAPI."""
     async with async_session_factory() as session:
         try:
             yield session

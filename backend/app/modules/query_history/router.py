@@ -1,4 +1,4 @@
-"""Query history API routes."""
+"""Các tuyến API lịch sử truy vấn."""
 
 from __future__ import annotations
 

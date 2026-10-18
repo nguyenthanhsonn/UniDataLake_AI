@@ -298,7 +298,7 @@ def test_default_production_is_blocked_with_draft_contract(environment):
     publisher = SilverPublicationService(
         repository=repo, storage=store, contracts=CONTRACTS, scope="fixture"
     )
-    # Real provenance is checked even before the approval gate.
+    # Kiểm tra nguồn gốc thực ngay cả trước cổng phê duyệt.
     with pytest.raises(SilverError, match="PROVENANCE_REQUIRED"):
         publisher.publish((normalized(),))
     with pytest.raises(SilverError, match="G1_NOT_APPROVED"):
@@ -459,7 +459,7 @@ def test_failed_upstream_issue_preserves_locator_and_code(environment):
 @pytest.mark.parametrize("failure", ["missing_gate", "coverage", "dq_error", "valid"])
 def test_production_business_gate_contract_without_claiming_real_approval(environment, failure):
     _, repo, store = environment
-    # Synthetic policy copies only: no persisted project contract/approval is changed.
+    # Chỉ sao chép chính sách giả lập: không thay đổi hợp đồng/phê duyệt đã lưu của dự án.
     contracts = deepcopy(CONTRACTS)
     for contract in contracts.values():
         contract["x-version"] = "fixture-approved"
@@ -471,7 +471,7 @@ def test_production_business_gate_contract_without_claiming_real_approval(enviro
         version = "fixture-dq-1"
 
         def evaluate(self, tables, manifest):
-            tables.clear()  # Validator extensions cannot mutate publisher inputs.
+            tables.clear()  # Phần mở rộng bộ kiểm tra không được sửa đầu vào của bộ công bố.
             if failure == "coverage":
                 return BusinessEvidence(frozenset())
             if failure == "dq_error":

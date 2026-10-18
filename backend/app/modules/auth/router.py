@@ -1,4 +1,4 @@
-"""Authentication API routes."""
+"""Các tuyến API xác thực."""
 
 from __future__ import annotations
 

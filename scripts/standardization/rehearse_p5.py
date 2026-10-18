@@ -1,4 +1,4 @@
-"""Run synthetic S2/S3/S4 -> local Parquet + SQLite metadata, never production."""
+"""Chạy S2/S3/S4 giả lập → Parquet cục bộ và metadata SQLite, không dùng production."""
 
 from __future__ import annotations
 
@@ -43,7 +43,9 @@ def main():
         Base.metadata.create_all(engine, tables=SILVER_TABLES)
         contracts = {
             d: json.loads(
-                (ROOT / f"docs/standardization/silver-schemas/{d}.json").read_text(encoding="utf-8")
+                (ROOT / f"docs/standardization/silver-schemas/{d}.json").read_text(
+                    encoding="utf-8"
+                )
             )
             for d in ("admissions", "academic", "hr")
         }
@@ -65,7 +67,9 @@ def main():
             "row_counts": {name: len(rows) for name, rows in tables.items()},
             "production_activated": False,
         }
-        (output / "receipt.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
+        (output / "receipt.json").write_text(
+            json.dumps(summary, indent=2), encoding="utf-8"
+        )
         print(json.dumps(summary, indent=2))
     finally:
         engine.dispose()

@@ -1,4 +1,4 @@
-"""Authentication service logic."""
+"""Logic dịch vụ xác thực."""
 
 from __future__ import annotations
 
@@ -223,7 +223,7 @@ class AuthService:
         return {"message": "Bạn đã đăng xuất thành công"}
 
     async def list_active_sessions(self, app_user_id: int) -> list[SessionRead]:
-        """Return active login sessions owned by the current user."""
+        """Trả về các phiên đăng nhập đang hoạt động thuộc người dùng hiện tại."""
         # Chỉ liệt kê phiên ACTIVE của chính user đang đăng nhập.
         query = (
             select(LoginSession)
@@ -248,7 +248,7 @@ class AuthService:
         ]
 
     async def revoke_session(self, session_id: int, app_user_id: int) -> dict[str, str]:
-        """Revoke one active session owned by the current user."""
+        """Thu hồi một phiên đang hoạt động thuộc người dùng hiện tại."""
         # Tìm phiên theo session_id nhưng luôn khóa trong phạm vi current user.
         query = select(LoginSession).where(
             LoginSession.login_session_id == session_id,

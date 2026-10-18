@@ -147,6 +147,11 @@ async def test_execution_stages_and_sanitized_failures(failure):
     else:
         repo.stage.assert_awaited_once_with(10, "WRITING", 3)
         repo.finish.assert_awaited_once_with(10, output=store.return_value)
+        # Writer nhận ID hệ thống từ catalog và thời gian capture, không nhận credentials.
+        write_context = store.call_args.args[2]
+        assert write_context.source_system_id == 1
+        assert write_context.ingestion_job_id == 10
+        assert write_context.ingestion_timestamp >= write_context.created_at
 
 
 def test_capture_excel_original_bytes(tmp_path):

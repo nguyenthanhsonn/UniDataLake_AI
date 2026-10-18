@@ -1,4 +1,4 @@
-"""Generic Bronze-to-Silver-to-Gold pipeline module."""
+"""Mô-đun pipeline dùng chung Bronze → Silver → Gold."""
 
 from __future__ import annotations
 

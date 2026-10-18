@@ -1,4 +1,4 @@
-"""LLM provider infrastructure."""
+"""Hạ tầng nhà cung cấp LLM."""
 
 from __future__ import annotations
 

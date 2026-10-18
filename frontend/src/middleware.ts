@@ -42,12 +42,12 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   const token = request.cookies.get('access_token')?.value
 
-  // Never block or redirect internal Next.js assets or API routes
+  // Không chặn hoặc chuyển hướng tài nguyên nội bộ Next.js hay tuyến API
   if (pathname.startsWith('/api') || pathname.startsWith('/_next') || pathname.includes('.')) {
     return NextResponse.next()
   }
 
-  // 1. Unauthenticated users
+  // 1. Người dùng chưa xác thực
   if (!token) {
     if (pathname === '/login') {
       return NextResponse.next()
@@ -56,16 +56,16 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(loginUrl)
   }
 
-  // 2. Authenticated users: extract roles
+  // 2. Người dùng đã xác thực: lấy vai trò
   const userRoles = extractRolesFromToken(token)
   const defaultHome = getDefaultHomeForRoles(userRoles)
 
-  // If visiting /login or root /, redirect to user's role home
+  // Nếu truy cập /login hoặc đường dẫn gốc /, chuyển đến trang chủ theo vai trò người dùng
   if (pathname === '/login' || pathname === '/') {
     return NextResponse.redirect(new URL(defaultHome, request.url))
   }
 
-  // Check access to role prefix routes
+  // Kiểm tra quyền truy cập các tuyến theo tiền tố vai trò
   if (!hasAccessToRoute(pathname, userRoles)) {
     return NextResponse.redirect(new URL(defaultHome, request.url))
   }
@@ -76,10 +76,10 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
+     * Khớp mọi đường dẫn yêu cầu trừ các đường dẫn bắt đầu bằng:
+     * - _next/static (tệp tĩnh)
+     * - _next/image (tệp tối ưu hình ảnh)
+     * - favicon.ico (tệp biểu tượng trang)
      */
     '/((?!_next/static|_next/image|favicon.ico).*)',
   ],

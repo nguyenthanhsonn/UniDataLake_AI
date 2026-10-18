@@ -1,4 +1,4 @@
--- Additive migration; apply to existing volumes before deploying API/worker.
+-- Migration bổ sung; áp dụng cho volume hiện có trước khi triển khai API/worker.
 BEGIN;
 ALTER TABLE app.ingestion_job
     ADD COLUMN IF NOT EXISTS source_table VARCHAR(200),

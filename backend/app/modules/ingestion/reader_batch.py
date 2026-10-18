@@ -1,4 +1,4 @@
-"""Explicit in-memory hand-off; this adapter does not persist Bronze data."""
+"""Bàn giao tường minh trong bộ nhớ; bộ điều hợp này không lưu bền vững dữ liệu Bronze."""
 
 from __future__ import annotations
 
@@ -21,7 +21,7 @@ def reader_to_batch(
     binding: MappingBinding,
     input_version: str | None = None,
 ) -> BronzeBatch:
-    """Require reader evidence; an optional expected version must match it."""
+    """Yêu cầu bằng chứng từ reader; phiên bản kỳ vọng, nếu có, phải khớp bằng chứng."""
     if any(not isinstance(v, str) or not v.strip() for v in (batch_id, domain_id, source_type)):
         raise ValueError("INVALID_BATCH_CONTEXT")
     if not isinstance(binding, MappingBinding) or any(

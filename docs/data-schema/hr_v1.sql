@@ -1,4 +1,4 @@
--- UniLake AI V1.0 - Human Resources Dataset Schema V1
+-- UniLake AI V1.0 - Schema dataset Nhân sự V1
 -- DDL PostgreSQL cho các bảng HR, bám đúng docs/data-schema/unilake-db-architecture.txt:
 -- tên cột, thứ tự, NULL/NOT NULL, PK, UNIQUE, FK lấy từ DB; độ dài varchar/decimal và CHECK
 -- là đề xuất của dataset (DB chỉ khai báo kiểu chung string/decimal). Xem hr_v1.schema.json.

@@ -1,4 +1,4 @@
-"""SQLAlchemy models for the ingestion module."""
+"""Các mô hình SQLAlchemy cho mô-đun ingestion."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ __all__ = ["IngestionJob"]
 
 
 class IngestionJob(Base):
-    """Execution record for loading data from a registered source."""
+    """Bản ghi thực thi việc nạp dữ liệu từ nguồn đã đăng ký."""
 
     __tablename__ = "ingestion_job"
     __table_args__ = (

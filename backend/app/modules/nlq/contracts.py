@@ -1,4 +1,4 @@
-"""Public application contracts owned by the NLQ module."""
+"""Các hợp đồng ứng dụng công khai thuộc mô-đun NLQ."""
 
 from __future__ import annotations
 
@@ -7,24 +7,24 @@ from typing import Protocol
 
 
 class LLMPort(Protocol):
-    """Completion capability required by the NLQ application service."""
+    """Khả năng sinh nội dung mà dịch vụ ứng dụng NLQ yêu cầu."""
 
     async def complete(self, prompt: str) -> str:
-        """Return a completion for the supplied prompt."""
+        """Trả về nội dung sinh ra cho prompt được cung cấp."""
         ...
 
 
 class GoldQueryPort(Protocol):
-    """Read-only analytical query capability required by NLQ."""
+    """Khả năng truy vấn phân tích chỉ đọc mà NLQ yêu cầu."""
 
     async def execute(self, sql: str) -> list[dict[str, object]]:
-        """Execute validated read-only SQL against published Gold data."""
+        """Thực thi SQL chỉ đọc đã kiểm tra trên dữ liệu Gold đã công bố."""
         ...
 
 
 @dataclass(frozen=True)
 class NLQResult:
-    """Transport-neutral result returned by the NLQ use case."""
+    """Kết quả độc lập với giao thức truyền tải do ca sử dụng NLQ trả về."""
 
     sql: str
     rows: tuple[dict[str, object], ...]

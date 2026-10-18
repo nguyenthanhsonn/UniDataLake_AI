@@ -1,4 +1,4 @@
-"""Domain-agnostic Bronze-to-Silver-to-Gold orchestration."""
+"""Điều phối Bronze → Silver → Gold độc lập với miền nghiệp vụ."""
 
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ if TYPE_CHECKING:
 
 
 class PipelineQualityError(ValueError):
-    """Raised when a domain quality gate rejects transformed data."""
+    """Phát sinh khi cổng chất lượng của miền nghiệp vụ từ chối dữ liệu đã biến đổi."""
 
     def __init__(self, results: Sequence[QualityResult]) -> None:
         self.results = tuple(results)
@@ -31,7 +31,7 @@ class PipelineQualityError(ValueError):
 
 
 class PipelineOrchestrator:
-    """Generic orchestrator that depends only on stable domain contracts."""
+    """Bộ điều phối chung chỉ phụ thuộc các hợp đồng miền nghiệp vụ ổn định."""
 
     def __init__(
         self,
@@ -45,7 +45,7 @@ class PipelineOrchestrator:
         self._registry = registry or get_domain_registry()
 
     def run(self, batch: BronzeBatch) -> PipelineRunResult:
-        """Transform, validate, publish, and report one Bronze batch."""
+        """Biến đổi, kiểm tra, công bố và báo cáo một batch Bronze."""
         if batch.mapping_binding is not None:
             raise ValueError(
                 "Versioned structural batches require S3/S4 validation before publishing; "

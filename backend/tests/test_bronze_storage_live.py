@@ -1,4 +1,4 @@
-"""Opt-in MinIO check; deletes only the versions created by this test."""
+"""Kiểm tra MinIO khi chủ động bật; chỉ xóa các phiên bản do kiểm thử này tạo."""
 
 from __future__ import annotations
 

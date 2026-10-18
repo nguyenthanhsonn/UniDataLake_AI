@@ -1,4 +1,4 @@
-"""Database seed script for UniLake AI."""
+"""Script nạp dữ liệu khởi tạo cho UniLake AI."""
 
 from __future__ import annotations
 
@@ -177,7 +177,7 @@ USER_ROLES_SQL_LIST = [
 
 
 async def seed_data() -> None:
-    """Execute initial seed scripts."""
+    """Thực thi các script nạp dữ liệu ban đầu."""
     print("Seeding database roles, permissions, and users...")
     async with async_session_factory() as db:
         await db.execute(text(PERMISSIONS_SEED_SQL))

@@ -12,7 +12,7 @@ from urllib.parse import SplitResult, urlsplit
 
 from minio import Minio
 
-from app.infra.minio.client import MinioClientSettings
+from app.infra.minio.client import source_reader_client
 
 if TYPE_CHECKING:
     from .contract import ReadRequest
@@ -63,11 +63,11 @@ def resolve_file_request(
     if request.source_table != filename:
         raise ValueError("source_table không khớp với tên file trong S3 location")
 
-    # 4. Tạo MinIO client từ settings chung của app.
-    client = _create_minio_client()
+    # 4. Chọn SA chỉ đọc đúng kho: Bronze reader hoặc SA đọc hệ thống nguồn.
+    client = _create_minio_client(bucket)
 
-    # Pin a concrete version when the bucket supports versioning. "null" is
-    # replaceable in unversioned/suspended buckets and is not a replay guarantee.
+    # Cố định phiên bản cụ thể khi bucket hỗ trợ quản lý phiên bản. "null" có thể
+    # bị thay thế trong bucket không bật hoặc đã tạm ngưng quản lý phiên bản nên không bảo đảm đọc lại.
     version_id = request.object_version_id
     if version_id is not None and (
         not isinstance(version_id, str) or not version_id.strip() or version_id == "null"
@@ -125,17 +125,9 @@ def _parse_s3_location(parsed_url: SplitResult) -> tuple[str, str]:
     return bucket, object_key
 
 
-def _create_minio_client() -> Minio:
-    """Tạo MinIO client từ cấu hình môi trường của ứng dụng."""
-
-    config = MinioClientSettings()
-
-    return Minio(
-        endpoint=config.endpoint,
-        access_key=config.access_key,
-        secret_key=config.secret_key,
-        secure=config.secure,
-    )
+def _create_minio_client(bucket: str) -> Minio:
+    """Runtime không dùng credentials quản trị khi tải object nguồn."""
+    return source_reader_client(bucket)
 
 
 def _download_object(

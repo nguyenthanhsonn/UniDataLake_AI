@@ -1,4 +1,4 @@
-"""Database infrastructure."""
+"""Hạ tầng cơ sở dữ liệu."""
 
 from __future__ import annotations
 

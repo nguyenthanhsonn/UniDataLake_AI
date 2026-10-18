@@ -1,4 +1,4 @@
-"""Pipeline API routes."""
+"""Các tuyến API pipeline."""
 
 from __future__ import annotations
 

@@ -1,7 +1,7 @@
-"""Transactional crosswalk allocation and immutable releases on SQLAlchemy Core.
+"""Cấp phát đối chiếu định danh qua giao dịch và phát hành bất biến bằng SQLAlchemy Core.
 
-Caller owns the transaction (engine.begin / AsyncConnection.run_sync). No commit,
-DDL or allocation occurs during S4 preview. SQLite is used only by unit tests.
+Bên gọi quản lý giao dịch (engine.begin / AsyncConnection.run_sync). Không commit,
+DDL hay cấp phát trong bản xem trước S4. SQLite chỉ dùng cho kiểm thử đơn vị.
 """
 
 from __future__ import annotations
@@ -65,7 +65,7 @@ class CrosswalkRepository:
         canonical_id: int | None = None,
     ) -> int:
         key = source_key(source)
-        # Composite employee_qualification is resolved from its two FK components.
+        # Khóa ghép employee_qualification được phân giải từ hai thành phần khóa ngoại.
         if entity == "employee_qualification" or len(key) != 1:
             raise IdentityConfigurationError("COMPOSITE_IDENTITY_REQUIRES_COMPONENTS")
         encoded = json.dumps(key, ensure_ascii=False, separators=(",", ":"))
@@ -132,7 +132,7 @@ class CrosswalkRepository:
                 )
                 return int(allocated)
         except IntegrityError:
-            # A concurrent registration won. Savepoint rolled back our allocation.
+            # Một đăng ký đồng thời khác đã thành công. Savepoint đã hoàn tác phần cấp phát của ta.
             existing = self.connection.execute(query).mappings().first()
             if existing is None:
                 raise

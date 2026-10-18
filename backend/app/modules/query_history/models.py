@@ -1,4 +1,4 @@
-"""SQLAlchemy models for the query history module."""
+"""Các mô hình SQLAlchemy cho mô-đun lịch sử truy vấn."""
 
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ __all__ = ["QueryRequest"]
 
 
 class QueryRequest(Base):
-    """User natural-language query request and audit status."""
+    """Yêu cầu truy vấn ngôn ngữ tự nhiên của người dùng và trạng thái kiểm toán."""
 
     __tablename__ = "query_request"
     __table_args__ = (

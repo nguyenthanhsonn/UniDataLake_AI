@@ -354,7 +354,7 @@ def test_date_format_rejected_before_any_row(fmt):
     options = FieldOptions(date_format=fmt)
     with pytest.raises(ConversionConfigurationError, match="INVALID_DATE_FORMAT"):
         make_service("academic", "semester", {"start_date": options})
-    # Invalid configuration must not be hidden by a nullable value.
+    # Không được che giấu cấu hình không hợp lệ bằng giá trị cho phép null.
     with pytest.raises(ConversionConfigurationError, match="INVALID_DATE_FORMAT"):
         convert_value(None, spec("date32", type=["string", "null"]), options)
 
@@ -459,7 +459,7 @@ def test_configuration_deeply_immutable_and_detached():
     assert service.spec["properties"]["max_score"]["x-scale"] == 2
     assert service.options["max_score"].decimal_separator == ","
     with pytest.raises(TypeError):
-        service.options["max_score"] = FieldOptions()  # pyright: ignore[reportIndexIssue] -- tests immutable mapping
+        service.options["max_score"] = FieldOptions()  # pyright: ignore[reportIndexIssue] -- kiểm tra ánh xạ bất biến
     with pytest.raises(TypeError):
         service.spec["properties"]["max_score"]["x-scale"] = 0
     with pytest.raises(TypeError):
@@ -596,12 +596,12 @@ def test_invalid_contract_fails_at_construction(path, value, code):
 @pytest.mark.parametrize(
     "option",
     [
-        FieldOptions(null_tokens=[""]),  # pyright: ignore[reportArgumentType] -- invalid input under test
-        FieldOptions(true_tokens=("true", True)),  # pyright: ignore[reportArgumentType] -- invalid input under test
+        FieldOptions(null_tokens=[""]),  # pyright: ignore[reportArgumentType] -- kiểm tra đầu vào không hợp lệ
+        FieldOptions(true_tokens=("true", True)),  # pyright: ignore[reportArgumentType] -- kiểm tra đầu vào không hợp lệ
         FieldOptions(null_tokens=("", "")),
-        FieldOptions(trim="yes"),  # pyright: ignore[reportArgumentType] -- invalid input under test
-        FieldOptions(decimal_separator=[]),  # pyright: ignore[reportArgumentType] -- invalid input under test
-        FieldOptions(excel_epoch=[]),  # pyright: ignore[reportArgumentType] -- invalid input under test
+        FieldOptions(trim="yes"),  # pyright: ignore[reportArgumentType] -- kiểm tra đầu vào không hợp lệ
+        FieldOptions(decimal_separator=[]),  # pyright: ignore[reportArgumentType] -- kiểm tra đầu vào không hợp lệ
+        FieldOptions(excel_epoch=[]),  # pyright: ignore[reportArgumentType] -- kiểm tra đầu vào không hợp lệ
     ],
 )
 def test_mutable_or_invalid_options_rejected(option):

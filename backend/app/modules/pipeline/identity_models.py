@@ -1,4 +1,4 @@
-"""Append-only crosswalk storage; schema installed explicitly, never at import."""
+"""Lưu trữ đối chiếu định danh chỉ thêm mới; cài schema tường minh, không cài khi import."""
 
 from __future__ import annotations
 

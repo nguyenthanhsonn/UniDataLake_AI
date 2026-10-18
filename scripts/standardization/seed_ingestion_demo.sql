@@ -1,5 +1,5 @@
--- Dedicated synthetic catalog for the Docker worker. No existing source is updated.
--- Run once or repeat: fixed demo codes/names make these inserts idempotent.
+-- Catalog giả lập riêng cho worker Docker. Không cập nhật nguồn hiện có.
+-- Có thể chạy lại: mã/tên demo cố định giúp các lệnh thêm không tạo dữ liệu trùng.
 BEGIN;
 INSERT INTO app.data_layer (layer_code,layer_name,storage_type)
 VALUES ('BRONZE','Bronze','MINIO') ON CONFLICT (layer_code) DO NOTHING;

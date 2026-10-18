@@ -1,4 +1,4 @@
--- UniLake AI V1.0 - Academic/Training Dataset Schema V1
+-- UniLake AI V1.0 - Schema dataset Đào tạo V1
 -- DDL PostgreSQL cho các bảng Academic, bám đúng docs/data-schema/unilake-db-architecture.txt:
 -- tên cột, thứ tự, NULL/NOT NULL, PK, UNIQUE, FK lấy từ DB; độ dài varchar/decimal và CHECK
 -- là đề xuất của dataset (DB chỉ khai báo kiểu chung string/decimal). Xem academic_v1.schema.json.

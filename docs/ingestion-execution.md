@@ -85,6 +85,33 @@ Thông báo lỗi public không chứa exception gốc có thể lộ password h
 
 ## Dữ liệu Bronze
 
+### Metadata và truy xuất nguồn gốc (UDL-141)
+
+Worker tự gắn user metadata vào từng object Bronze khi upload; MinIO biểu diễn
+chúng bằng header `x-amz-meta-*`. Không cần migration database: cùng metadata
+được lưu trong `ingestion_job.output.metadata` (JSONB) để đối chiếu.
+
+| Metadata key | Giá trị |
+| --- | --- |
+| `source-system-id` | ID hệ thống nguồn từ catalog đã validate |
+| `ingestion-timestamp` | Thời điểm worker bắt đầu lấy dữ liệu, ISO 8601 UTC |
+| `batch-id` | `job-<ingestion_job_id>`, trùng batch trong object key |
+| `sha256` | SHA-256 của đúng file được upload |
+
+Thời điểm capture không phải thời điểm enqueue (`created_at`); partition ngày
+vẫn dùng ngày tạo job theo quy ước hiện có. Metadata không chứa credentials
+hay dữ liệu từng bản ghi. Writer kiểm tra metadata và checksum trên đúng
+`version_id` vừa ghi. Thiếu hoặc sai metadata gây `BRONZE_METADATA_MISMATCH`
+nội bộ, job công khai mã `INGESTION_WRITING_FAILED` và không công bố thành công.
+Object đã upload khi validation thất bại có thể còn trên storage như các lỗi ghi
+khác; không tự xóa phiên bản đó.
+
+Test offline: `backend/tests/test_bronze_metadata.py`. Test opt-in
+`backend/tests/test_ingestion_execution_live.py` cũng đối chiếu metadata thật
+với kết quả job khi chạy với PostgreSQL/MinIO. Đường CLI upload thủ công ở
+`app.infra.minio.bronze` không có catalog/job context, không thuộc cơ chế gắn
+metadata tự động của worker này.
+
 - CSV/Excel: copy riêng trước khi parse; lưu đúng file gốc, không ghi lại từ các
   dòng đã parse. Source là S3 được resolve và giữ version nguồn.
 - PostgreSQL: reader hiện có đọc snapshot bảng vào bộ nhớ; export thành Parquet
@@ -138,6 +165,7 @@ $env:INGESTION_LIVE_TEST = '1'
 ..\.venv\Scripts\python.exe -m pytest tests/test_ingestion_execution_live.py -q --no-cov
 ```
 
-Test live tạo schema PostgreSQL và bucket MinIO riêng với UUID, chạy HTTP API,
+Test live tạo schema PostgreSQL riêng và prefix UUID trong bucket Bronze thật,
+chạy worker bằng các SA runtime (writer/verifier/reader), chạy HTTP API,
 enqueue đồng thời, nhiều worker, kiểm tra bytes/version, lỗi đọc/ghi, nguồn tắt,
 lease hết hạn và bộ đếm. Chỉ dọn schema/bucket do test đó tạo.

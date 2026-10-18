@@ -1,4 +1,4 @@
-"""Data-quality rules owned by the demo domain."""
+"""Các quy tắc chất lượng dữ liệu thuộc miền demo."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True)
 class RequiredFieldsRule:
-    """Require selected fields to contain non-empty values."""
+    """Yêu cầu các trường được chọn phải có giá trị không rỗng."""
 
     rule_id: str
     dataset: str

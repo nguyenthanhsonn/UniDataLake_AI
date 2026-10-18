@@ -1,4 +1,4 @@
-"""Request logging and correlation id helpers."""
+"""Tiện ích ghi nhật ký yêu cầu và mã định danh tương quan."""
 
 from __future__ import annotations
 
@@ -18,7 +18,7 @@ async def request_id_middleware(
     request: Request,
     call_next: Callable[[Request], Awaitable[Response]],
 ) -> Response:
-    """Attach a request id to request state and response headers."""
+    """Gắn mã định danh yêu cầu vào trạng thái yêu cầu và header phản hồi."""
     request_id = request.headers.get(REQUEST_ID_HEADER, str(uuid4()))
     request.state.request_id = request_id
     response = await call_next(request)

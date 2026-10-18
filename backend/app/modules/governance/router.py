@@ -1,4 +1,4 @@
-"""Governance API routes."""
+"""Các tuyến API quản trị dữ liệu."""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ router = APIRouter(prefix="/governance", tags=["governance"])
 
 @router.get("/catalog", response_model=list[CatalogEntrySchema])
 def get_catalog(domain_id: str | None = None) -> list[CatalogEntrySchema]:
-    """Return catalog entries generated from registered domain metadata."""
+    """Trả về các mục catalog được tạo từ metadata miền nghiệp vụ đã đăng ký."""
     entries = GovernanceService().catalog(domain_id=domain_id)
     return [
         CatalogEntrySchema(

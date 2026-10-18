@@ -21,7 +21,7 @@ from app.providers import provide_nlq_service
 
 
 def create_app() -> FastAPI:
-    """Create and configure the FastAPI application."""
+    """Tạo và cấu hình ứng dụng FastAPI."""
     get_domain_registry()
     application = FastAPI(
         title="UniLake AI API",

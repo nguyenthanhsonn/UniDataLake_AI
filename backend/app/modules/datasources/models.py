@@ -1,4 +1,4 @@
-"""SQLAlchemy models for the data sources module."""
+"""Các mô hình SQLAlchemy cho mô-đun nguồn dữ liệu."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ __all__ = ["DataLayer", "DataSource", "Dataset", "SourceSystem"]
 
 
 class SourceSystem(Base):
-    """Business source system that owns one or more data sources."""
+    """Hệ thống nguồn nghiệp vụ sở hữu một hoặc nhiều nguồn dữ liệu."""
 
     __tablename__ = "source_system"
     __table_args__ = (
@@ -40,7 +40,7 @@ class SourceSystem(Base):
 
 
 class DataSource(Base):
-    """Data source configuration used by ingestion workflows."""
+    """Cấu hình nguồn dữ liệu được các luồng ingestion sử dụng."""
 
     __tablename__ = "data_source"
     __table_args__ = (
@@ -78,7 +78,7 @@ class DataSource(Base):
 
 
 class DataLayer(Base):
-    """Lakehouse layer reference such as Bronze, Silver, and Gold."""
+    """Tham chiếu tầng lakehouse như Bronze, Silver và Gold."""
 
     __tablename__ = "data_layer"
     __table_args__ = ({"schema": "app"},)
@@ -93,7 +93,7 @@ class DataLayer(Base):
 
 
 class Dataset(Base):
-    """Registered dataset in one data layer."""
+    """Dataset đã đăng ký trong một tầng dữ liệu."""
 
     __tablename__ = "dataset"
     __table_args__ = (

@@ -1,5 +1,5 @@
 -- =============================================================================
--- UniLake AI - Source System Seed Data
+-- UniLake AI - Dữ liệu khởi tạo hệ thống nguồn
 -- =============================================================================
 
 INSERT INTO app.source_system (
@@ -11,7 +11,7 @@ INSERT INTO app.source_system (
     is_active,
     created_at
 ) VALUES
--- 1. Admissions
+-- 1. Tuyển sinh
 (
     'ADM_SYS',
     'Admissions System',
@@ -21,7 +21,7 @@ INSERT INTO app.source_system (
     TRUE,
     NOW()
 ),
--- 2. Academic / Training
+-- 2. Học vụ / Đào tạo
 (
     'ACA_SYS',
     'Academic System',
@@ -31,7 +31,7 @@ INSERT INTO app.source_system (
     TRUE,
     NOW()
 ),
--- 3. Human Resources
+-- 3. Nhân sự
 (
     'HR_SYS',
     'Human Resources System',
@@ -41,7 +41,7 @@ INSERT INTO app.source_system (
     TRUE,
     NOW()
 ),
--- 4. File-based sources chung
+-- 4. Nguồn dạng tệp dùng chung
 (
     'FILE_SHARE',
     'Shared File Storage',

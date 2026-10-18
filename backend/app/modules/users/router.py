@@ -1,4 +1,4 @@
-"""Users API routes."""
+"""Các tuyến API người dùng."""
 
 from __future__ import annotations
 

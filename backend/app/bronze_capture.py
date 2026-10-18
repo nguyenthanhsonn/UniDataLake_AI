@@ -1,4 +1,4 @@
-"""Composition adapters: capture one immutable file copy and persist it to MinIO."""
+"""Bộ điều hợp tích hợp: tạo bản sao tệp bất biến và lưu bền vững vào MinIO."""
 
 from __future__ import annotations
 
@@ -11,11 +11,12 @@ from tempfile import TemporaryDirectory
 from typing import TYPE_CHECKING, Any
 from zoneinfo import ZoneInfo
 
-import pyarrow as pa  # type: ignore[import-untyped]
-import pyarrow.parquet as pq  # type: ignore[import-untyped]
+import pyarrow as pa
+import pyarrow.parquet as pq
 
 from app.core.config import settings
-from app.infra.minio.bronze import client, object_key
+from app.infra.minio.bronze import object_key
+from app.infra.minio.client import bronze_verifier_client, bronze_writer_client
 from app.modules.ingestion.contracts import CapturedArtifact
 from app.modules.ingestion.readers.factory import SourceReaderFactory
 from app.modules.ingestion.readers.minio_file_resolver import resolve_file_request
@@ -75,20 +76,41 @@ def store_bronze(
     domain: str,
     job: BronzeWriteContext,
 ) -> dict[str, Any]:
-    storage = client()
+    """Ghi raw file và metadata UDL-141, xác minh đúng phiên bản trước khi công bố."""
+    # Hai client khác nhau: writer không thể đọc object, verifier không thể ghi/xóa.
+    storage = bronze_writer_client()
+    verifier = bronze_verifier_client()
     bucket = settings.minio_bucket_bronze
     # URI chưa đủ để đọc lại đúng dữ liệu: cần version_id của lần ghi cụ thể.
     if storage.get_bucket_versioning(bucket).status != "Enabled":
         raise RuntimeError("BRONZE_VERSIONING_REQUIRED")
-    day = job.created_at.replace(tzinfo=UTC).astimezone(ZoneInfo("Asia/Ho_Chi_Minh")).date()
-    key = object_key(domain, day, f"job-{job.ingestion_job_id}", artifact.path.name)
-    uploaded = storage.fput_object(
-        bucket, key, str(artifact.path), metadata={"sha256": artifact.sha256}
-    )
+    created_at = job.created_at
+    if created_at.tzinfo is None:
+        created_at = created_at.replace(tzinfo=UTC)
+    day = created_at.astimezone(ZoneInfo("Asia/Ho_Chi_Minh")).date()
+    # DB hiện lưu UTC không timezone; datetime có offset vẫn phải giữ đúng thời điểm.
+    captured_at = job.ingestion_timestamp
+    if captured_at.tzinfo is None:
+        captured_at = captured_at.replace(tzinfo=UTC)
+    batch_id = f"job-{job.ingestion_job_id}"
+    metadata = {
+        "sha256": artifact.sha256,
+        "source-system-id": str(job.source_system_id),
+        "ingestion-timestamp": captured_at.astimezone(UTC).isoformat(),
+        "batch-id": batch_id,
+    }
+    key = object_key(domain, day, batch_id, artifact.path.name)
+    # MinIO lưu các trường này dưới dạng HTTP header x-amz-meta-*, không sửa raw bytes.
+    uploaded = storage.fput_object(bucket, key, str(artifact.path), metadata=dict(metadata))
     if not uploaded.version_id or uploaded.version_id == "null":
         raise RuntimeError("BRONZE_VERSION_REQUIRED")
+    # Pin version để tránh kiểm tra nhầm object nếu cùng key vừa được ghi phiên bản mới.
+    stat = verifier.stat_object(bucket, key, version_id=uploaded.version_id)
+    stored_metadata = {name.lower(): value for name, value in (stat.metadata or {}).items()}
+    if any(stored_metadata.get(f"x-amz-meta-{name}") != value for name, value in metadata.items()):
+        raise RuntimeError("BRONZE_METADATA_MISMATCH")
     # Đọc lại đúng phiên bản vừa ghi và kiểm tra nội dung trước khi báo lưu thành công.
-    response = storage.get_object(bucket, key, version_id=uploaded.version_id)
+    response = verifier.get_object(bucket, key, version_id=uploaded.version_id)
     try:
         digest = hashlib.sha256()
         for chunk in response.stream(1024 * 1024):
@@ -104,4 +126,6 @@ def store_bronze(
         "sha256": artifact.sha256,
         "size_bytes": artifact.path.stat().st_size,
         "source_version_id": artifact.source_version_id,
+        # Giữ cùng metadata trong kết quả job để đối chiếu object với lịch sử ingestion.
+        "metadata": metadata,
     }

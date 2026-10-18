@@ -1,4 +1,4 @@
-"""Generic Source-to-Bronze ingestion boundary."""
+"""Ranh giới ingestion dùng chung từ nguồn đến Bronze."""
 
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 
 class InMemoryBronzeRepository:
-    """Deterministic repository for tests and local proof-of-concept runs."""
+    """Kho lưu trữ có kết quả xác định cho kiểm thử và thử nghiệm cục bộ."""
 
     def __init__(self) -> None:
         self.batches: dict[str, BronzeBatch] = {}
@@ -35,7 +35,7 @@ def ingest_records(
     metadata: Mapping[str, str] | None = None,
     registry: DomainRegistry | None = None,
 ) -> BronzeBatch:
-    """Validate routing metadata and persist raw records to Bronze."""
+    """Kiểm tra metadata định tuyến và lưu bền vững các bản ghi thô vào Bronze."""
     active_registry = registry or get_domain_registry()
     domain = active_registry.get(domain_id)
     domain.mapping_for(source_type)

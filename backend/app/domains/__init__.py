@@ -1,4 +1,4 @@
-"""Business-domain extension contracts and discovery."""
+"""Các hợp đồng mở rộng và cơ chế phát hiện miền nghiệp vụ."""
 
 from __future__ import annotations
 

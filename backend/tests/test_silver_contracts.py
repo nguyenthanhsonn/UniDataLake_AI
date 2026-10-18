@@ -1,4 +1,4 @@
-"""S1 artifact validation, deliberately independent of normalization runtime."""
+"""Kiểm tra sản phẩm S1, chủ động độc lập với bộ thực thi chuẩn hóa."""
 
 from __future__ import annotations
 
@@ -165,4 +165,6 @@ def test_date_decimal_and_nullable_unique():
     second.update(student_id=999, student_code="2026010002", applicant_id=None, admission_id=None)
     records["student"][0].update(applicant_id=None, admission_id=None)
     records["student"].append(second)
-    assert not relational_errors(records)  # unique does not make nullable mandatory.
+    assert not relational_errors(
+        records
+    )  # unique không khiến trường cho phép null trở thành bắt buộc.

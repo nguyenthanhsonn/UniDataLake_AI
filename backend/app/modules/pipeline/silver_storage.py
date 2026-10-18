@@ -1,4 +1,4 @@
-"""Byte storage for immutable, checksum-addressed Silver run artifacts."""
+"""Lưu byte cho các sản phẩm Silver bất biến, được định địa chỉ bằng checksum."""
 
 from __future__ import annotations
 
@@ -52,11 +52,11 @@ class SilverObjectStore(Protocol):
 
 
 class LocalSilverStore:
-    """Local rehearsal storage. No directory scan is a publication signal."""
+    """Lưu trữ diễn tập cục bộ. Quét thư mục không phải tín hiệu công bố dữ liệu."""
 
     def __init__(self, root: Path) -> None:
         self.root = root.resolve()
-        # Run/checksum keys exceed MAX_PATH under Windows' long temp directories.
+        # Khóa chứa mã lần chạy/checksum vượt MAX_PATH trong thư mục tạm dài trên Windows.
         if os.name == "nt" and not str(self.root).startswith("\\\\?\\"):
             name = str(self.root)
             self.root = Path(
@@ -86,7 +86,7 @@ class LocalSilverStore:
 
 
 class MinioSilverStore:
-    """App-owned content-addressed keys; storage IAM/versioning remains required."""
+    """Khóa theo nội dung do ứng dụng quản lý; vẫn cần IAM/quản lý phiên bản của kho lưu trữ."""
 
     def __init__(self, client: Minio, bucket: str) -> None:
         self.client, self.bucket = client, bucket
@@ -94,7 +94,7 @@ class MinioSilverStore:
     def put(self, key: str, data: bytes) -> ObjectRef:
         valid_key(key)
         digest = checksum(data)
-        # A caller may only write a key containing its full content checksum.
+        # Bên gọi chỉ được ghi khóa chứa đầy đủ checksum nội dung của nó.
         if not PurePosixPath(key).stem.endswith("-" + digest):
             raise SilverError("CONTENT_ADDRESSED_KEY_REQUIRED")
         result = self.client.put_object(

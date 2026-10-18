@@ -1,10 +1,10 @@
-"""Generate deterministic synthetic Academic/Training sample data (schema: unilake-db.dbml).
+"""Sinh dữ liệu mẫu Đào tạo giả lập có kết quả xác định (schema: unilake-db.dbml).
 
-Usage (from repo root, after generate_hr.py and generate_admissions.py):
+Cách chạy (từ thư mục gốc repo, sau generate_hr.py và generate_admissions.py):
     python data/synthetic/generate_academic.py
-Reads data/samples/{hr,admissions,training}/*.csv (students come from Admissions enrollment,
-lecturers from HR assignment) and writes training/{semester,course,class,enrollment_grade}.csv.
-Same seed -> same output. All people, phones and emails are fake.
+Đọc data/samples/{hr,admissions,training}/*.csv (sinh viên từ enrollment của Tuyển sinh,
+giảng viên từ assignment của Nhân sự) và ghi training/{semester,course,class,enrollment_grade}.csv.
+Cùng seed cho cùng kết quả. Mọi người, số điện thoại và email đều là giả lập.
 """
 
 import csv
@@ -46,7 +46,7 @@ def q(x, step):
 
 
 # ---------- semester: HK1 (-1), HK2 (-2), học kỳ hè (-3) ----------
-semesters = []  # (id, code, academic_year, start, end, kind, year)
+semesters = []  # (id, mã, năm học, bắt đầu, kết thúc, loại, năm)
 sid = 0
 for y in (2024, 2025, 2026):
     for kind, start, end in (
@@ -63,11 +63,11 @@ write(
     ["semester_id", "semester_code", "academic_year", "start_date", "end_date"],
     [(s[0], s[1], s[2], s[3].isoformat(), s[4].isoformat()) for s in semesters],
 )
-regular = [s for s in semesters if s[5] != 3]  # ordered HK1, HK2, HK1...
+regular = [s for s in semesters if s[5] != 3]  # Theo thứ tự HK1, HK2, HK1...
 summer = {s[6]: s for s in semesters if s[5] == 3}
 
-# ---------- course ----------
-# code: (name, credits, major_id or None, difficulty)
+# ---------- học phần ----------
+# mã: (tên, tín chỉ, major_id hoặc None, độ khó)
 COURSES = {
     "GEN101": ("Triết học Mác - Lênin", 3, None, 0.0),
     "GEN102": ("Kinh tế chính trị Mác - Lênin", 2, None, 0.1),
@@ -235,7 +235,7 @@ def lecturer_for(code, sem):
     return rng.choice(candidates)
 
 
-# ---------- students (from Admissions) ----------
+# ---------- sinh viên (từ Tuyển sinh) ----------
 students = read("training/student.csv")
 program_major = {
     p["program_id"]: int(p["major_id"]) for p in read("admissions/program.csv")
@@ -245,8 +245,8 @@ year_start = {
     for y in read("admissions/admission_year.csv")
 }
 admissions = {a["admission_id"]: a for a in read("admissions/admission.csv")}
-enroll_date = {}  # applicant_id -> enrollment_date
-entry_score = {}  # applicant_id -> admission score on 30 scale
+enroll_date = {}  # applicant_id → ngày nhập học
+entry_score = {}  # applicant_id → điểm xét tuyển trên thang 30
 for e in read("admissions/enrollment.csv"):
     if e["enrollment_status"] == "Enrolled":
         a = admissions[e["admission_id"]]
@@ -275,8 +275,8 @@ def letter(g):
     return next(lt for cut, lt in LETTERS if g >= cut)
 
 
-# ---------- registrations ----------
-regs = []  # (student_id, course_code, semester_row, scores or None, registration_date)
+# ---------- đăng ký học phần ----------
+regs = []  # (student_id, course_code, dòng học kỳ, điểm hoặc None, ngày đăng ký)
 for s in students:
     cohort = year_start[s["admission_year_id"]]
     major = program_major[s["program_id"]]
@@ -301,8 +301,8 @@ for s in students:
         for code in plan(major, idx):
             regs.append((int(s["student_id"]), code, sem, ability, reg_date))
 
-# score everything that is finished, collect failures for summer retake
-rows = []  # (student_id, code, sem, mid, final, grade, letter, reg_date)
+# Chấm điểm các học phần đã kết thúc, gom các trường hợp trượt để học lại vào hè
+rows = []  # (student_id, mã, học kỳ, giữa kỳ, cuối kỳ, điểm, điểm chữ, ngày đăng ký)
 failed = []
 for student_id, code, sem, ability, reg_date in regs:
     if sem[4] >= TODAY:  # học kỳ đang diễn ra: chưa có điểm
@@ -337,7 +337,7 @@ for student_id, code, sem, ability in failed:  # học lại ở học kỳ hè 
         )
     )
 
-# ---------- classes: one section per (course, semester), split when over capacity ----------
+# ---------- lớp học phần: một lớp cho mỗi (học phần, học kỳ), tách khi vượt sĩ số ----------
 BUILDINGS = ["A", "B", "C"]
 groups = {}
 for r in rows:

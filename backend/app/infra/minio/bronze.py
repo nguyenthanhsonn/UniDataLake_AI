@@ -1,4 +1,4 @@
-"""Bronze storage layout and explicit setup/upload CLI (no import-time I/O)."""
+"""Cấu trúc lưu trữ Bronze và CLI khởi tạo/upload tường minh (không I/O khi import)."""
 
 from __future__ import annotations
 
@@ -18,7 +18,7 @@ from app.core.config import settings
 
 
 def partition(source: str, day: date) -> str:
-    """Partition by ingestion date in Asia/Ho_Chi_Minh, not source event date."""
+    """Phân vùng theo ngày nạp dữ liệu tại Asia/Ho_Chi_Minh, không theo ngày sự kiện nguồn."""
     if not re.fullmatch(r"[a-z][a-z0-9_-]{0,62}", source):
         raise ValueError("Source must be a lowercase slug (1-63 characters)")
     return f"{source}/{day:%Y/%m/%d}"
@@ -32,6 +32,9 @@ def object_key(source: str, day: date, batch_id: str, filename: str) -> str:
 
 
 def client() -> Minio:
+    """Client quản trị chỉ cho CLI/provisioning và fixture quản trị của live tests."""
+    if not settings.minio_access_key or not settings.minio_secret_key:
+        raise ValueError("MINIO_ADMIN_CREDENTIALS_REQUIRED")
     return Minio(
         settings.minio_endpoint,
         access_key=settings.minio_access_key,
@@ -43,7 +46,7 @@ def client() -> Minio:
 
 def setup_minio(storage: Minio, bucket: str) -> None:
     if not storage.bucket_exists(bucket):
-        # Another initializer may create the bucket concurrently.
+        # Tiến trình khởi tạo khác có thể tạo bucket đồng thời.
         from minio.error import S3Error
 
         try:
@@ -93,7 +96,7 @@ def main() -> None:
 
         target = local_path(args.root, key)
         target.parent.mkdir(parents=True, exist_ok=True)
-        # Exclusive creation prevents accidental replacement of raw data.
+        # Chỉ tạo tệp mới để tránh vô tình thay thế dữ liệu thô.
         with args.file.open("rb") as source, target.open("xb") as destination:
             shutil.copyfileobj(source, destination)
         result = {"uri": target.as_uri(), "key": key}

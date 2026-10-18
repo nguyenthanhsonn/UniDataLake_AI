@@ -1,4 +1,4 @@
-"""Pydantic schemas for query history APIs."""
+"""Các schema Pydantic cho API lịch sử truy vấn."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from pydantic import BaseModel
 
 
 class QueryHistoryRead(BaseModel):
-    """Recorded natural-language query payload."""
+    """Dữ liệu truy vấn ngôn ngữ tự nhiên đã ghi nhận."""
 
     id: int
     question: str

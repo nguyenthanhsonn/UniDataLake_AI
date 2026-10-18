@@ -1,22 +1,22 @@
 -- =============================================================================
--- UniLake AI - App Users & User-Roles Seed Data
--- Default Password for all seeded users: "Password@123"
--- Password Hash algorithm: PBKDF2-HMAC-SHA256 (compatible with app.core.security)
+-- UniLake AI - Dữ liệu khởi tạo người dùng ứng dụng và vai trò người dùng
+-- Mật khẩu mặc định cho mọi người dùng được tạo ban đầu: "Password@123"
+-- Thuật toán băm mật khẩu: PBKDF2-HMAC-SHA256 (tương thích với app.core.security)
 -- =============================================================================
 
--- 1. Insert App Users
+-- 1. Thêm người dùng ứng dụng
 INSERT INTO app.app_user (username, password_hash, employee_id, is_active, created_at) VALUES
-('admin',       'pbkdf2_sha256$54j20uXDDrH8EjRhaS54Cw$cNs1S4SC2nylW_QW3oZ0SZZovVdy2YhSULe_y3IJdvI', NULL, TRUE, NOW()),  -- role ADMIN
-('dataadmin',   'pbkdf2_sha256$54j20uXDDrH8EjRhaS54Cw$cNs1S4SC2nylW_QW3oZ0SZZovVdy2YhSULe_y3IJdvI', NULL, TRUE, NOW()),  -- role DATA_ADMIN
-('analyst',     'pbkdf2_sha256$54j20uXDDrH8EjRhaS54Cw$cNs1S4SC2nylW_QW3oZ0SZZovVdy2YhSULe_y3IJdvI', NULL, TRUE, NOW()),  -- role ANALYST
-('manager',     'pbkdf2_sha256$54j20uXDDrH8EjRhaS54Cw$cNs1S4SC2nylW_QW3oZ0SZZovVdy2YhSULe_y3IJdvI', NULL, TRUE, NOW()),  -- role MANAGER
-('viewer',      'pbkdf2_sha256$54j20uXDDrH8EjRhaS54Cw$cNs1S4SC2nylW_QW3oZ0SZZovVdy2YhSULe_y3IJdvI', NULL, TRUE, NOW())   -- role VIEWER
+('admin',       'pbkdf2_sha256$54j20uXDDrH8EjRhaS54Cw$cNs1S4SC2nylW_QW3oZ0SZZovVdy2YhSULe_y3IJdvI', NULL, TRUE, NOW()),  -- vai trò ADMIN
+('dataadmin',   'pbkdf2_sha256$54j20uXDDrH8EjRhaS54Cw$cNs1S4SC2nylW_QW3oZ0SZZovVdy2YhSULe_y3IJdvI', NULL, TRUE, NOW()),  -- vai trò DATA_ADMIN
+('analyst',     'pbkdf2_sha256$54j20uXDDrH8EjRhaS54Cw$cNs1S4SC2nylW_QW3oZ0SZZovVdy2YhSULe_y3IJdvI', NULL, TRUE, NOW()),  -- vai trò ANALYST
+('manager',     'pbkdf2_sha256$54j20uXDDrH8EjRhaS54Cw$cNs1S4SC2nylW_QW3oZ0SZZovVdy2YhSULe_y3IJdvI', NULL, TRUE, NOW()),  -- vai trò MANAGER
+('viewer',      'pbkdf2_sha256$54j20uXDDrH8EjRhaS54Cw$cNs1S4SC2nylW_QW3oZ0SZZovVdy2YhSULe_y3IJdvI', NULL, TRUE, NOW())   -- vai trò VIEWER
 ON CONFLICT (username)
 DO UPDATE SET
     password_hash = EXCLUDED.password_hash,
     is_active = EXCLUDED.is_active;
 
--- 2. Map Users to Roles (user_role table)
+-- 2. Ánh xạ người dùng vào vai trò (bảng user_role)
 
 -- admin -> ADMIN & SUPER_ADMIN
 INSERT INTO app.user_role (app_user_id, role_id)

@@ -103,10 +103,15 @@ disallow_untyped_defs = true
 plugins = ["pydantic.mypy"]
 
 [[tool.mypy.overrides]]
+# Hook mypy dùng môi trường riêng; các thư viện runtime này chưa có stub đầy đủ.
+# Bao gồm submodule để import minio.credentials hoặc pyarrow.parquet được xử lý cùng cách.
 module = [
     "duckdb",
     "minio",
+    "minio.*",
     "openpyxl",
+    "pyarrow",
+    "pyarrow.*",
 ]
 ignore_missing_imports = true
 

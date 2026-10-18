@@ -1,4 +1,4 @@
-# Dependencies & Build Output
+# Thư viện phụ thuộc và kết quả dựng ứng dụng
 node_modules/
 .next/
 out/
@@ -8,12 +8,12 @@ dist/
 *.tsbuildinfo
 .lighthouseci/
 
-# Environment & Secrets
+# Môi trường và thông tin bí mật
 .env
 .env.local
 .env.*.local
 
-# IDE & OS
+# IDE và hệ điều hành
 .vscode/
 .idea/
 .DS_Store

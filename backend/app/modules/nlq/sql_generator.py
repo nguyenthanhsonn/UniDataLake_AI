@@ -1,4 +1,4 @@
-"""SQL generation boundary for NLQ."""
+"""Ranh giới sinh SQL cho NLQ."""
 
 from __future__ import annotations
 
@@ -9,6 +9,6 @@ if TYPE_CHECKING:
 
 
 async def generate_sql(question: str, schema_context: str, llm_client: LLMPort) -> str:
-    """Generate SQL from a question and schema context."""
+    """Sinh SQL từ câu hỏi và ngữ cảnh schema."""
     prompt = f"{schema_context}\nQuestion: {question}\nSQL:"
     return await llm_client.complete(prompt)

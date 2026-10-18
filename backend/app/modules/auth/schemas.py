@@ -1,4 +1,4 @@
-"""Pydantic schemas for auth APIs."""
+"""Các schema Pydantic cho API xác thực."""
 
 from __future__ import annotations
 
@@ -8,14 +8,14 @@ from pydantic import BaseModel
 
 
 class LoginRequest(BaseModel):
-    """Login request credentials."""
+    """Thông tin xác thực trong yêu cầu đăng nhập."""
 
     username: str
     password: str
 
 
 class UserProfileDTO(BaseModel):
-    """Authenticated user profile returned to the client."""
+    """Hồ sơ người dùng đã xác thực được trả về cho máy khách."""
 
     user_id: int
     username: str
@@ -24,7 +24,7 @@ class UserProfileDTO(BaseModel):
 
 # Hàm trả về access_token và refresh_token
 class LoginResponse(BaseModel):
-    """Login response with user profile."""
+    """Phản hồi đăng nhập kèm hồ sơ người dùng."""
 
     access_token: str
     refresh_token: str
@@ -33,25 +33,25 @@ class LoginResponse(BaseModel):
 
 
 class RefreshTokenRequest(BaseModel):
-    """Payload to request a new access token using a refresh token."""
+    """Dữ liệu yêu cầu cấp access token mới bằng refresh token."""
 
     refresh_token: str
 
 
 class LogoutRequest(BaseModel):
-    """Payload for logout request."""
+    """Dữ liệu yêu cầu đăng xuất."""
 
     refresh_token: str | None = None
 
 
 class MessageResponse(BaseModel):
-    """Generic status/message response."""
+    """Phản hồi trạng thái/thông báo dùng chung."""
 
     message: str
 
 
 class SessionRead(BaseModel):
-    """Active login session returned to the authenticated user."""
+    """Phiên đăng nhập đang hoạt động được trả về cho người dùng đã xác thực."""
 
     login_session_id: int
     login_at: datetime

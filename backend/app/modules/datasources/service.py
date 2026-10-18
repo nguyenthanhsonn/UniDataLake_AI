@@ -1,4 +1,4 @@
-"""Data source service logic."""
+"""Logic dịch vụ nguồn dữ liệu."""
 
 from __future__ import annotations
 

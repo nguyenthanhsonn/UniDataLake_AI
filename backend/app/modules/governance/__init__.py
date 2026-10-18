@@ -1,4 +1,4 @@
-"""Generic data catalog, lineage, and quality module."""
+"""Mô-đun dùng chung cho catalog, nguồn gốc và chất lượng dữ liệu."""
 
 from __future__ import annotations
 

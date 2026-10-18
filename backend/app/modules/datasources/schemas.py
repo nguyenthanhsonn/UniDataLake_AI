@@ -1,4 +1,4 @@
-"""Pydantic schemas for data source APIs."""
+"""Các schema Pydantic cho API nguồn dữ liệu."""
 
 from __future__ import annotations
 

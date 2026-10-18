@@ -1,4 +1,4 @@
-"""FastAPI dependencies shared across modules."""
+"""Các dependency FastAPI dùng chung giữa các mô-đun."""
 
 from __future__ import annotations
 
@@ -25,7 +25,7 @@ async def get_current_user(
         Depends(bearer_scheme),
     ] = None,
 ) -> dict[str, Any]:
-    """Resolve the current user from a bearer token."""
+    """Xác định người dùng hiện tại từ bearer token."""
     # Swagger Authorize và client thật đều gửi access token qua header Authorization.
     # HTTPBearer tự tách phần "Bearer", nên phía endpoint không cần nhận header thủ công.
     token: str | None = None
@@ -46,7 +46,7 @@ async def get_current_user(
 
 
 def require_role(*roles: str) -> Callable[[dict[str, Any]], dict[str, Any]]:
-    """Build a dependency that requires one of the supplied roles."""
+    """Tạo dependency yêu cầu một trong các vai trò được cung cấp."""
 
     def dependency(
         current_user: Annotated[dict[str, Any], Depends(get_current_user)],

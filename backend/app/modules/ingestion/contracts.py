@@ -1,4 +1,4 @@
-"""Public hand-off contracts owned by the ingestion module."""
+"""Các hợp đồng bàn giao công khai thuộc mô-đun ingestion."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True)
 class CapturedArtifact:
-    """A private raw snapshot ready for durable Bronze storage."""
+    """Bản chụp dữ liệu thô riêng sẵn sàng để lưu bền vững vào Bronze."""
 
     path: Path
     rows: int
@@ -25,15 +25,18 @@ class CapturedArtifact:
 
 @dataclass(frozen=True)
 class BronzeWriteContext:
-    """Validated job identity needed by a storage adapter, without ORM state."""
+    """Thông tin định danh job đã kiểm tra cho bộ điều hợp lưu trữ, không kèm trạng thái ORM."""
 
     ingestion_job_id: int
     created_at: datetime
+    # Dùng ID catalog ổn định, không đưa tên nguồn hoặc cấu hình kết nối vào object.
+    source_system_id: int
+    ingestion_timestamp: datetime
 
 
 @dataclass(frozen=True)
 class FileProvenance:
-    """Evidence for one parsed file snapshot; not a durable Bronze receipt."""
+    """Bằng chứng cho một bản chụp tệp đã phân tích; không phải biên nhận lưu Bronze bền vững."""
 
     source_system_id: str
     data_source_id: str
@@ -55,7 +58,7 @@ class FileProvenance:
 
 @dataclass(frozen=True)
 class MappingBinding:
-    """Pinned source/entity/profile identity for structural normalization."""
+    """Định danh nguồn/thực thể/profile được cố định để chuẩn hóa cấu trúc."""
 
     source_system_id: str
     entity: str
@@ -67,7 +70,7 @@ class MappingBinding:
 
 @dataclass(frozen=True)
 class BronzeBatch:
-    """Immutable hand-off from ingestion to downstream consumers."""
+    """Dữ liệu bàn giao bất biến từ ingestion cho các thành phần phía sau."""
 
     batch_id: str
     domain_id: str
@@ -81,7 +84,7 @@ class BronzeBatch:
 
 
 class BronzeRepository(Protocol):
-    """Port for persisting raw batches in the Bronze layer."""
+    """Cổng lưu bền vững các batch dữ liệu thô vào tầng Bronze."""
 
     def write(self, batch: BronzeBatch) -> None:
-        """Persist a raw batch without applying domain transformations."""
+        """Lưu bền vững batch dữ liệu thô mà không áp dụng biến đổi nghiệp vụ."""

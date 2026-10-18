@@ -1,4 +1,4 @@
-"""Natural-language query application service."""
+"""Dịch vụ ứng dụng truy vấn bằng ngôn ngữ tự nhiên."""
 
 from __future__ import annotations
 
@@ -15,14 +15,14 @@ if TYPE_CHECKING:
 
 
 class NLQService:
-    """Coordinate NLQ collaborators without depending on concrete adapters."""
+    """Điều phối các thành phần NLQ mà không phụ thuộc bộ điều hợp cụ thể."""
 
     def __init__(self, llm: LLMPort, query_executor: GoldQueryPort) -> None:
         self._llm = llm
         self._query_executor = query_executor
 
     async def ask(self, question: str) -> NLQResult:
-        """Translate a natural-language question and execute a safe Gold query."""
+        """Chuyển câu hỏi ngôn ngữ tự nhiên thành SQL và thực thi truy vấn Gold an toàn."""
         intent = parse_intent(question)
         schema_context = retrieve_schema_context(intent)
         generated_sql = await generate_sql(question, schema_context, self._llm)

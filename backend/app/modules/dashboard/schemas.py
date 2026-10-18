@@ -1,4 +1,4 @@
-"""Pydantic schemas for dashboard APIs."""
+"""Các schema Pydantic cho API bảng điều khiển."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ from pydantic import BaseModel
 
 
 class KpiRead(BaseModel):
-    """Dashboard KPI payload."""
+    """Dữ liệu KPI của bảng điều khiển."""
 
     key: str
     value: float

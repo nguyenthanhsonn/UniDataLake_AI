@@ -1,4 +1,4 @@
-"""Schema retrieval for NLQ context construction."""
+"""Truy xuất schema để tạo ngữ cảnh NLQ."""
 
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ def retrieve_schema_context(
     *,
     registry: DomainRegistry | None = None,
 ) -> str:
-    """Build NLQ context dynamically from registered Gold metadata."""
+    """Tạo ngữ cảnh NLQ động từ metadata Gold đã đăng ký."""
     active_registry = registry or get_domain_registry()
     definitions = (
         tuple(active_registry.get(domain_id) for domain_id in domain_ids)

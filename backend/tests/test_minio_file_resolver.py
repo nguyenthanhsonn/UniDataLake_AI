@@ -27,7 +27,7 @@ def test_resolve_file_request_downloads_s3_object_to_temp_file() -> None:
 
     with (
         patch(
-            "app.modules.ingestion.readers.minio_file_resolver.Minio",
+            "app.modules.ingestion.readers.minio_file_resolver._create_minio_client",
             return_value=client,
         ) as minio_mock,
         resolve_file_request(_csv_request()) as resolved_request,

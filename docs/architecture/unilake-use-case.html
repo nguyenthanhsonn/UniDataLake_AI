@@ -6,8 +6,8 @@
   <meta name="generator" content="archify 2.17.0-dev.1">
   <title>UniLake AI V1.0 – Use Case Diagram Diagram</title>
   <script>
-    // Resolve the theme before first paint so light-preference users don't
-    // see a dark flash. The toolbar script below re-applies with UI state.
+    // Xác định giao diện trước lần vẽ đầu để người dùng ưu tiên giao diện sáng không
+    // thấy màn hình tối lóe lên. Script thanh công cụ bên dưới áp dụng lại theo trạng thái giao diện.
     (function () {
       try {
         var theme = null;
@@ -33,11 +33,11 @@
   </script>
   <style id="archify-fonts">
 /*
-JetBrains Mono variable WOFF2 subsets from Google Fonts service revision v24.
-These fixed bytes are shared by the viewer and its SVG/raster exports.
-No local() source: an installed copy must not override the bundled font.
-Uncovered characters (including CJK) still use the system fallback stack.
-Upstream: https://github.com/JetBrains/JetBrainsMono
+Các tập con WOFF2 biến thiên của JetBrains Mono từ Google Fonts phiên bản v24.
+Các byte cố định này dùng chung cho trình xem và bản xuất SVG/raster.
+Không dùng nguồn local(): bản đã cài không được ghi đè phông chữ đi kèm.
+Ký tự ngoài phạm vi (gồm CJK) vẫn dùng bộ phông dự phòng hệ thống.
+Nguồn gốc: https://github.com/JetBrains/JetBrainsMono
 
 cyrillic-ext    1664 bytes  sha256 9343de2ca5d9549f792e7962375af8efb0f320c7643bfd36c884b5a30e5c396f
 cyrillic        8892 bytes  sha256 4995a9a43ac659ec32fcd8b463755cd6a07b31a6e6b3894a6a153b661cf490e2
@@ -167,7 +167,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
   </style>
   <style>
     /* ==========================================================
-       THEME VARIABLES — switch by toggling [data-theme] on <html>
+       BIẾN GIAO DIỆN — chuyển bằng thuộc tính [data-theme] trên <html>
        ========================================================== */
     :root,
     [data-theme="dark"] {
@@ -176,7 +176,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       --text: #ffffff;
       --text-muted: #94a3b8;
       --text-dim: #475569;
-      /* UI chrome and menu hints need more contrast than SVG .t-dim accents */
+      /* Thành phần giao diện và gợi ý menu cần tương phản cao hơn phần nhấn SVG .t-dim */
       --text-faint: #7d8da1;
 
       --panel: rgba(15, 23, 42, 0.5);
@@ -187,8 +187,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       --arrow: #64748b;
       --arrow-emphasis: #34d399;
 
-      /* Opaque mask color used behind semi-transparent component fills
-         so the arrows drawn underneath are properly hidden. */
+      /* Màu mặt nạ đặc phía sau nền thành phần bán trong suốt
+         để che đúng các mũi tên được vẽ bên dưới. */
       --mask: #0f172a;
 
       --frontend-fill:    rgba(8, 51, 68, 0.4);
@@ -254,9 +254,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     }
 
     /* ==========================================================
-       SIGNAL FLOW — an opt-in, motion-forward visual preset.
-       The variables also target a standalone exported SVG, whose
-       root carries data-preset and data-theme directly.
+       SIGNAL FLOW — kiểu hiển thị tùy chọn ưu tiên chuyển động.
+       Các biến cũng áp dụng cho SVG xuất độc lập, có
+       data-preset và data-theme trực tiếp trên phần tử gốc.
        ========================================================== */
     [data-preset="signal-flow"][data-theme="dark"] {
       --bg: #030711;
@@ -322,10 +322,10 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     }
 
     /* ==========================================================
-       BLUEPRINT — a review-first drafting preset for deployment,
-       infrastructure, and technical design documentation. It keeps
-       the same semantic palette and geometry while trading glow for
-       precise grid contrast, squared materials, and drafting marks.
+       BLUEPRINT — kiểu bản vẽ ưu tiên rà soát cho tài liệu triển khai,
+       hạ tầng và thiết kế kỹ thuật. Giữ nguyên bảng màu ngữ nghĩa
+       và hình học, thay hiệu ứng sáng bằng lưới tương phản rõ,
+       chất liệu vuông vức và dấu hiệu bản vẽ kỹ thuật.
        ========================================================== */
     [data-preset="blueprint"][data-theme="dark"] {
       --bg: #06131f;
@@ -398,11 +398,10 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     }
 
     /* ==========================================================
-       EDITORIAL — a warm, publication-minded preset for design
-       reviews, launch notes, and documentation. The diagram keeps
-       the same semantic palette and exact geometry, but trades
-       software chrome for paper, ink, ruled structure, and one
-       restrained vermilion accent.
+       EDITORIAL — kiểu hiển thị ấm dành cho tài liệu xuất bản,
+       rà soát thiết kế và ghi chú phát hành. Sơ đồ giữ nguyên
+       bảng màu ngữ nghĩa và hình học, thay thành phần giao diện
+       bằng giấy, mực, đường kẻ và một điểm nhấn đỏ son tiết chế.
        ========================================================== */
     [data-preset="editorial"][data-theme="dark"] {
       --bg: #181611;
@@ -511,8 +510,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       background-attachment: fixed;
     }
 
-    /* Gallery/embed mode keeps the generated artifact as the source of truth
-       while presenting only its diagram surface inside a proof card. */
+    /* Chế độ thư viện/nhúng lấy sản phẩm đã sinh làm nguồn chuẩn
+       và chỉ trình bày bề mặt sơ đồ trong thẻ minh chứng. */
     html[data-embed="true"] body {
       min-height: 0;
       padding: 0;
@@ -540,9 +539,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     }
     html[data-embed="true"] .diagram-container svg { min-width: 0; }
 
-    /* Share Chapter Cue lives in the HTML viewer layer, not inside the SVG.
-       It gives one-shot embeds a title, authored note, truthful stop order,
-       and lifecycle state while canonical diagram geometry stays untouched. */
+    /* Share Chapter Cue thuộc lớp trình xem HTML, không nằm trong SVG.
+       Nó cung cấp tiêu đề, ghi chú, thứ tự dừng và trạng thái vòng đời
+       cho nội dung nhúng một lần, đồng thời giữ nguyên hình học sơ đồ chuẩn. */
     .share-chapter-cue { display: none; }
     html[data-embed="true"][data-share-playback="true"] .share-chapter-cue:not([hidden]),
     html[data-embed="true"][data-share-moment="true"] .share-chapter-cue:not([hidden]) {
@@ -672,9 +671,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       transform-origin: left center;
     }
 
-    /* Presentation Stage is a viewer-only layer: it gives the live diagram
-       the viewport while keeping guided views, theme, focus, and exports real.
-       Embed mode wins when both query parameters are present. */
+    /* Presentation Stage là lớp riêng của trình xem: sơ đồ trực tiếp chiếm
+       khung nhìn nhưng vẫn giữ các chế độ hướng dẫn, giao diện, tiêu điểm và xuất tệp.
+       Chế độ nhúng được ưu tiên khi có cả hai tham số truy vấn. */
     html[data-present="true"]:not([data-embed="true"]) body {
       height: 100dvh;
       min-height: 0;
@@ -727,10 +726,10 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       color: var(--frontend-stroke);
     }
 
-    /* The reader owns only the outer scale. Wide diagrams keep one authored
-       SVG/viewBox while the runtime chooses a desktop width from the actual
-       vertical budget. This avoids device-specific files and breakpoint
-       jumps between a laptop and a tall monitor. */
+    /* Trình xem chỉ quản lý tỷ lệ bên ngoài. Sơ đồ rộng giữ một SVG/viewBox
+       gốc trong khi bộ thực thi chọn chiều rộng desktop theo chiều cao
+       thực tế khả dụng. Cách này tránh tệp riêng theo thiết bị và thay đổi
+       bố cục đột ngột giữa laptop và màn hình cao. */
     .container {
       width: 100%;
       max-width: var(--archify-reader-width, 1440px);
@@ -935,10 +934,10 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       animation: archify-signal-scan 4.8s ease-in-out 1 both;
     }
 
-    /* Motion Governor gives the reader a real static state and gives the
-       strongest semantic action the only motion budget. Atmosphere resets to
-       its authored base instead of freezing mid-cycle. Static artifacts never
-       start a decorative pulse or scan. */
+    /* Motion Governor cung cấp trạng thái tĩnh thực sự và dành toàn bộ
+       chuyển động cho hành động ngữ nghĩa mạnh nhất. Hiệu ứng nền trở về
+       trạng thái gốc thay vì dừng giữa chu kỳ. Sản phẩm tĩnh không tự chạy
+       hiệu ứng nhịp hay quét trang trí. */
     html:not([data-motion-capable="true"]) svg[data-animation="trace"] [data-animate] {
       animation: none !important;
     }
@@ -1176,10 +1175,10 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       background: var(--toolbar-hover);
     }
 
-    /* Semantic Radar is a deliberately simplified, viewer-only overview. It
-       uses authored node bounds and the live camera viewport rather than
-       cloning the canonical SVG, so IDs, filters, animation, and export state
-       stay singular and deterministic. */
+    /* Semantic Radar là tổng quan đơn giản hóa chỉ dành cho trình xem.
+       Nó dùng biên nút đã định nghĩa và khung nhìn camera hiện tại thay vì
+       sao chép SVG chuẩn, giữ ID, bộ lọc, hoạt ảnh và trạng thái xuất
+       duy nhất và có kết quả xác định. */
     .overview-map {
       position: absolute;
       right: 1rem;
@@ -1422,9 +1421,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       background: var(--toolbar-hover);
     }
 
-    /* Semantic Lens turns the compiled node-kind palette into an analytical
-       legend. One kind reveals its real traffic; two kinds compare only their
-       direct authored relationships. Geometry and the canonical SVG stay put. */
+    /* Semantic Lens biến bảng màu loại nút đã biên dịch thành chú giải phân tích.
+       Chọn một loại để thấy các liên kết thực; chọn hai loại để so sánh
+       các quan hệ trực tiếp đã định nghĩa. Hình học và SVG chuẩn giữ nguyên. */
     .semantic-lens {
       position: absolute;
       right: 1rem;
@@ -1597,9 +1596,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       to { opacity: 1; transform: translateY(0) scale(1); }
     }
 
-    /* Route Probe answers a reader question over the compiled semantic graph:
-       choose two stable nodes and reveal the shortest authored directed route.
-       The receipt and signal live entirely in the viewer layer. */
+    /* Route Probe trả lời câu hỏi trên đồ thị ngữ nghĩa đã biên dịch:
+       chọn hai nút ổn định và hiện tuyến có hướng ngắn nhất đã định nghĩa.
+       Biên nhận và tín hiệu nằm hoàn toàn trong lớp trình xem. */
     .route-probe {
       position: absolute;
       left: 1rem;
@@ -2122,10 +2121,10 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       text-align: center;
     }
 
-    /* Diagram Guide keeps the artifact's growing reader vocabulary
-       discoverable without widening the permanent control bar. It derives
-       honest counts at runtime and delegates every action to an existing
-       production interaction instead of creating a second command system. */
+    /* Diagram Guide giúp tra cứu các khái niệm ngày càng nhiều của sản phẩm
+       mà không mở rộng thanh điều khiển cố định. Nó tính số lượng thực
+       khi chạy và chuyển mọi hành động đến tương tác hiện có
+       thay vì tạo hệ thống lệnh thứ hai. */
     .diagram-guide {
       position: absolute;
       top: 1rem;
@@ -2937,10 +2936,10 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     html[data-preset="blueprint"] .guided-view-chapter,
     html[data-preset="blueprint"] .guided-view-chapter-index { border-radius: 0.12rem !important; }
 
-    /* Story Shelf — keep every authored chapter and the Play action visible,
-       but do not spend a second row on unavailable director controls before
-       the reader enters a chapter. Existing data-active-view state expands
-       the full guided surface without a new toggle or stored preference. */
+    /* Story Shelf — luôn hiển thị mọi chương đã biên soạn và nút Play,
+       nhưng không dành thêm hàng cho điều khiển chưa khả dụng trước
+       khi người xem mở chương. Trạng thái data-active-view hiện có mở rộng
+       toàn bộ phần hướng dẫn mà không thêm nút bật hay tùy chọn lưu trữ. */
     .guided-views[data-active-view="all"] {
       grid-template-columns: minmax(11rem, .72fr) auto minmax(0, 2fr);
       align-items: center;
@@ -2997,9 +2996,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82), 0 12px 32px rgba(45, 78, 99, 0.08);
     }
 
-    /* Preserve the one-screen guarantee on ordinary laptop displays. The
-       high-screen expansion above must not trade a fuller canvas for page
-       scrolling at 900–1080px heights. */
+    /* Giữ nội dung trong một màn hình trên laptop thông thường. Việc mở rộng
+       cho màn hình cao phía trên không được làm trang phải cuộn
+       ở chiều cao 900–1080px chỉ để có vùng vẽ lớn hơn. */
     @media (min-width: 768px) and (max-height: 1100px) {
       .header { margin-bottom: 1rem; }
       .diagram-container {
@@ -3084,17 +3083,17 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     .card li { margin-bottom: 0.375rem; }
 
     /* ==========================================================
-       Print stylesheet — hide interactive controls, force light,
-       drop the grid so the diagram doesn't waste ink, use landscape
-       so wide diagrams fit, pack summary cards into 2 columns to
-       avoid an orphan card on a trailing page.
+       Kiểu in — ẩn điều khiển tương tác, ép giao diện sáng,
+       bỏ lưới để tiết kiệm mực, dùng trang ngang cho sơ đồ rộng,
+       xếp thẻ tóm tắt thành 2 cột để tránh một thẻ lẻ
+       nằm ở trang cuối.
        ========================================================== */
     @page { size: landscape; margin: 1.5cm; }
 
     @media print {
-      /* Force the FULL light palette — including component fills/strokes and
-         lane/arrow colors — so printing from dark theme doesn't put neon
-         strokes and translucent dark fills on white paper. */
+      /* Ép TOÀN BỘ bảng màu sáng, gồm nền/viền thành phần và màu làn/mũi tên,
+         để in từ giao diện tối không tạo nét neon
+         và nền tối bán trong suốt trên giấy trắng. */
       :root, [data-theme="dark"], [data-theme="light"] {
         --bg: #ffffff;
         --grid: transparent;
@@ -3136,7 +3135,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       html[data-preset="signal-flow"] .diagram-container,
       html[data-preset="signal-flow"] .card { background: #ffffff; }
       .cards { grid-template-columns: 1fr 1fr; }
-      /* Ensure elements break sensibly across pages */
+      /* Bảo đảm các phần tử ngắt trang hợp lý */
       .card { break-inside: avoid; page-break-inside: avoid; }
       .diagram-container { break-inside: avoid; page-break-inside: avoid; }
       .diagram-container svg [data-detail] {
@@ -3174,7 +3173,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     }
 
     /* ==========================================================
-       TOOLBAR (theme toggle + export menu)
+       THANH CÔNG CỤ (đổi giao diện và menu xuất tệp)
        ========================================================== */
     .toolbar {
       position: fixed;
@@ -3670,7 +3669,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       font-size: 0.55rem;
     }
 
-    /* Toast — brief feedback for actions like "copied" */
+    /* Toast — phản hồi ngắn cho hành động như "đã sao chép" */
     .archify-toast {
       position: fixed;
       top: 1rem;
@@ -3813,9 +3812,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       .relationship-lens-actions #btn-focus-relations { display: block; color: var(--database-stroke); }
       .focus-chip:not([data-relations-expanded="true"]) .relationship-lens-head { border-bottom-color: transparent; }
       .focus-chip:not([data-relations-expanded="true"]) .relationship-lens-list { display: none; }
-      /* While a mobile reader previews one relationship, turn the full Lens
-         into a compact peek card. This keeps the exact source and target on
-         canvas instead of covering them with a long, scrollable list. */
+      /* Khi người xem trên di động xem trước một quan hệ, thu gọn Lens
+         thành thẻ xem nhanh. Cách này giữ đúng nút nguồn và đích trên
+         vùng vẽ thay vì che chúng bằng danh sách dài phải cuộn. */
       .focus-chip[data-relationship-previewing="true"] .relationship-lens-list {
         max-height: none;
         padding: 0.35rem;
@@ -4059,7 +4058,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     }
 
     /* ==========================================================
-       SVG SEMANTIC CLASSES — use these instead of inline fill/stroke
+       LỚP NGỮ NGHĨA SVG — dùng thay cho fill/stroke nội tuyến
        ========================================================== */
     .c-grid       { stroke: var(--grid); fill: none; }
     .c-mask       { fill: var(--mask); stroke: none; }
@@ -4072,7 +4071,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     .c-messagebus { fill: var(--messagebus-fill); stroke: var(--messagebus-stroke); }
     .c-external   { fill: var(--external-fill);   stroke: var(--external-stroke); }
 
-    /* Text helpers */
+    /* Tiện ích văn bản */
     .t-primary { fill: var(--text); }
     .t-muted   { fill: var(--text-muted); }
     .t-dim     { fill: var(--text-dim); }
@@ -4084,9 +4083,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     .t-messagebus { fill: var(--messagebus-stroke); }
     .t-external   { fill: var(--external-stroke); }
 
-    /* Semantic Sigils are small authored role stamps, not icons from a brand
-       pack and not viewer controls. Prefix selectors with svg so the canonical
-       export's SVG-only stylesheet collector keeps them automatically. */
+    /* Semantic Sigils là các dấu vai trò nhỏ được thiết kế riêng, không phải
+       biểu tượng thương hiệu hay điều khiển trình xem. Thêm tiền tố svg vào bộ chọn
+       để bộ thu thập CSS chỉ dành cho SVG tự giữ chúng khi xuất bản chuẩn. */
     svg .semantic-sigil {
       fill: none;
       stroke: currentColor;
@@ -4106,9 +4105,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     svg .s-messagebus { color: var(--messagebus-stroke); }
     svg .s-external   { color: var(--external-stroke); }
 
-    /* Brand Marks are authored identity badges. Their color is contained
-       inside one neutral plate so vendor color never replaces Archify's
-       semantic node and relationship vocabulary. */
+    /* Brand Marks là huy hiệu định danh được thiết kế riêng. Màu nằm
+       trong một nền trung tính để màu nhà cung cấp không thay thế
+       ngôn ngữ ngữ nghĩa của nút và quan hệ trong Archify. */
     svg .brand-mark { pointer-events: none; }
     svg .brand-mark-badge { fill: #fff; stroke: none; }
     svg .brand-mark-frame {
@@ -4127,10 +4126,10 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     svg[data-preset="blueprint"] .brand-mark-badge,
     svg[data-preset="blueprint"] .brand-mark-frame { rx: 1px; }
 
-    /* Reading Depth is a viewer-only level-of-detail layer. MAP preserves the
-       authored structure and primary labels, READ restores relationship labels
-       and node context, and FULL restores tags and fine annotations. Semantic
-       intent can reveal the relevant detail without moving any geometry. */
+    /* Reading Depth là lớp mức chi tiết riêng của trình xem. MAP giữ
+       cấu trúc và nhãn chính, READ hiện nhãn quan hệ và ngữ cảnh nút,
+       FULL hiện thẻ và chú giải chi tiết. Ý định ngữ nghĩa có thể
+       hiện chi tiết liên quan mà không dịch chuyển hình học. */
     svg [data-detail] { transition: opacity 160ms ease; }
     svg [data-detail-anchor] {
       transform-box: fill-box;
@@ -4147,8 +4146,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       transform: translateY(8px);
     }
 
-    /* Focus, lens, preview, route, and story states are stronger reader intent than
-       the global zoom level. Reveal only their exact semantic matches. */
+    /* Trạng thái tiêu điểm, lens, xem trước, tuyến và câu chuyện thể hiện ý định
+       mạnh hơn mức thu phóng toàn cục. Chỉ hiện đúng các phần khớp ngữ nghĩa. */
     svg[data-focus-active] [data-focus-match][data-detail],
     svg[data-focus-active] [data-focus-match] [data-detail],
     svg[data-reach-active] [data-reach-match][data-detail],
@@ -4180,19 +4179,19 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     svg [data-node-id]:hover [data-detail-anchor],
     svg [data-node-id]:focus-visible [data-detail-anchor] { transform: none; }
 
-    /* Arrows */
+    /* Mũi tên */
     .a-default   { stroke: var(--arrow); fill: none; }
     .a-emphasis  { stroke: var(--arrow-emphasis); fill: none; }
     .a-security  { stroke: var(--security-stroke); fill: none; stroke-dasharray: 5,5; }
     .a-dashed    { stroke: var(--database-stroke); fill: none; stroke-dasharray: 4,4; }
 
-    /* Arrowhead markers reference these */
+    /* Các dấu đầu mũi tên tham chiếu những lớp này */
     .m-default   { fill: var(--arrow); }
     .m-emphasis  { fill: var(--arrow-emphasis); }
     .m-security  { fill: var(--security-stroke); }
     .m-dashed    { fill: var(--database-stroke); }
 
-    /* Stable semantic exploration hooks emitted by every renderer. */
+    /* Các điểm móc khám phá ngữ nghĩa ổn định do mọi bộ kết xuất phát ra. */
     svg [data-node-id] {
       cursor: pointer;
       transition: opacity 0.18s ease, filter 0.18s ease;
@@ -4203,11 +4202,11 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       filter: drop-shadow(0 0 7px var(--frontend-stroke));
       outline: none;
     }
-    /* Verified Source Beacons are installed at runtime only for nodes whose
-       repository evidence passed the local revision/blob/line checks. They
-       live inside the owning node so every focus, route, story, and guided
-       view keeps one coherent opacity state. Export serialization removes
-       them before producing the canonical SVG or any derived visual. */
+    /* Verified Source Beacons chỉ được cài khi chạy cho nút có bằng chứng
+       repository đã qua kiểm tra revision/blob/dòng cục bộ. Chúng nằm
+       trong nút sở hữu để tiêu điểm, tuyến, câu chuyện và chế độ hướng dẫn
+       dùng cùng trạng thái độ mờ. Quá trình xuất loại chúng trước khi
+       tạo SVG chuẩn hoặc hình ảnh dẫn xuất. */
     .source-evidence-beacon {
       pointer-events: none;
       opacity: 0.76;
@@ -4353,10 +4352,10 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       filter: drop-shadow(0 0 10px var(--frontend-stroke));
     }
 
-    /* Authored Reachability is a bounded graph query over the relationships
-       already present in the artifact. Upstream walks incoming edges;
-       downstream walks outgoing edges. It never claims runtime causality and
-       changes only viewer emphasis, not canonical geometry or export bytes. */
+    /* Authored Reachability truy vấn đồ thị có giới hạn trên các quan hệ
+       sẵn có trong sản phẩm. Ngược dòng đi theo cạnh vào; xuôi dòng
+       theo cạnh ra. Nó không khẳng định quan hệ nhân quả khi chạy,
+       chỉ đổi độ nhấn của trình xem, không đổi hình học hay byte xuất. */
     svg[data-reach-active] [data-node-id],
     svg[data-reach-active] [data-edge-from] { opacity: 0.09; }
     svg[data-reach-active] [data-reach-match] { opacity: 1; }
@@ -4377,10 +4376,10 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       filter: none;
     }
 
-    /* Direct Relationship Explorer makes authored paths a real input surface
-       without changing their visible stroke or canonical SVG. A transparent
-       runtime rail supplies forgiving pointer geometry; the exact authored
-       path and endpoints continue to carry every visible state. */
+    /* Direct Relationship Explorer biến đường liên kết đã định nghĩa thành vùng
+       nhận thao tác mà không đổi nét hiển thị hay SVG chuẩn. Lớp bắt sự kiện
+       trong suốt khi chạy tạo vùng con trỏ dễ chọn; đường gốc và hai đầu
+       tiếp tục mang mọi trạng thái hiển thị. */
     .relationship-hit-overlay { pointer-events: none; }
     .relationship-hit-target { outline: none; }
     .relationship-hit-rail {
@@ -4426,9 +4425,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       .relationship-hit-rail { stroke-width: 24; }
     }
 
-    /* Relationship Preview is temporary exploration state layered on top of
-       neighborhood focus. It changes emphasis only; exported geometry and the
-       relationship's original solid/dashed visual language stay untouched. */
+    /* Relationship Preview là trạng thái khám phá tạm đặt trên tiêu điểm lân cận.
+       Nó chỉ đổi độ nhấn; hình học xuất và kiểu nét liền/nét đứt
+       gốc của quan hệ vẫn giữ nguyên. */
     svg[data-relationship-preview-active] [data-focus-match] { opacity: 0.18; }
     svg[data-relationship-preview-active] [data-relationship-preview],
     svg[data-relationship-preview-active] [data-relationship-preview-node] { opacity: 1; }
@@ -4522,9 +4521,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     svg[data-preset="editorial"] .semantic-flow-token { filter: none; }
     html[data-embed="true"] .relationship-pulse-overlay { display: none; }
 
-    /* Intent Trace is a temporary, pre-click exploration layer. Related
-       topology stays readable while a short viewer-only signal runs over
-       cloned edge geometry; the authored edge remains untouched underneath. */
+    /* Intent Trace là lớp khám phá tạm trước khi nhấp. Cấu trúc liên quan
+       vẫn dễ đọc trong khi tín hiệu ngắn chỉ của trình xem chạy trên
+       hình học cạnh sao chép; cạnh gốc bên dưới giữ nguyên. */
     svg[data-intent-trace-active] [data-node-id],
     svg[data-intent-trace-active] [data-edge-from] { opacity: 0.2; }
     svg[data-intent-trace-active] [data-intent-trace-match] { opacity: 1; }
@@ -4542,9 +4541,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       opacity: 0.94;
       animation: archify-intent-trace-flow 1.15s linear 1 both;
     }
-    /* Direction names describe each edge relative to the focused node only.
-       The cloned geometry already runs from the authored source to target, so
-       incoming and outgoing signals must share the same playback direction. */
+    /* Tên hướng chỉ mô tả cạnh so với nút đang được tập trung.
+       Hình học sao chép đã đi từ nguồn đến đích gốc nên
+       tín hiệu vào và ra phải dùng cùng hướng phát. */
     .intent-trace-flow[data-direction="out"] {
       stroke: var(--frontend-stroke);
       filter: drop-shadow(0 0 4px var(--frontend-stroke));
@@ -4578,9 +4577,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       border: 0;
     }
 
-    /* Route Probe separates a durable two-point query from selection and
-       one-hop hover. Only the chosen shortest directed path stays prominent;
-       the traveling signal is cloned viewer geometry and never authored SVG. */
+    /* Route Probe tách truy vấn hai điểm lâu dài khỏi chọn nút và rê chuột
+       một bước. Chỉ tuyến có hướng ngắn nhất đã chọn được làm nổi bật;
+       tín hiệu di chuyển là hình học sao chép của trình xem, không phải SVG gốc. */
     svg[data-route-picking="target"] [data-node-id] { opacity: 0.24; }
     svg[data-route-picking="target"] [data-route-candidate],
     svg[data-route-picking="target"] [data-route-start] { opacity: 1; }
@@ -4694,9 +4693,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       filter: drop-shadow(0 0 3px var(--frontend-stroke));
     }
 
-    /* Story Trail is a viewer-only overlay derived from the ordered focus IDs
-       of the active guided view. The authored edge stays underneath with its
-       original color, dash pattern, marker, and geometry intact. */
+    /* Story Trail là lớp phủ riêng của trình xem, suy ra từ danh sách ID tiêu điểm
+       có thứ tự của chế độ hướng dẫn hiện tại. Cạnh gốc vẫn nằm dưới,
+       giữ nguyên màu, mẫu nét đứt, dấu đầu mũi tên và hình học. */
     .story-trail-overlay { pointer-events: none; }
     .story-carrier-overlay { pointer-events: none; }
     .story-trail-flow {
@@ -4757,9 +4756,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       filter: drop-shadow(0 2px 2px color-mix(in srgb, var(--text) 16%, transparent));
     }
 
-    /* Chapter Delta Preview is a static, pre-commit comparison between two
-       chapter focus sets. Symbols in the rail carry the meaning without color;
-       these SVG rules only make exact stable-ID membership easier to scan. */
+    /* Chapter Delta Preview so sánh tĩnh hai tập tiêu điểm chương trước khi xác nhận.
+       Ký hiệu trên thanh dẫn truyền đạt ý nghĩa mà không cần màu; các quy tắc SVG
+       này chỉ giúp dễ nhận biết thành viên theo đúng ID ổn định. */
     svg[data-chapter-preview] [data-node-id],
     svg[data-chapter-preview] [data-edge-from] {
       opacity: 0.1 !important;
@@ -4781,15 +4780,15 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     }
     svg[data-preset="blueprint"][data-chapter-preview] [data-node-id] { filter: none !important; }
 
-    /* Dashed boundary variants */
+    /* Các biến thể đường biên nét đứt */
     .c-security-group { fill: transparent; stroke: var(--security-stroke); stroke-dasharray: 4,4; }
     .c-region         { fill: rgba(251, 191, 36, 0.05); stroke: var(--cloud-stroke); stroke-dasharray: 8,4; }
     .c-lane           { fill: var(--lane-fill); stroke: var(--lane-stroke); stroke-dasharray: 6,6; }
 
-    /* Optional trace animation, enabled only by meta.animation = "trace".
-       The ordinary viewer performs one ambient pass and then restores the
-       authored solid/security/async line language. WebM samples the same
-       authored geometry into an explicit canvas timeline. */
+    /* Hoạt ảnh tín hiệu tùy chọn, chỉ bật khi meta.animation = "trace".
+       Trình xem thông thường chạy hiệu ứng nền một lượt rồi khôi phục
+       ngôn ngữ nét liền/bảo mật/bất đồng bộ gốc. WebM lấy mẫu cùng
+       hình học gốc vào dòng thời gian canvas tường minh. */
     html[data-ambient-motion="running"] svg[data-animation="trace"] [data-animate="edge"] {
       animation: archify-edge-flow 2.4s linear 1;
       animation-delay: calc(var(--step, 0) * 160ms);
@@ -4825,9 +4824,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       animation-name: archify-editorial-node-pulse;
       animation-duration: 3.5s;
     }
-    /* Embedded proofs are static until a named Story Trail chapter is played.
-       This keeps proof grids calm and ensures ?play=1 stops all viewer motion
-       after one 3.2 second chapter instead of leaving ambient trace loops on. */
+    /* Minh chứng nhúng giữ tĩnh cho đến khi phát một chương Story Trail có tên.
+       Điều này giữ lưới minh chứng yên và bảo đảm ?play=1 dừng mọi chuyển động
+       sau một chương 3,2 giây, không để vòng lặp tín hiệu nền tiếp tục chạy. */
     html[data-embed="true"] svg[data-animation="trace"] [data-animate],
     html[data-share-playback="true"] svg[data-animation="trace"] [data-animate] {
       animation: none !important;
@@ -4975,9 +4974,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
   </style>
 </head>
 <body>
-  <!-- Toolbar: theme, live visual style, trace motion, presentation stage, and export.
-       Motion appears only for trace-enabled artifacts and has no shortcut;
-       Keyboard: T toggles theme, S cycles style, F toggles the stage, E opens export. -->
+  <!-- Thanh công cụ: giao diện, kiểu hiển thị trực tiếp, chuyển động tín hiệu, trình chiếu và xuất.
+       Chuyển động chỉ hiện khi sản phẩm bật tín hiệu và không có phím tắt;
+       Bàn phím: T đổi giao diện, S đổi kiểu, F đổi trình chiếu, E mở menu xuất. -->
   <div class="toolbar" role="toolbar" aria-label="Diagram actions">
     <button id="btn-theme" type="button"
             title="Toggle theme (T)"
@@ -5074,7 +5073,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
   </div>
 
   <div class="container">
-    <!-- Header -->
+    <!-- Phần đầu -->
     <div class="header">
       <div class="header-row"
            data-preset-badge-signal-flow="SIGNAL FLOW"
@@ -5127,13 +5126,13 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       </nav>
     </div>
 
-    <!-- Main Diagram -->
+    <!-- Sơ đồ chính -->
     <div class="diagram-container" data-detail-level="read"
          data-preset-badge-editorial-plate="ARCHIFY / PLATE 04">
       <svg viewBox="0 0 1250 510" role="img" lang="en" aria-labelledby="archify-diagram-title archify-diagram-description" data-preset="classic" data-quality-profile="showcase">
         <title id="archify-diagram-title">UniLake AI V1.0 – Use Case Diagram</title>
         <desc id="archify-diagram-description">An architecture diagram generated by Archify.</desc>
-        <!-- Definitions -->
+        <!-- Các định nghĩa -->
         <defs>
           <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
             <polygon points="0 0, 10 3.5, 0 7" class="m-default" />
@@ -5152,13 +5151,13 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
           </pattern>
         </defs>
 
-        <!-- Background Grid -->
+        <!-- Lưới nền -->
         <rect width="100%" height="100%" fill="url(#grid)" />
 
-        <!-- Boundaries (behind everything) -->
+        <!-- Đường biên (phía sau mọi thành phần) -->
         <rect data-graph-role="structural-frame" data-composition-frame-kind="region" data-composition-frame-id="0" data-composition-frame-label="UniLake AI V1.0 (System boundary)" x="270" y="90" width="650" height="404" rx="12" class="c-region" stroke-width="1"/>
 
-        <!-- Connection paths (before components for correct z-order) -->
+        <!-- Đường kết nối (trước các thành phần để đúng thứ tự lớp) -->
         <path data-edge-from="univ_admin" data-edge-to="uc_nlq" data-edge-key="0" data-edge-id="admin-nlq" data-composition-points="210,248;255,248;255,145;300,145" d="M 210 248 L 247 248 Q 255 248 255 240 L 255 153 Q 255 145 263 145 L 300 145" class="a-emphasis" stroke-width="1.8" marker-end="url(#arrowhead-emphasis)"/>
         <path data-edge-from="univ_admin" data-edge-to="uc_login" data-edge-key="1" data-edge-id="admin-login" data-composition-points="210,257.3333333333333;255,257.3333333333333;255,221;300,221" d="M 210 257.3333333333333 L 247 257.3333333333333 Q 255 257.3333333333333 255 249.33333333333331 L 255 229 Q 255 221 263 221 L 300 221" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
         <path data-edge-from="univ_admin" data-edge-to="uc_dashboard" data-edge-key="2" data-edge-id="admin-dashboard" data-composition-points="210,266.6666666666667;255,266.6666666666667;255,297;300,297" d="M 210 266.6666666666667 L 247 266.6666666666667 Q 255 266.6666666666667 255 274.6666666666667 L 255 289 Q 255 297 263 297 L 300 297" class="a-default" stroke-width="1.5" marker-end="url(#arrowhead)"/>
@@ -5174,7 +5173,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <path data-edge-from="uc_nlq" data-edge-to="uc_history" data-edge-label="«include» lưu lịch sử" data-edge-key="12" data-edge-id="nlq-history" data-composition-points="500,145;600,145;600,373;500,373" d="M 500 145 L 592 145 Q 600 145 600 153 L 600 365 Q 600 373 592 373 L 500 373" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
         <path data-edge-from="uc_ingest" data-edge-to="uc_quality" data-edge-label="«include»" data-edge-key="13" data-edge-id="ingest-quality" data-composition-points="790,170;790,196" d="M 790 170 L 790 196" class="a-dashed" stroke-width="1.5" marker-end="url(#arrowhead-dashed)"/>
 
-        <!-- Components -->
+        <!-- Các thành phần -->
         <g id="node-univ_admin" data-node-id="univ_admin" data-node-label="University Administrators" tabindex="0" role="button" aria-label="Focus University Administrators, Lãnh đạo &amp; các phòng ban, Architecture component" aria-pressed="false" data-node-kind="external" data-node-sublabel="Lãnh đạo &amp; các phòng ban" data-node-context="Architecture component">
           <title>University Administrators · Lãnh đạo &amp; các phòng ban · Architecture component</title>
           <rect x="30" y="232" width="180" height="60" rx="6" class="c-mask"/>
@@ -5372,7 +5371,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         <text data-detail="context" x="1140" y="466" class="t-muted" font-size="9" text-anchor="middle">Cấu hình và đánh giá AI</text>
         </g>
 
-        <!-- Connection labels -->
+        <!-- Nhãn kết nối -->
 
 
 
@@ -5400,13 +5399,13 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
           <text x="935" y="186" class="t-messagebus" font-size="8" text-anchor="middle">«include»</text>
         </g>
 
-        <!-- Boundary labels (foreground masks keep routes out of titles) -->
+        <!-- Nhãn đường biên (mặt nạ phía trước ngăn tuyến đi qua tiêu đề) -->
         <g data-graph-role="structural-frame-label" data-composition-frame-id="0" data-composition-frame-kind="region" data-composition-frame-label="UniLake AI V1.0 (System boundary)">
           <rect data-graph-role="structural-frame-label-mask" x="274" y="100" width="188.2" height="16" rx="3" class="c-mask"/>
           <text data-boundary-label="" x="278" y="113" class="t-cloud" font-size="9" font-weight="600">UniLake AI V1.0 (System boundary)</text>
         </g>
 
-        <!-- Legend -->
+        <!-- Chú giải -->
 
       </svg>
       <p class="intent-trace-status no-print" id="intent-trace-status" role="status" aria-live="polite" aria-atomic="true"></p>
@@ -5592,7 +5591,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       </div>
     </div>
 
-    <!-- Info Cards -->
+    <!-- Thẻ thông tin -->
     <div class="cards">
       <div class="card">
         <div class="card-header">
@@ -5689,10 +5688,10 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     }
 
     /* ============================================================
-       Visual style try-on — one topology, four bundled presets.
-       The reader's choice is intentionally session-only: it updates the
-       live page and canonical SVG together, but never rewrites the source,
-       URL, or a later diagram's authored default.
+       Thử kiểu hiển thị — một cấu trúc, bốn kiểu tích hợp sẵn.
+       Lựa chọn của người xem chỉ tồn tại trong phiên: cập nhật đồng thời
+       trang hiện tại và SVG chuẩn nhưng không sửa nguồn, URL
+       hay kiểu mặc định đã định nghĩa của sơ đồ sau.
        ============================================================ */
     Archify.preset = (function () {
       var PRESETS = ['classic', 'signal-flow', 'blueprint', 'editorial'];
@@ -5805,7 +5804,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     })();
 
     /* ============================================================
-       Theme toggle — persists to localStorage, respects system pref
+       Đổi giao diện — lưu vào localStorage, tôn trọng tùy chọn hệ thống
        ============================================================ */
 
     Archify.theme = (function () {
@@ -5814,8 +5813,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       var btn = document.getElementById('btn-theme');
       var label = document.getElementById('theme-label');
 
-      // localStorage can throw (blocked cookies, sandboxed iframes); the whole
-      // script element dies on an uncaught error, so guard every access.
+      // localStorage có thể báo lỗi (cookie bị chặn, iframe bị giới hạn); toàn bộ
+      // phần tử script dừng khi lỗi không được bắt, nên bảo vệ mọi lần truy cập.
       function readStored() {
         try { return localStorage.getItem(STORAGE_KEY); } catch (_) { return null; }
       }
@@ -5823,7 +5822,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         try { localStorage.setItem(STORAGE_KEY, value); } catch (_) {}
       }
       function urlOverride() {
-        // URL param wins (useful for deterministic screenshots / share links)
+        // Tham số URL được ưu tiên (hữu ích cho ảnh chụp xác định và liên kết chia sẻ)
         try {
           var param = new URLSearchParams(window.location.search).get('theme');
           if (param === 'light' || param === 'dark') return param;
@@ -5854,7 +5853,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       apply(resolveInitial());
       btn.addEventListener('click', toggle);
 
-      // Follow live OS theme changes while the user has no explicit preference.
+      // Theo dõi thay đổi giao diện hệ điều hành khi người dùng chưa chọn tường minh.
       try {
         var media = window.matchMedia('(prefers-color-scheme: light)');
         var onChange = function (e) {
@@ -5870,16 +5869,16 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     })();
 
     /* ============================================================
-       Export — Share Card / PNG / JPEG / WebP / SVG / WebM and clipboard
+       Xuất — thẻ chia sẻ / PNG / JPEG / WebP / SVG / WebM và clipboard
 
-       Raster exports are always rendered at 4x source resolution for
-       maximum sharpness. The trick: we set the serialized SVG's
-       `width`/`height` to viewBox * 4 so the browser rasterizes the
-       vectors at that resolution natively. drawImage then draws at
-       the image's natural size (no upscaling = no blur).
+       Ảnh raster luôn được kết xuất ở độ phân giải gấp 4 nguồn để
+       đạt độ sắc nét cao. Đặt `width`/`height` của SVG tuần tự hóa
+       bằng viewBox * 4 để trình duyệt trực tiếp raster hóa vector
+       ở độ phân giải đó. drawImage sau đó vẽ theo kích thước tự nhiên
+       của ảnh (không phóng lớn nên không mờ).
 
-       JPEG/WebP paint the current theme's background explicitly since
-       those formats have no alpha channel.
+       JPEG/WebP tô nền giao diện hiện tại tường minh vì
+       các định dạng này không có kênh alpha.
        ============================================================ */
     (function () {
       var RASTER_SCALE = 4;
@@ -5917,8 +5916,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       }
 
       function cleanExportClone(clone) {
-        // View transforms and neighborhood focus are HTML exploration state,
-        // never part of a downloaded full-diagram artifact.
+        // Biến đổi khung nhìn và tiêu điểm lân cận là trạng thái khám phá của HTML,
+        // không thuộc sản phẩm toàn sơ đồ được tải xuống.
         clone.style.removeProperty('transform');
         clone.style.removeProperty('clip-path');
         clone.removeAttribute('data-view-scale');
@@ -6101,18 +6100,18 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 
 
       /**
-       * Serialize the main SVG into a standalone document.
+       * Tuần tự hóa SVG chính thành tài liệu độc lập.
        *
-       * Two modes:
-       * - Default (opts.autoTheme=false) — locks the serialized SVG to the
-       *   viewer's current theme. Used by the raster pipeline
-       *   (PNG/JPEG/WebP/clipboard) because canvas rasterization needs
-       *   deterministic colors; a raster cannot react to
-       *   prefers-color-scheme after encoding.
-       * - autoTheme=true — emits BOTH dark and light variable sets plus a
-       *   `@media (prefers-color-scheme)` rule so the resulting SVG
-       *   self-themes when embedded in GitHub READMEs or other hosts that
-       *   expose a color scheme. Used for "Download SVG".
+       * Hai chế độ:
+       * - Mặc định (opts.autoTheme=false) — cố định SVG theo giao diện
+       *   hiện tại của trình xem. Dùng cho luồng xuất ảnh raster
+       *   (PNG/JPEG/WebP/clipboard) vì raster hóa canvas cần màu
+       *   xác định; ảnh raster không thể phản hồi
+       *   prefers-color-scheme sau khi mã hóa.
+       * - autoTheme=true — xuất CẢ bộ biến tối và sáng cùng
+       *   quy tắc `@media (prefers-color-scheme)` để SVG tự đổi
+       *   giao diện khi nhúng trong README GitHub hoặc nơi khác
+       *   cung cấp thông tin giao diện màu. Dùng cho "Download SVG".
        */
       function applyRouteSnapshot(clone, snapshot) {
         if (!snapshot || !Array.isArray(snapshot.nodeIds) || !Array.isArray(snapshot.edges) ||
@@ -6277,8 +6276,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       }
 
       function serializeSvg(scale, opts) {
-        // scale: integer multiplier for intrinsic SVG pixel dimensions used by
-        // the raster path. Defaults to 1 (natural size) for SVG download.
+        // scale: hệ số nguyên nhân kích thước pixel nội tại của SVG dùng trong
+        // luồng raster. Mặc định là 1 (kích thước tự nhiên) khi tải SVG.
         scale = scale || 1;
         opts = opts || {};
         var autoTheme = opts.autoTheme === true;
@@ -6296,17 +6295,17 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         var reachStateClean = opts.reachSnapshot
           ? canonicalStateClean && finiteSvgDimensions && !opts.routeSnapshot && applyReachSnapshot(clone, opts.reachSnapshot)
           : null;
-        // Scale width/height so the browser rasterizes the vectors at target
-        // resolution directly. viewBox stays unchanged so coordinates don't
-        // shift. This is the key to sharp rasters — do NOT scale later via
-        // canvas upscaling.
+        // Nhân width/height để trình duyệt trực tiếp raster hóa vector ở
+        // độ phân giải đích. viewBox giữ nguyên nên tọa độ không
+        // thay đổi. Đây là yếu tố tạo ảnh sắc nét — KHÔNG phóng lớn sau bằng
+        // thao tác tăng kích thước canvas.
         clone.setAttribute('width', vb.width * scale);
         clone.setAttribute('height', vb.height * scale);
         clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
 
-        // Only the SVG-relevant rules: semantic classes, markers, and the
-        // theme variable blocks. Toolbar/cards/print CSS can never apply
-        // inside a standalone SVG and would only bloat the export.
+        // Chỉ lấy quy tắc liên quan SVG: lớp ngữ nghĩa, dấu đầu mũi tên và
+        // các khối biến giao diện. CSS của thanh công cụ/thẻ/in không áp dụng
+        // trong SVG độc lập và chỉ làm tệp xuất phình to.
         var hostStyle = (function () {
           var out = [];
           Array.prototype.forEach.call(document.styleSheets, function (sheet) {
@@ -6328,9 +6327,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
           return out.join('\n');
         })();
 
-        // Derive the variable list from the stylesheet so newly added theme
-        // variables can never be missed by the export pipeline again
-        // (--lane-fill/--lane-stroke once were).
+        // Suy ra danh sách biến từ stylesheet để luồng xuất không bỏ sót
+        // các biến giao diện mới được thêm vào
+        // (như đã từng xảy ra với --lane-fill/--lane-stroke).
         var varNames = (function () {
           var seen = {};
           var names = [];
@@ -6340,8 +6339,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
           return names;
         })();
 
-        // Resolve the full variable set for a given data-theme via an
-        // off-DOM probe, independent of what the viewer is currently set to.
+        // Xác định toàn bộ bộ biến cho data-theme bằng phần tử thăm dò
+        // ngoài DOM, độc lập với cấu hình hiện tại của trình xem.
         function resolveVars(themeAttr) {
           var probe = document.createElement('div');
           probe.setAttribute('data-theme', themeAttr);
@@ -6358,8 +6357,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
           }
         }
 
-        // Keep the same font bytes, character coverage, and attribution in
-        // standalone SVGs and the SVG images used by every raster export.
+        // Giữ nguyên byte phông chữ, phạm vi ký tự và thông tin ghi công trong
+        // SVG độc lập và ảnh SVG dùng cho mọi lần xuất raster.
         var fontCss = document.getElementById('archify-fonts').textContent;
 
         var style = document.createElementNS('http://www.w3.org/2000/svg', 'style');
@@ -6368,10 +6367,10 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         bgRect.setAttribute('height', '100%');
 
         if (autoTheme) {
-          // Dual-theme SVG. Dark is the default (so hosts without
-          // prefers-color-scheme still render), light swaps in via media
-          // query, and svg[data-theme="..."] still lets downstream
-          // consumers force a specific theme.
+          // SVG có hai giao diện. Mặc định tối (để nơi không có
+          // prefers-color-scheme vẫn hiển thị), sáng được thay bằng media
+          // query, còn svg[data-theme="..."] vẫn cho phép bên sử dụng
+          // ép một giao diện cụ thể.
           var darkVars = resolveVars('dark');
           var lightVars = resolveVars('light');
 
@@ -6385,13 +6384,13 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
             "svg[data-theme=\"dark\"] { " + darkVars + " }\n" +
             "rect.c-bg-rect { fill: var(--bg); }\n";
 
-          // Don't lock the serialized SVG to the viewer's current theme.
+          // Không cố định SVG đã tuần tự hóa theo giao diện hiện tại của trình xem.
           clone.removeAttribute('data-theme');
-          // Background follows the CSS variable, not a fixed color, so it
-          // swaps with the media query.
+          // Nền theo biến CSS thay vì màu cố định nên có thể
+          // đổi theo media query.
           bgRect.setAttribute('class', 'c-bg-rect');
         } else {
-          // Raster path: lock to the viewer's current theme.
+          // Luồng raster: cố định theo giao diện hiện tại của trình xem.
           var theme = document.documentElement.getAttribute('data-theme') || 'dark';
           var themeHost = document.querySelector('[data-theme="' + theme + '"]') || document.documentElement;
           var computed = getComputedStyle(themeHost);
@@ -6399,10 +6398,10 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
             return n + ': ' + computed.getPropertyValue(n).trim() + ';';
           }).join(' ');
 
-          // IMPORTANT: inject the resolved variables AFTER hostStyle,
-          // otherwise hostStyle's ":root, [data-theme=\"dark\"] { ... }" rule
-          // overrides our chosen theme via later-in-cascade equal-specificity.
-          // Keep this order.
+          // QUAN TRỌNG: chèn các biến đã xác định SAU hostStyle,
+          // nếu không quy tắc ":root, [data-theme=\"dark\"] { ... }" của hostStyle
+          // sẽ ghi đè giao diện đã chọn vì cùng độ ưu tiên nhưng nằm sau trong CSS.
+          // Giữ nguyên thứ tự này.
           style.textContent =
             fontCss + "\n" +
             "svg { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', 'Liberation Mono', 'Noto Sans Mono CJK SC', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', monospace; }\n" +
@@ -6431,8 +6430,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         clone.insertBefore(style, clone.firstChild);
         clone.insertBefore(bgRect, style.nextSibling);
 
-        // The XML declaration pins UTF-8: without it, consumers that guess an
-        // encoding instead of defaulting to UTF-8 mangle non-ASCII text.
+        // Khai báo XML cố định UTF-8: nếu thiếu, bên sử dụng tự đoán
+        // bảng mã thay vì mặc định UTF-8 có thể làm hỏng ký tự ngoài ASCII.
         return {
           svgString: '<?xml version="1.0" encoding="UTF-8"?>\n' +
             new XMLSerializer().serializeToString(clone),
@@ -6455,11 +6454,11 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
       }
 
-      // Conservative upper bound on total canvas pixels. Older Safari on iOS
-      // silently produces a blank canvas above ~16 Mpx; Chrome / Firefox /
-      // desktop Safari are far higher but start failing on memory-constrained
-      // devices. We pick the largest integer scale in {4,3,2,1} whose target
-      // pixel count fits under this cap.
+      // Giới hạn trên thận trọng cho tổng pixel canvas. Safari iOS cũ
+      // âm thầm tạo canvas trắng khi vượt khoảng 16 Mpx; Chrome / Firefox /
+      // Safari desktop hỗ trợ cao hơn nhiều nhưng vẫn lỗi trên thiết bị thiếu
+      // bộ nhớ. Chọn tỷ lệ nguyên lớn nhất trong {4,3,2,1} có tổng
+      // pixel đích nằm dưới giới hạn này.
       var MAX_CANVAS_PIXELS = 16 * 1024 * 1024;
 
       function pickSafeScale(vbW, vbH) {
@@ -6470,10 +6469,10 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       }
 
       function rasterize(format) {
-        // Serialize at a safe scale (RASTER_SCALE=4 by default, reduced if the
-        // resulting canvas would exceed MAX_CANVAS_PIXELS). The SVG itself is
-        // rasterized at target resolution natively; drawImage draws at natural
-        // size — no upsampling blur.
+        // Tuần tự hóa ở tỷ lệ an toàn (mặc định RASTER_SCALE=4, giảm nếu
+        // canvas kết quả vượt MAX_CANVAS_PIXELS). SVG được trực tiếp
+        // raster hóa ở độ phân giải đích; drawImage vẽ ở kích thước tự nhiên
+        // nên không bị mờ do phóng lớn.
         var svg = document.querySelector('.diagram-container svg');
         var vb = svg.viewBox.baseVal;
         var scale = pickSafeScale(vb.width, vb.height);
@@ -6493,7 +6492,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
                 ctx.fillStyle = currentBg();
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
               }
-              // Draw at natural size — SVG was already rasterized at target res.
+              // Vẽ ở kích thước tự nhiên — SVG đã được raster hóa ở độ phân giải đích.
               ctx.drawImage(img, 0, 0);
               URL.revokeObjectURL(svgUrl);
               var mime = format === 'jpeg' ? 'image/jpeg' :
@@ -6702,12 +6701,12 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
           typeof HTMLCanvasElement.prototype.captureStream === 'function');
       }
 
-      // Record the live CSS animation without Puppeteer, ffmpeg, or a network
-      // dependency. SVG files loaded through Image are commonly rasterized as
-      // one cached bitmap, so repeatedly drawing that Image does not reliably
-      // advance its CSS animation. Keep one crisp static SVG background, then
-      // render an explicit time-varying signal scene over the real authored
-      // relationship geometry on every captured canvas frame.
+      // Ghi hoạt ảnh CSS trực tiếp mà không cần Puppeteer, ffmpeg hay phụ thuộc
+      // mạng. SVG nạp qua Image thường được raster hóa thành một bitmap
+      // lưu đệm nên vẽ Image đó nhiều lần không bảo đảm
+      // hoạt ảnh CSS tiến lên. Giữ một nền SVG tĩnh sắc nét rồi
+      // vẽ tín hiệu thay đổi theo thời gian trên đúng hình học
+      // quan hệ gốc trong từng khung canvas được ghi.
       function recordWebm(options) {
         options = options || {};
         if (!canRecordMotion()) {
@@ -6923,10 +6922,10 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
             raf = requestAnimationFrame(draw);
             setTimeout(function () {
               if (recorder.state === 'inactive') return;
-              // Chromium normally emits the final chunk during stop(), but
-              // some embedded browser shells need an explicit encoder flush
-              // first. Keep the short grace window bounded and harmless for
-              // browsers that already delivered timeslice chunks.
+              // Chromium thường phát khối cuối trong stop(), nhưng
+              // một số trình duyệt nhúng cần đẩy hết dữ liệu bộ mã hóa
+              // trước. Giữ khoảng chờ ngắn có giới hạn và không gây ảnh hưởng tới
+              // trình duyệt đã phát các khối dữ liệu theo lát thời gian.
               try { recorder.requestData(); } catch (_) {}
               setTimeout(function () {
                 if (recorder.state !== 'inactive') recorder.stop();
@@ -6967,16 +6966,16 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         return snapshot;
       }
 
-      // ---- Clipboard support ----------------------------------------------
+      // ---- Hỗ trợ clipboard ----------------------------------------------
       function canCopyImage() {
         return typeof ClipboardItem !== 'undefined' &&
                navigator.clipboard &&
                typeof navigator.clipboard.write === 'function';
       }
 
-      // ---- Raster format detection ----------------------------------------
-      // canvas.toBlob('image/webp') silently returns a PNG on browsers without
-      // WebP encoding (older Safari), so detect explicitly.
+      // ---- Phát hiện định dạng raster ----------------------------------------
+      // canvas.toBlob('image/webp') âm thầm trả PNG trên trình duyệt không hỗ trợ
+      // mã hóa WebP (Safari cũ), nên cần phát hiện tường minh.
       function supports(format) {
         if (format === 'share-card') return true;
         if (format === 'svg' || format === 'png') return true;
@@ -6989,7 +6988,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         } catch (_) { return false; }
       }
 
-      // Gray out unsupported items.
+      // Làm mờ các mục không được hỗ trợ.
       items().forEach(function (it) {
         if (it.dataset.format && !supports(it.dataset.format)) {
           it.disabled = true;
@@ -7001,9 +7000,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         }
       });
 
-      // ---- Toast ----------------------------------------------------------
-      // A live region only announces CHANGES to an existing node, so the toast
-      // element is created once up front and updated in place.
+      // ---- Thông báo ngắn ----------------------------------------------------------
+      // Vùng thông báo trực tiếp chỉ đọc THAY ĐỔI trên nút hiện có, nên phần tử
+      // toast được tạo một lần từ đầu và cập nhật tại chỗ.
       var toastEl = document.createElement('div');
       toastEl.className = 'archify-toast';
       toastEl.setAttribute('role', 'status');
@@ -7044,7 +7043,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         if (isOpen()) close(false);
         else open();
       });
-      // APG menu-button pattern: ArrowDown/ArrowUp on the trigger opens the menu.
+      // Mẫu nút menu APG: ArrowDown/ArrowUp trên nút kích hoạt mở menu.
       btn.addEventListener('keydown', function (e) {
         if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
           e.preventDefault();
@@ -7055,9 +7054,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         if (!menu.contains(e.target) && e.target !== btn) close(false);
       });
 
-      // Keyboard navigation inside the menu.
-      //   Menu items: Up/Down, Home/End.
-      //   Esc closes + returns focus to trigger; Tab closes.
+      // Điều hướng bằng bàn phím trong menu.
+      //   Các mục menu: Up/Down, Home/End.
+      //   Esc đóng và trả tiêu điểm về nút kích hoạt; Tab đóng.
       menu.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') { e.preventDefault(); close(true); return; }
         if (e.key === 'Tab')    { close(false); return; }
@@ -7178,9 +7177,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         });
       }
 
-      // A compact, machine-readable receipt for local QA and generated proof
-      // galleries. It exposes no diagram contents, only the completed format,
-      // byte count, and whether temporary viewer state was excluded.
+      // Biên nhận nhỏ, máy đọc được, phục vụ QA cục bộ và thư viện minh chứng
+      // được sinh. Không lộ nội dung sơ đồ, chỉ có định dạng hoàn tất,
+      // số byte và thông tin trạng thái tạm của trình xem đã bị loại bỏ hay chưa.
       function recordExportReceipt(format, blob, canonical, dimensions, variant, routeStateClean, reachStateClean) {
         document.documentElement.setAttribute('data-last-export-format', format);
         document.documentElement.setAttribute('data-last-export-bytes', String(blob.size));
@@ -7223,9 +7222,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       }
 
       function writePngToClipboard(blobPromise) {
-        // WebKit requires ClipboardItem to be constructed synchronously inside
-        // the user gesture. Chromium accepts the same pending Promise<Blob>;
-        // engines that reject promise values fall back to an awaited Blob.
+        // WebKit yêu cầu tạo ClipboardItem đồng bộ ngay trong thao tác
+        // người dùng. Chromium chấp nhận cùng Promise<Blob> đang chờ;
+        // bộ xử lý từ chối giá trị promise sẽ dùng Blob sau khi chờ hoàn tất.
         try {
           return navigator.clipboard.write([new ClipboardItem({ 'image/png': blobPromise })]);
         } catch (_) {
@@ -7307,9 +7306,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         copyShareCard: runCopyShareCard
       };
 
-      // Auto-open on page load for demo/screenshot purposes: ?openExport=1
-      // Wait for fonts (so the menu doesn't flash before typography lands)
-      // and paint before opening. Fallback timeout for browsers without the
+      // Tự mở khi nạp trang để demo/chụp ảnh: ?openExport=1
+      // Chờ phông chữ (để menu không lóe lên trước khi chữ hiển thị đúng)
+      // và lần vẽ trước khi mở. Có thời gian chờ dự phòng cho trình duyệt không có
       // Font Loading API.
       try {
         if (new URLSearchParams(window.location.search).get('openExport') === '1') {
@@ -7326,9 +7325,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     })();
 
     /* ============================================================
-       Motion Governor — one reader switch and one motion budget. Ambient
-       trace yields to the strongest semantic owner; Still also parks bounded
-       viewer signals without discarding their static meaning.
+       Motion Governor — một nút chuyển và một ngân sách chuyển động.
+       Tín hiệu nền nhường cho chủ thể ngữ nghĩa mạnh nhất; Still cũng dừng
+       tín hiệu trình xem có giới hạn nhưng không bỏ ý nghĩa tĩnh của chúng.
        ============================================================ */
     Archify.motionGovernor = (function () {
       var STORAGE_KEY = 'archify-motion';
@@ -7590,10 +7589,10 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
       };
     })();
 
-    /* Verified repository evidence is emitted only after the renderer checks
-       the authored GitHub revision, source blobs, and optional line ranges
-       against the explicit --repo-root. It remains outside the SVG so every
-       canonical visual export stays free of repository paths. */
+    /* Chỉ phát bằng chứng repository đã xác minh sau khi bộ kết xuất kiểm tra
+       revision GitHub, blob nguồn và khoảng dòng tùy chọn
+       theo --repo-root tường minh. Bằng chứng nằm ngoài SVG để mọi
+       bản xuất hình ảnh chuẩn không chứa đường dẫn repository. */
     Archify.sourceEvidence = (function () {
       var element = document.getElementById('archify-source-evidence-data');
       var payload = null;
@@ -7662,9 +7661,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     Archify.sourceEvidence.installBeacons();
 
     /* ============================================================
-       Explore — stable-ID neighborhood focus + dependency-free pan/zoom.
-       Renderer IDs become deep-linkable semantic hooks without turning the
-       standalone artifact into a canvas editor.
+       Explore — tiêu điểm lân cận theo ID ổn định và kéo/thu phóng không phụ thuộc thư viện.
+       ID của bộ kết xuất trở thành điểm móc ngữ nghĩa có liên kết sâu
+       mà không biến sản phẩm độc lập thành trình chỉnh sửa canvas.
        ============================================================ */
     Archify.focus = (function () {
       var html = document.documentElement;
@@ -9104,9 +9103,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     })();
 
     /* ============================================================
-       Intent Trace — temporary one-hop topology before durable focus.
-       Fine-pointer hover and keyboard focus share the same stable-ID preview;
-       touch continues directly to the existing click-to-focus contract.
+       Intent Trace — cấu trúc một bước tạm trước tiêu điểm lâu dài.
+       Rê con trỏ chính xác và tiêu điểm bàn phím dùng cùng bản xem trước theo ID;
+       thao tác chạm đi thẳng tới cơ chế nhấp để tập trung hiện có.
        ============================================================ */
     Archify.intentTrace = (function () {
       var html = document.documentElement;
@@ -9394,9 +9393,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
           return true;
         });
       });
-      // Establish the compact cold state before exposing the panel so the
-      // full Director cannot flash during first paint. Hash restoration runs
-      // in the same task and replaces this state before paint when valid.
+      // Thiết lập trạng thái khởi tạo gọn trước khi hiện bảng để
+      // Director đầy đủ không lóe lên ở lần vẽ đầu. Khôi phục hash chạy
+      // trong cùng tác vụ và thay trạng thái này trước khi vẽ nếu hợp lệ.
       panel.setAttribute('data-active-view', 'all');
       panel.hidden = false;
       panel.setAttribute('data-view-interval-ms', String(VIEW_INTERVAL_MS));
@@ -10877,8 +10876,8 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         focusChapterButton(target);
       });
 
-      // A direct node exploration supersedes the curated view. Capture phase
-      // releases the view before the focus explorer writes its own deep link.
+      // Khám phá trực tiếp một nút thay thế chế độ đã biên soạn. Giai đoạn bắt sự kiện
+      // giải phóng chế độ trước khi bộ khám phá tiêu điểm ghi liên kết sâu riêng.
       function releaseForNode(event) {
         if (activeIndex >= 0 && event.target.closest('[data-node-id]')) {
           pausePlayback();
@@ -11049,12 +11048,12 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     })();
 
     /* ============================================================
-       Adaptive Reader Shell — one diagram across laptop and monitor.
-       The canonical SVG and viewBox never change. On ordinary desktop pages,
-       wide diagrams receive only enough outer width to use the available
-       height without pushing summary cards below the viewport. Mobile,
-       embed, presentation, print, and non-wide diagrams retain their own
-       established layout contracts.
+       Adaptive Reader Shell — một sơ đồ dùng trên laptop và màn hình ngoài.
+       SVG chuẩn và viewBox giữ nguyên. Trên trang desktop thông thường,
+       sơ đồ rộng chỉ nhận đủ chiều rộng ngoài để tận dụng chiều cao
+       khả dụng mà không đẩy thẻ tóm tắt ra ngoài khung nhìn. Di động,
+       chế độ nhúng, trình chiếu, in và sơ đồ không rộng giữ
+       hợp đồng bố cục riêng đã thiết lập.
        ============================================================ */
     Archify.waitForStableLayout = function (options) {
       options = options || {};
@@ -11266,10 +11265,10 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     })();
 
     /* ============================================================
-       Viewer Chrome Layout — keep HTML controls clear of the canonical SVG
-       stage without changing authored geometry. The dock keeps its floating
-       appearance while a small bottom stage rail becomes part of the reader
-       budget whenever its zero-reserve position would enter the stage.
+       Viewer Chrome Layout — giữ điều khiển HTML cách vùng SVG chuẩn
+       mà không đổi hình học gốc. Thanh công cụ vẫn có vẻ nổi,
+       còn thanh dẫn nhỏ ở đáy được tính vào không gian trình xem
+       khi vị trí không chừa chỗ của nó lấn vào vùng sơ đồ.
        ============================================================ */
     Archify.viewerChromeLayout = (function () {
       var html = document.documentElement;
@@ -11413,12 +11412,12 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
         if (probingBaseline) return null;
         if (!eligible()) return clear({ preserveBaseline: !cameraAtBaseline() });
 
-        /* Camera transforms enlarge and translate authored paint inside the
-           fixed, clipped root SVG viewport. They must not redefine the
-           reader's baseline rail.
-           Restore that baseline after temporary mobile/embed/print states.
-           Camera Reset preserves the established rail while viewport, mode,
-           and content changes remain responsible for baseline reprobes. */
+        /* Biến đổi camera phóng to và dịch nội dung vẽ gốc trong khung nhìn
+           SVG gốc cố định có cắt biên. Chúng không được xác định lại
+           thanh dẫn cơ sở của trình xem.
+           Khôi phục mốc đó sau trạng thái di động/nhúng/in tạm thời.
+           Đặt lại camera giữ thanh dẫn đã thiết lập, còn thay đổi khung nhìn,
+           chế độ và nội dung chịu trách nhiệm đo lại mốc cơ sở. */
         if (!cameraAtBaseline()) {
           if (reserve === 0 && restorableReserve > 0) {
             if (writeReserve(restorableReserve)) return null;
@@ -11458,9 +11457,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
             if (writeReserve(Math.max(0, SAFE_GAP - stageGap))) return null;
           }
         } else if (railLatched && reserve > 0 && stageGap < SAFE_GAP) {
-          /* Keep the decision latched while Adaptive Reader incorporates the
-             rail. Presentation and rounded layout values can require one
-             bounded follow-up before the full stage gap is established. */
+          /* Giữ quyết định đã chốt trong khi Adaptive Reader tính thêm thanh dẫn.
+             Chế độ trình chiếu và giá trị bố cục làm tròn có thể cần một lần
+             cập nhật bổ sung có giới hạn để thiết lập đủ khoảng cách vùng sơ đồ. */
           var remaining = Math.max(1, SAFE_GAP - stageGap);
           if (writeReserve(reserve + remaining)) return null;
         }
@@ -12105,9 +12104,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     })();
 
     /* ============================================================
-       Semantic Radar — simplified semantic bounds + live viewport.
-       The radar is built at runtime so the checked artifact still contains
-       one canonical SVG block, and export serialization remains untouched.
+       Semantic Radar — biên ngữ nghĩa đơn giản và khung nhìn trực tiếp.
+       Radar được tạo khi chạy để sản phẩm đã kiểm tra vẫn chỉ chứa
+       một khối SVG chuẩn và quá trình tuần tự hóa khi xuất giữ nguyên.
        ============================================================ */
     Archify.radar = (function () {
       var container = document.querySelector('.diagram-container');
@@ -12733,10 +12732,10 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     })();
 
     /* ============================================================
-       Presentation Stage — a shareable, viewport-filling live view.
-       It changes only HTML layout and URL state; SVG semantics and export
-       serialization remain untouched. Escape first clears an active guided
-       view/focus, then exits the stage.
+       Presentation Stage — chế độ trực tiếp kín khung nhìn có thể chia sẻ.
+       Chỉ đổi bố cục HTML và trạng thái URL; ngữ nghĩa SVG và quá trình
+       xuất giữ nguyên. Escape xóa chế độ hướng dẫn/tiêu điểm đang hoạt động
+       trước, sau đó mới thoát trình chiếu.
        ============================================================ */
     Archify.presentation = (function () {
       var html = document.documentElement;
@@ -12807,9 +12806,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     })();
 
     /* ============================================================
-       Node Finder — stable-ID search over the existing semantic SVG.
-       Search never changes the IR or SVG geometry: selecting a result resets
-       the viewport, releases a guided view, and delegates to semantic focus.
+       Node Finder — tìm theo ID ổn định trên SVG ngữ nghĩa hiện có.
+       Tìm kiếm không đổi IR hay hình học SVG: chọn kết quả sẽ đặt lại
+       khung nhìn, thoát chế độ hướng dẫn và chuyển sang tiêu điểm ngữ nghĩa.
        ============================================================ */
     Archify.finder = (function () {
       var html = document.documentElement;
@@ -13073,10 +13072,10 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     })();
 
     /* ============================================================
-       Route Probe — shortest directed path over compiled semantics.
-       The graph is read from renderer-owned stable IDs and relationship
-       endpoints. BFS order follows authored DOM edge order, so equal-length
-       choices are deterministic without adding weights or a graph runtime.
+       Route Probe — đường đi có hướng ngắn nhất trên ngữ nghĩa đã biên dịch.
+       Đồ thị lấy từ ID ổn định do bộ kết xuất quản lý và hai đầu quan hệ.
+       BFS theo thứ tự cạnh DOM gốc nên lựa chọn cùng độ dài có kết quả
+       xác định mà không thêm trọng số hay bộ thực thi đồ thị.
        ============================================================ */
     Archify.routeProbe = (function () {
       var html = document.documentElement;
@@ -13676,9 +13675,9 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
             return;
           }
           applyJourneyState(journeyIndex + 1, { pulse: true, reveal: true });
-          // Camera and motion-owner handoff are allowed to synchronously
-          // settle the previous step. The new step always starts with a fresh
-          // dwell; never carry cleanup time into the next scheduler lease.
+          // Việc bàn giao camera và chủ thể chuyển động được phép đồng bộ
+          // kết thúc bước trước. Bước mới luôn bắt đầu khoảng dừng mới;
+          // không tính thời gian dọn dẹp vào thời hạn lịch chạy kế tiếp.
           journeyElapsedMs = 0;
           journeyStartedAt = 0;
           scheduleJourney();
@@ -14108,10 +14107,10 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     })();
 
     /* ============================================================
-       Semantic Lens — a counted, viewer-only legend over data-node-kind.
-       One selected kind reveals every authored relationship touching it.
-       Two selected kinds compare only direct cross-kind relationships while
-       preserving the full diagram as a dimmed spatial reference.
+       Semantic Lens — chú giải có số lượng theo data-node-kind, chỉ dành cho trình xem.
+       Chọn một loại hiện mọi quan hệ gốc chạm tới loại đó.
+       Chọn hai loại chỉ so sánh quan hệ trực tiếp giữa hai loại,
+       đồng thời giữ toàn sơ đồ làm tham chiếu không gian được làm mờ.
        ============================================================ */
     Archify.semanticLens = (function () {
       var html = document.documentElement;
@@ -14784,10 +14783,10 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     })();
 
     /* ============================================================
-       Diagram Guide — a factual command deck over existing interactions.
-       Counts come from compiled semantics; actions delegate to Finder, Route
-       Probe, Semantic Radar, Semantic Lens, Story Trail, Presentation, theme, export, and
-       camera without adding a second command implementation or SVG state.
+       Diagram Guide — bảng lệnh dựa trên các tương tác hiện có.
+       Số lượng lấy từ ngữ nghĩa đã biên dịch; hành động chuyển đến Finder, Route
+       Probe, Semantic Radar, Semantic Lens, Story Trail, Presentation, giao diện, xuất và
+       camera mà không thêm bộ lệnh thứ hai hay trạng thái SVG.
        ============================================================ */
     Archify.guide = (function () {
       var html = document.documentElement;
@@ -14971,19 +14970,19 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     })();
 
     /* ============================================================
-       Global keyboard shortcuts
-       ? -> open Diagram Guide
-       T -> toggle theme
-       S -> cycle visual style
-       E -> open export menu
-         F -> toggle presentation stage
-         M -> toggle Semantic Radar
-         L -> toggle Semantic Lens
-         R -> start/clear Route Probe
-         / -> open node finder or the active route endpoint picker
-         + / - -> zoom, 0 -> reset view
-         Escape -> clear temporary trace/focus/view first, then exit presentation
-       Ignored when focus is inside an input/textarea/contenteditable.
+       Phím tắt toàn cục
+       ? -> mở Diagram Guide
+       T -> đổi giao diện
+       S -> đổi kiểu hiển thị
+       E -> mở menu xuất
+         F -> bật/tắt trình chiếu
+         M -> bật/tắt Semantic Radar
+         L -> bật/tắt Semantic Lens
+         R -> bắt đầu/xóa Route Probe
+         / -> mở tìm nút hoặc chọn đầu tuyến đang hoạt động
+         + / - -> thu phóng, 0 -> đặt lại khung nhìn
+         Escape -> xóa tín hiệu/tiêu điểm/chế độ tạm trước rồi thoát trình chiếu
+       Bỏ qua khi tiêu điểm nằm trong input/textarea/contenteditable.
        ============================================================ */
     document.addEventListener('keydown', function (e) {
       if (e.metaKey || e.ctrlKey || e.altKey) return;

@@ -1,4 +1,4 @@
-"""Bronze-to-Silver-to-Gold transformations for the demo domain."""
+"""Các phép biến đổi Bronze → Silver → Gold cho miền demo."""
 
 from __future__ import annotations
 
@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 
 class DemoTransformer:
-    """Small deterministic transformer used to prove domain extensibility."""
+    """Bộ biến đổi nhỏ có kết quả xác định để kiểm chứng khả năng mở rộng miền nghiệp vụ."""
 
     def to_silver(
         self,

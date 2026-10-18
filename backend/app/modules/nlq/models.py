@@ -1,4 +1,4 @@
-"""SQLAlchemy models for the NLQ module."""
+"""Các mô hình SQLAlchemy cho mô-đun NLQ."""
 
 from __future__ import annotations
 

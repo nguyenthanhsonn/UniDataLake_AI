@@ -1,4 +1,4 @@
-"""SQLAlchemy models for the dashboard module."""
+"""Các mô hình SQLAlchemy cho mô-đun bảng điều khiển."""
 
 from __future__ import annotations
 

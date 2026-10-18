@@ -1,10 +1,10 @@
-"""Generate deterministic synthetic Human Resources sample data (schema: unilake-db.dbml).
+"""Sinh dữ liệu mẫu Nhân sự giả lập có kết quả xác định (schema: unilake-db.dbml).
 
-Usage (from repo root), run first; Admissions and Academic samples reference these rows:
+Cách chạy (từ thư mục gốc repo), chạy trước vì mẫu Tuyển sinh và Đào tạo tham chiếu các dòng này:
     python data/synthetic/generate_hr.py
     python data/synthetic/generate_admissions.py
     python data/synthetic/generate_academic.py
-Writes data/samples/hr/*.csv. Same seed -> same output. All people, phones and emails are fake.
+Ghi data/samples/hr/*.csv. Cùng seed cho cùng kết quả. Mọi người, số điện thoại và email đều là giả lập.
 """
 
 import csv
@@ -63,7 +63,7 @@ write(
     [(dept_id[c], c, n, dept_id.get(p)) for c, n, p in DEPARTMENTS],
 )
 
-# ---------- position ----------
+# ---------- chức vụ ----------
 POSITIONS = [
     ("HT", "Hiệu trưởng", "Leadership"),
     ("PHT", "Phó Hiệu trưởng", "Leadership"),
@@ -84,7 +84,7 @@ write(
     [(pos_id[c], c, n, lv) for c, n, lv in POSITIONS],
 )
 
-# ---------- qualification ----------
+# ---------- trình độ ----------
 QUALIFICATIONS = [
     ("BA", "Cử nhân", "Degree"),
     ("ENG", "Kỹ sư", "Degree"),
@@ -103,7 +103,7 @@ write(
     [(qual_id[c], n, t) for c, n, t in QUALIFICATIONS],
 )
 
-# ---------- employees ----------
+# ---------- nhân viên ----------
 BKDN = "Trường ĐH Bách khoa - ĐH Đà Nẵng"
 KTDN = "Trường ĐH Kinh tế - ĐH Đà Nẵng"
 NNDN = "Trường ĐH Ngoại ngữ - ĐH Đà Nẵng"
@@ -112,9 +112,9 @@ LAWH = "Trường ĐH Luật - ĐH Huế"
 SP = "Trường ĐH Sư phạm - ĐH Huế"
 NVSP_ORG = "Trường ĐH Sư phạm - ĐH Đà Nẵng"
 
-# (name, gender, dob, lecturer (rank, research_field) or None, status,
-#  assignments [(dept, position, start, end, is_primary)],
-#  qualifications [(code, year, institution)])
+# (tên, giới tính, ngày sinh, giảng viên (học hàm, lĩnh vực nghiên cứu) hoặc None, trạng thái,
+#  phân công [(đơn vị, chức vụ, bắt đầu, kết thúc, là chính)],
+#  trình độ [(mã, năm, cơ sở đào tạo)])
 P = True
 S = False
 EMPLOYEES = [

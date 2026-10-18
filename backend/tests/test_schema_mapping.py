@@ -68,7 +68,7 @@ def test_two_layouts_every_entity_against_s1(domain, layout):
     )
     for entity, target in schema["$defs"].items():
         columns = source["entities"][entity]["columns"]
-        # Deliberately preserve numeric-looking strings; S2 must not cast values.
+        # Chủ động giữ chuỗi có dạng số; S2 không được ép kiểu giá trị.
         raw = {c["name"]: None if c["nullable"] else f"raw:{c['name']}" for c in columns}
         record = raw if layout == "flat" else {"payload": raw, "extra": "do-not-copy"}
         prefix = "" if layout == "flat" else "/payload"

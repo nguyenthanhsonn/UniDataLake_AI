@@ -1,5 +1,5 @@
 flowchart TB
-    %% ===== 1. PRESENTATION LAYER =====
+    %% ===== 1. TẦNG GIAO DIỆN =====
     subgraph PRESENTATION["🖥️ 1. Presentation Layer"]
         direction LR
         WEB["Web Dashboard<br/>(Next.js + TailwindCSS)"]
@@ -7,7 +7,7 @@ flowchart TB
         RECHARTS["Visualization<br/>(Recharts / Chart.js)"]
     end
 
-    %% ===== 2. APPLICATION / API LAYER =====
+    %% ===== 2. TẦNG ỨNG DỤNG / API =====
     subgraph APP["⚙️ 2. Application / API Layer — Modular Monolith (Python + FastAPI)"]
         direction TB
         subgraph CORE["Core Modules"]
@@ -20,7 +20,7 @@ flowchart TB
         end
     end
 
-    %% ===== 3. AI ANALYTICS LAYER =====
+    %% ===== 3. TẦNG PHÂN TÍCH AI =====
     subgraph AI["🤖 3. AI Analytics Layer (Internal Monolith Module)"]
         direction LR
         INTENT["Intent Parser<br/>(LangChain)"]
@@ -28,7 +28,7 @@ flowchart TB
         OPT["Constraint Optimization<br/>(Google OR-Tools)<br/>What-If Analysis"]
     end
 
-    %% ===== 4. DATA GOVERNANCE LAYER =====
+    %% ===== 4. TẦNG QUẢN TRỊ DỮ LIỆU =====
     subgraph GOV["🛡️ 4. Data Governance Layer"]
         direction LR
         CATALOG["Data Catalog<br/>(OpenMetadata)"]
@@ -36,7 +36,7 @@ flowchart TB
         DQC["Data Quality Check<br/>(Great Expectations)"]
     end
 
-    %% ===== 5. DATA LAKE LAYER =====
+    %% ===== 5. TẦNG DATA LAKE =====
     subgraph LAKE["🗄️ 5. Data Lake Layer (Delta Lake)"]
         direction LR
         BRONZE["🥉 Bronze Layer<br/>(Raw Data)<br/>MinIO / S3"]
@@ -44,8 +44,8 @@ flowchart TB
         GOLD["🥇 Gold Layer<br/>(Aggregated / Data Marts)<br/>PostgreSQL + Delta Lake"]
     end
 
-    %% ===== FLOW CONNECTIONS =====
-    %% Presentation ↔ API
+    %% ===== KẾT NỐI LUỒNG =====
+    %% Giao diện ↔ API
     WEB -->|HTTP / REST| AUTH
     CHATBOT_UI -->|HTTP / REST| QUERY
     WEB -->|HTTP / REST| DASH_API
@@ -55,21 +55,21 @@ flowchart TB
     INTENT -->|in-process call| T2SQL
     DASH_API -->|in-process call| OPT
 
-    %% API ↔ Governance
+    %% API ↔ Quản trị dữ liệu
     INGEST -->|trigger| DQC
     PIPELINE -->|log metadata| CATALOG
     PIPELINE -->|track lineage| LINEAGE
 
-    %% API ↔ Data Lake
+    %% API ↔ Data lake
     INGEST -->|write raw| BRONZE
     PIPELINE -->|ETL / ELT| SILVER
     PIPELINE -->|aggregate| GOLD
 
-    %% AI reads from Gold
+    %% AI đọc từ Gold
     T2SQL -->|read schema + data| GOLD
     OPT -->|read KPIs| GOLD
 
-    %% Governance reads all layers
+    %% Quản trị dữ liệu đọc mọi tầng
     DQC -.->|validate| BRONZE
     DQC -.->|validate| SILVER
     DQC -.->|validate| GOLD
@@ -80,11 +80,11 @@ flowchart TB
     LINEAGE -.->|trace| SILVER
     LINEAGE -.->|trace| GOLD
 
-    %% Data Lake internal flow
+    %% Luồng nội bộ data lake
     BRONZE ==>|"transform"| SILVER
     SILVER ==>|"aggregate"| GOLD
 
-    %% Styling
+    %% Định dạng hiển thị
     classDef layer fill:#f0f4ff,stroke:#2563eb,stroke-width:2px,color:#1e293b
     classDef bronze fill:#fef3c7,stroke:#d97706,stroke-width:2px,color:#78350f
     classDef silver fill:#e0e7ff,stroke:#4f46e5,stroke-width:2px,color:#312e81

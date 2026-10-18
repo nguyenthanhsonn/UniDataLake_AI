@@ -1,4 +1,4 @@
-"""Generic catalog and runtime governance services."""
+"""Các dịch vụ catalog và quản trị dữ liệu khi thực thi dùng chung."""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True)
 class CatalogEntry:
-    """Catalog projection built from a registered domain dataset."""
+    """Biểu diễn catalog được tạo từ dataset miền nghiệp vụ đã đăng ký."""
 
     domain_id: str
     dataset: str
@@ -27,7 +27,7 @@ class CatalogEntry:
 
 @dataclass(frozen=True)
 class QualityRuleEntry:
-    """Discoverable quality-rule metadata projected from a domain."""
+    """Metadata quy tắc chất lượng có thể tra cứu từ miền nghiệp vụ."""
 
     domain_id: str
     rule_id: str
@@ -36,14 +36,14 @@ class QualityRuleEntry:
 
 
 class GovernanceService:
-    """Consumes domain metadata and pipeline evidence without domain branches."""
+    """Sử dụng metadata miền nghiệp vụ và bằng chứng pipeline mà không rẽ nhánh theo miền."""
 
     def __init__(self, registry: DomainRegistry | None = None) -> None:
         self._registry = registry or get_domain_registry()
         self._events: list[PipelineEvent] = []
 
     def catalog(self, *, domain_id: str | None = None) -> tuple[CatalogEntry, ...]:
-        """Project registered schemas into generic catalog entries."""
+        """Chuyển các schema đã đăng ký thành các mục catalog dùng chung."""
         definitions = (
             (self._registry.get(domain_id),) if domain_id is not None else self._registry.all()
         )
@@ -61,12 +61,12 @@ class GovernanceService:
         )
 
     def publish(self, event: PipelineEvent) -> None:
-        """Store runtime lineage and quality evidence emitted by the pipeline."""
+        """Lưu bằng chứng nguồn gốc và chất lượng dữ liệu do pipeline phát ra khi thực thi."""
         self._registry.get(event.domain_id)
         self._events.append(event)
 
     def quality_rules(self, *, domain_id: str | None = None) -> tuple[QualityRuleEntry, ...]:
-        """Return static quality-rule metadata from registered domains."""
+        """Trả về metadata quy tắc chất lượng tĩnh từ các miền nghiệp vụ đã đăng ký."""
         definitions = (
             (self._registry.get(domain_id),) if domain_id is not None else self._registry.all()
         )
@@ -82,7 +82,7 @@ class GovernanceService:
         )
 
     def lineage(self, *, domain_id: str | None = None) -> tuple[PipelineEvent, ...]:
-        """Return captured runtime lineage events."""
+        """Trả về các sự kiện nguồn gốc dữ liệu đã ghi nhận khi thực thi."""
         return tuple(
             event for event in self._events if domain_id is None or event.domain_id == domain_id
         )

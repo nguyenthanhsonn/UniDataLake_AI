@@ -1,4 +1,4 @@
-"""Stable contracts implemented by every UniLake business domain."""
+"""Các hợp đồng ổn định mà mọi miền nghiệp vụ UniLake phải triển khai."""
 
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ Record: TypeAlias = dict[str, object]
 
 
 class DataLayer(StrEnum):
-    """Logical data-lake layers exposed to domain implementations."""
+    """Các tầng data lake logic được cung cấp cho phần triển khai miền nghiệp vụ."""
 
     BRONZE = "bronze"
     SILVER = "silver"
@@ -22,7 +22,7 @@ class DataLayer(StrEnum):
 
 @dataclass(frozen=True)
 class FieldDefinition:
-    """Portable field metadata used by catalog and NLQ consumers."""
+    """Metadata trường dữ liệu dùng chung cho catalog và NLQ."""
 
     name: str
     data_type: str
@@ -32,7 +32,7 @@ class FieldDefinition:
 
 @dataclass(frozen=True)
 class DatasetDefinition:
-    """A logical dataset owned by a domain."""
+    """Dataset logic thuộc một miền nghiệp vụ."""
 
     name: str
     layer: DataLayer
@@ -44,7 +44,7 @@ class DatasetDefinition:
 
 @dataclass(frozen=True)
 class SourceMapping:
-    """Versioned mapping from one source shape to a Silver dataset."""
+    """Ánh xạ có phiên bản từ cấu trúc nguồn sang dataset Silver."""
 
     source_type: str
     target_dataset: str
@@ -54,7 +54,7 @@ class SourceMapping:
 
 @dataclass(frozen=True)
 class MetricDefinition:
-    """Business metric exposed to analytical and NLQ consumers."""
+    """Chỉ số nghiệp vụ được cung cấp cho phân tích và NLQ."""
 
     name: str
     dataset: str
@@ -65,14 +65,14 @@ class MetricDefinition:
 
 @dataclass(frozen=True)
 class SemanticModel:
-    """NLQ-facing metadata for a domain's published Gold layer."""
+    """Metadata phục vụ NLQ cho tầng Gold đã công bố của miền nghiệp vụ."""
 
     metrics: tuple[MetricDefinition, ...] = ()
 
 
 @dataclass(frozen=True)
 class QualityResult:
-    """Outcome of evaluating one domain quality rule."""
+    """Kết quả đánh giá một quy tắc chất lượng của miền nghiệp vụ."""
 
     rule_id: str
     passed: bool
@@ -81,47 +81,47 @@ class QualityResult:
 
 
 class QualityRule(Protocol):
-    """A quality rule bound to one declared domain dataset."""
+    """Quy tắc chất lượng gắn với một dataset đã khai báo của miền nghiệp vụ."""
 
     @property
     def rule_id(self) -> str:
-        """Stable rule identifier."""
+        """Mã định danh ổn định của quy tắc."""
         ...
 
     @property
     def dataset(self) -> str:
-        """Dataset evaluated by this rule."""
+        """Dataset được quy tắc này đánh giá."""
         ...
 
     @property
     def description(self) -> str:
-        """Human-readable rule intent."""
+        """Mô tả mục đích quy tắc để người đọc hiểu."""
         ...
 
     def evaluate(self, records: Sequence[Record]) -> QualityResult:
-        """Evaluate records and return a serializable result."""
+        """Đánh giá các bản ghi và trả về kết quả có thể tuần tự hóa."""
         ...
 
 
 class DomainTransformer(Protocol):
-    """Domain-owned transformations called by the generic pipeline."""
+    """Phép biến đổi thuộc miền nghiệp vụ được pipeline chung gọi thực thi."""
 
     def to_silver(
         self,
         records: Sequence[Record],
         mapping: SourceMapping,
     ) -> list[Record]:
-        """Normalize Bronze records into the mapping's Silver dataset."""
+        """Chuẩn hóa các bản ghi Bronze thành dataset Silver của ánh xạ."""
         ...
 
     def to_gold(self, records: Sequence[Record]) -> dict[str, list[Record]]:
-        """Build declared Gold datasets from validated Silver records."""
+        """Tạo các dataset Gold đã khai báo từ các bản ghi Silver đã kiểm tra."""
         ...
 
 
 @dataclass(frozen=True)
 class DomainDefinition:
-    """Manifest joining the independently consumable domain contracts."""
+    """Bản kê liên kết các hợp đồng miền nghiệp vụ có thể sử dụng độc lập."""
 
     domain_id: str
     display_name: str
@@ -134,7 +134,7 @@ class DomainDefinition:
     semantic_model: SemanticModel = field(default_factory=SemanticModel)
 
     def mapping_for(self, source_type: str) -> SourceMapping:
-        """Return the mapping for a source type or raise a precise error."""
+        """Trả về ánh xạ cho loại nguồn hoặc báo lỗi cụ thể."""
         matches = [mapping for mapping in self.mappings if mapping.source_type == source_type]
         if len(matches) != 1:
             raise LookupError(
@@ -143,5 +143,5 @@ class DomainDefinition:
         return matches[0]
 
     def datasets_for(self, layer: DataLayer) -> tuple[DatasetDefinition, ...]:
-        """Return datasets declared for a logical layer."""
+        """Trả về các dataset đã khai báo cho một tầng logic."""
         return tuple(dataset for dataset in self.datasets if dataset.layer is layer)

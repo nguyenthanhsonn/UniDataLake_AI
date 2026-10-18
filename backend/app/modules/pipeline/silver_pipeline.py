@@ -1,4 +1,4 @@
-"""Explicit versioned S2/S3/S4 -> Silver path; never invokes legacy Gold transforms."""
+"""Luồng S2/S3/S4 → Silver tường minh có phiên bản; không gọi phép biến đổi Gold cũ."""
 
 from __future__ import annotations
 

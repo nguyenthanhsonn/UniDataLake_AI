@@ -1,4 +1,4 @@
-"""Pydantic schemas for ingestion jobs."""
+"""Các schema Pydantic cho job ingestion."""
 
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ class IngestionStart(BaseModel):
 
 
 class IngestionJobRead(BaseModel):
-    """Ingestion job status payload."""
+    """Dữ liệu trạng thái job ingestion."""
 
     model_config = ConfigDict(from_attributes=True)
     ingestion_job_id: int

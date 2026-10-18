@@ -1,4 +1,4 @@
-"""Construct structural profiles from S1 contracts, without loading global repo files."""
+"""Tạo profile cấu trúc từ hợp đồng S1, không nạp các tệp toàn cục của repo."""
 
 from __future__ import annotations
 
@@ -26,10 +26,10 @@ def build_profile(
     deferred_fields: tuple[str, ...] = (),
     ignored_sources: tuple[str, ...] = (),
 ) -> MappingProfile:
-    """Explicit paths allow several layouts of the same transport and entity.
+    """Đường dẫn tường minh cho phép nhiều bố cục của cùng giao thức truyền tải và thực thể.
 
-    No inferred case conversion/aliases; caller supplies source and target contract fields.
-    Values for deferred target fields must be produced by S3/S4/audit, never by defaults.
+    Không suy đoán chuyển đổi hoa/thường hay bí danh; bên gọi cung cấp trường hợp đồng nguồn và đích.
+    Giá trị cho trường đích hoãn xử lý phải do S3/S4/kiểm toán tạo ra, không dùng giá trị mặc định.
     """
     profile = MappingProfile(
         key=key,

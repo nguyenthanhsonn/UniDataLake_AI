@@ -1,4 +1,4 @@
-"""SQLAlchemy models for the auth module."""
+"""Các mô hình SQLAlchemy cho mô-đun xác thực."""
 
 from __future__ import annotations
 

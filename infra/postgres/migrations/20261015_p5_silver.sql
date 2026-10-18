@@ -1,5 +1,5 @@
--- Additive migration; run explicitly once on an existing database.
--- No object storage operation participates in this SQL transaction.
+-- Migration bổ sung; chủ động chạy một lần trên cơ sở dữ liệu hiện có.
+-- Không có thao tác kho đối tượng nào tham gia giao dịch SQL này.
 BEGIN;
 CREATE TABLE app.silver_run (
     run_id VARCHAR(36) PRIMARY KEY,

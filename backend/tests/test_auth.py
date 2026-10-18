@@ -1,4 +1,4 @@
-"""Unit tests for Auth service and login API endpoint."""
+"""Kiểm thử đơn vị cho dịch vụ xác thực và endpoint API đăng nhập."""
 
 from __future__ import annotations
 
@@ -31,7 +31,7 @@ def _db() -> MagicMock:
 
 @pytest.fixture(autouse=True)
 async def dispose_engine() -> AsyncGenerator[None]:
-    """Dispose DB engine before each test to prevent event loop mismatch."""
+    """Giải phóng engine cơ sở dữ liệu trước mỗi kiểm thử để tránh lệch vòng lặp sự kiện."""
     await engine.dispose()
     yield
     await engine.dispose()
@@ -48,7 +48,7 @@ def _user(password: str = "Password@123", *, is_active: bool = True) -> MagicMoc
 
 @pytest.mark.asyncio
 async def test_login_success() -> None:
-    """Test login service succeeds with valid username and password."""
+    """Kiểm tra đăng nhập thành công với tên người dùng và mật khẩu hợp lệ."""
     mock_db = _db()
     service = AuthService(db=mock_db)
 
@@ -77,7 +77,7 @@ async def test_login_success() -> None:
 
 @pytest.mark.asyncio
 async def test_login_user_not_found() -> None:
-    """Test login service raises 401 when user does not exist."""
+    """Kiểm tra dịch vụ đăng nhập trả lỗi 401 khi người dùng không tồn tại."""
     service = AuthService(db=_db())
 
     with patch.object(service.user_repo, "get_by_username", new_callable=AsyncMock) as get_user:
@@ -96,7 +96,7 @@ async def test_login_user_not_found() -> None:
 
 @pytest.mark.asyncio
 async def test_login_invalid_password() -> None:
-    """Test login service raises 401 when password is wrong."""
+    """Kiểm tra dịch vụ đăng nhập trả lỗi 401 khi mật khẩu sai."""
     service = AuthService(db=_db())
 
     with patch.object(service.user_repo, "get_by_username", new_callable=AsyncMock) as get_user:
@@ -115,7 +115,7 @@ async def test_login_invalid_password() -> None:
 
 @pytest.mark.asyncio
 async def test_login_inactive_user() -> None:
-    """Test login service rejects inactive users after password verification."""
+    """Kiểm tra dịch vụ đăng nhập từ chối người dùng ngừng hoạt động sau khi xác minh mật khẩu."""
     service = AuthService(db=_db())
 
     with patch.object(service.user_repo, "get_by_username", new_callable=AsyncMock) as get_user:
@@ -134,7 +134,7 @@ async def test_login_inactive_user() -> None:
 
 @pytest.mark.asyncio
 async def test_refresh_token_success() -> None:
-    """Test refresh token rotation returns a new token pair."""
+    """Kiểm tra luân chuyển refresh token trả về một cặp token mới."""
     mock_db = _db()
     service = AuthService(db=mock_db)
     old_refresh_token = create_refresh_token("1")
@@ -164,7 +164,7 @@ async def test_refresh_token_success() -> None:
 
 @pytest.mark.asyncio
 async def test_refresh_token_rejects_missing_session() -> None:
-    """Test refresh token is rejected when no active session matches it."""
+    """Kiểm tra refresh token bị từ chối khi không có phiên hoạt động tương ứng."""
     service = AuthService(db=_db())
 
     with patch.object(service, "_get_active_session", new_callable=AsyncMock) as get_session:
@@ -181,7 +181,7 @@ async def test_refresh_token_rejects_missing_session() -> None:
 
 @pytest.mark.asyncio
 async def test_refresh_token_rejects_access_token() -> None:
-    """Test refresh endpoint rejects non-refresh JWTs."""
+    """Kiểm tra endpoint làm mới token từ chối JWT không phải refresh token."""
     from app.core.security import create_access_token
 
     service = AuthService(db=_db())
@@ -197,7 +197,7 @@ async def test_refresh_token_rejects_access_token() -> None:
 
 @pytest.mark.asyncio
 async def test_logout_success() -> None:
-    """Test logout revokes the matching active login session."""
+    """Kiểm tra đăng xuất thu hồi phiên đăng nhập đang hoạt động tương ứng."""
     mock_db = _db()
     service = AuthService(db=mock_db)
     refresh_token = create_refresh_token("1")
@@ -216,7 +216,7 @@ async def test_logout_success() -> None:
 
 @pytest.mark.asyncio
 async def test_logout_rejects_missing_token() -> None:
-    """Test logout rejects empty requests without a refresh token."""
+    """Kiểm tra đăng xuất từ chối yêu cầu rỗng không có refresh token."""
     service = AuthService(db=_db())
 
     with pytest.raises(AppException) as exc_info:
@@ -228,7 +228,7 @@ async def test_logout_rejects_missing_token() -> None:
 
 @pytest.mark.asyncio
 async def test_logout_rejects_missing_session() -> None:
-    """Test logout rejects tokens that no longer have an active session."""
+    """Kiểm tra đăng xuất từ chối token không còn phiên hoạt động."""
     service = AuthService(db=_db())
 
     with patch.object(service, "_get_active_session", new_callable=AsyncMock) as get_session:
@@ -243,7 +243,7 @@ async def test_logout_rejects_missing_session() -> None:
 
 @pytest.mark.asyncio
 async def test_list_active_sessions_returns_current_user_sessions() -> None:
-    """Test list_active_sessions returns only active sessions for the current user."""
+    """Kiểm tra list_active_sessions chỉ trả phiên đang hoạt động của người dùng hiện tại."""
     mock_db = _db()
     execute_result = MagicMock()
     first = MagicMock()
@@ -266,7 +266,7 @@ async def test_list_active_sessions_returns_current_user_sessions() -> None:
 
 @pytest.mark.asyncio
 async def test_revoke_session_revokes_owned_session() -> None:
-    """Test revoke_session revokes one active session owned by the user."""
+    """Kiểm tra revoke_session thu hồi một phiên đang hoạt động thuộc người dùng."""
     mock_db = _db()
     execute_result = MagicMock()
     session = MagicMock()
@@ -285,7 +285,7 @@ async def test_revoke_session_revokes_owned_session() -> None:
 
 @pytest.mark.asyncio
 async def test_revoke_session_rejects_missing_or_foreign_session() -> None:
-    """Test revoke_session rejects sessions not owned by the user or not active."""
+    """Kiểm tra revoke_session từ chối phiên không thuộc người dùng hoặc đã ngừng hoạt động."""
     mock_db = _db()
     execute_result = MagicMock()
     execute_result.scalar_one_or_none.return_value = None
@@ -301,7 +301,7 @@ async def test_revoke_session_rejects_missing_or_foreign_session() -> None:
 
 @pytest.mark.asyncio
 async def test_list_active_sessions_api_endpoint() -> None:
-    """Integration test for GET /api/v1/auth/sessions endpoint wiring."""
+    """Kiểm thử tích hợp việc kết nối endpoint GET /api/v1/auth/sessions."""
     from httpx import ASGITransport, AsyncClient
 
     async def override_get_db() -> AsyncGenerator[MagicMock]:
@@ -343,7 +343,7 @@ async def test_list_active_sessions_api_endpoint() -> None:
 
 @pytest.mark.asyncio
 async def test_revoke_session_api_endpoint() -> None:
-    """Integration test for POST /api/v1/auth/revoke-session/{session_id} endpoint wiring."""
+    """Kiểm thử tích hợp việc kết nối endpoint POST /api/v1/auth/revoke-session/{session_id}."""
     from httpx import ASGITransport, AsyncClient
 
     async def override_get_db() -> AsyncGenerator[MagicMock]:
@@ -377,7 +377,7 @@ async def test_revoke_session_api_endpoint() -> None:
 
 @pytest.mark.asyncio
 async def test_remote_all_sessions_api_endpoint_removed() -> None:
-    """Old bulk-revoke endpoint is no longer part of the user session flow."""
+    """Endpoint thu hồi hàng loạt cũ không còn thuộc luồng quản lý phiên người dùng."""
     from httpx import ASGITransport, AsyncClient
 
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
@@ -391,13 +391,13 @@ async def test_remote_all_sessions_api_endpoint_removed() -> None:
 
 @pytest.mark.asyncio
 async def test_legacy_remote_all_sessions_removed_from_service() -> None:
-    """AuthService no longer exposes unsafe app_user_id bulk revoke."""
+    """AuthService không còn cung cấp thao tác thu hồi hàng loạt không an toàn theo app_user_id."""
     assert not hasattr(AuthService, "remote_all_sessions")
 
 
 @pytest.mark.asyncio
 async def test_revoke_session_does_not_accept_app_user_id_body() -> None:
-    """Revoke flow scopes by current user token, not app_user_id in request body."""
+    """Luồng thu hồi giới hạn theo token người dùng hiện tại, không theo app_user_id trong thân yêu cầu."""
     mock_db = _db()
     execute_result = MagicMock()
     session = MagicMock()
@@ -412,7 +412,7 @@ async def test_revoke_session_does_not_accept_app_user_id_body() -> None:
 
 @pytest.mark.asyncio
 async def test_revoke_session_rejects_invalid_current_user_token() -> None:
-    """Router helper rejects a token without numeric subject."""
+    """Hàm hỗ trợ router từ chối token không có subject dạng số."""
     from app.modules.auth.router import _current_user_id
 
     with pytest.raises(AppException) as exc_info:
@@ -424,7 +424,7 @@ async def test_revoke_session_rejects_invalid_current_user_token() -> None:
 
 @pytest.mark.asyncio
 async def test_session_query_uses_current_user_scope() -> None:
-    """List sessions receives the authenticated user id from the token subject."""
+    """Thao tác liệt kê phiên nhận mã người dùng đã xác thực từ subject của token."""
     mock_db = _db()
     execute_result = MagicMock()
     empty_sessions: list[SessionRead] = []
@@ -439,7 +439,7 @@ async def test_session_query_uses_current_user_scope() -> None:
 
 @pytest.mark.asyncio
 async def test_revoke_session_message() -> None:
-    """Revoke session returns a stable success message."""
+    """Thao tác thu hồi phiên trả về thông báo thành công ổn định."""
     mock_db = _db()
     execute_result = MagicMock()
     session = MagicMock()
@@ -454,7 +454,7 @@ async def test_revoke_session_message() -> None:
 
 @pytest.mark.asyncio
 async def test_no_bulk_revoke_request_schema() -> None:
-    """LogoutSessionRequest was removed because clients no longer pass app_user_id."""
+    """Đã bỏ LogoutSessionRequest vì máy khách không còn truyền app_user_id."""
     import app.modules.auth.schemas as schemas
 
     assert not hasattr(schemas, "LogoutSessionRequest")
@@ -462,7 +462,7 @@ async def test_no_bulk_revoke_request_schema() -> None:
 
 @pytest.mark.asyncio
 async def test_active_session_read_shape() -> None:
-    """Active session response includes safe device/session metadata."""
+    """Phản hồi phiên đang hoạt động chứa metadata thiết bị/phiên an toàn."""
     mock_db = _db()
     execute_result = MagicMock()
     session = MagicMock()
@@ -483,7 +483,7 @@ async def test_active_session_read_shape() -> None:
 
 @pytest.mark.asyncio
 async def test_login_api_endpoint() -> None:
-    """Integration test for POST /api/v1/auth/login endpoint wiring."""
+    """Kiểm thử tích hợp việc kết nối endpoint POST /api/v1/auth/login."""
     from httpx import ASGITransport, AsyncClient
 
     async def override_get_db() -> AsyncGenerator[MagicMock]:
@@ -520,7 +520,7 @@ async def test_login_api_endpoint() -> None:
 
 @pytest.mark.asyncio
 async def test_refresh_token_api_endpoint() -> None:
-    """Integration test for POST /api/v1/auth/refresh endpoint wiring."""
+    """Kiểm thử tích hợp việc kết nối endpoint POST /api/v1/auth/refresh."""
     from httpx import ASGITransport, AsyncClient
 
     async def override_get_db() -> AsyncGenerator[MagicMock]:
@@ -557,7 +557,7 @@ async def test_refresh_token_api_endpoint() -> None:
 
 @pytest.mark.asyncio
 async def test_logout_api_endpoint() -> None:
-    """Integration test for POST /api/v1/auth/logout endpoint wiring."""
+    """Kiểm thử tích hợp việc kết nối endpoint POST /api/v1/auth/logout."""
     from httpx import ASGITransport, AsyncClient
 
     async def override_get_db() -> AsyncGenerator[MagicMock]:

@@ -1,4 +1,4 @@
-"""Alembic environment configuration for UniLake AI."""
+"""Cấu hình môi trường Alembic cho UniLake AI."""
 
 from __future__ import annotations
 
@@ -41,7 +41,7 @@ target_metadata = Base.metadata
 
 
 def get_url() -> str:
-    """Return the async database URL loaded from environment settings."""
+    """Trả về URL cơ sở dữ liệu bất đồng bộ từ cấu hình môi trường."""
     return settings.database_url
 
 
@@ -49,7 +49,7 @@ config.set_main_option("sqlalchemy.url", get_url())
 
 
 def run_migrations_offline() -> None:
-    """Run migrations in offline mode without opening a DB connection."""
+    """Chạy migration ngoại tuyến mà không mở kết nối cơ sở dữ liệu."""
     context.configure(
         url=config.get_main_option("sqlalchemy.url"),
         target_metadata=target_metadata,
@@ -64,7 +64,7 @@ def run_migrations_offline() -> None:
 
 
 def do_run_migrations(connection: Connection) -> None:
-    """Run migrations using a synchronous connection facade."""
+    """Chạy migration thông qua giao diện kết nối đồng bộ."""
     context.configure(
         connection=connection,
         target_metadata=target_metadata,
@@ -78,7 +78,7 @@ def do_run_migrations(connection: Connection) -> None:
 
 
 async def run_async_migrations() -> None:
-    """Run migrations with an async SQLAlchemy engine."""
+    """Chạy migration bằng engine SQLAlchemy bất đồng bộ."""
     connectable = async_engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
@@ -92,7 +92,7 @@ async def run_async_migrations() -> None:
 
 
 def run_migrations_online() -> None:
-    """Run migrations in online mode."""
+    """Chạy migration ở chế độ trực tuyến."""
     asyncio.run(run_async_migrations())
 
 

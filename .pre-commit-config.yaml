@@ -3,15 +3,15 @@
 # Chạy thủ công cho toàn repo: pre-commit run --all-files
 
 repos:
-  # ===== Code formatting & linting =====
+  # ===== Định dạng và kiểm tra mã nguồn =====
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.8.6
     hooks:
-      - id: ruff          # Linter
+      - id: ruff          # Kiểm tra mã nguồn
         args: [--fix, --exit-non-zero-on-fix]
-      - id: ruff-format   # Formatter (thay black)
+      - id: ruff-format   # Định dạng mã (thay black)
 
-  # ===== Type checking =====
+  # ===== Kiểm tra kiểu dữ liệu =====
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.13.0
     hooks:
@@ -27,7 +27,7 @@ repos:
           - types-requests
         pass_filenames: false  # check toàn bộ app/
 
-  # ===== Commit message validation =====
+  # ===== Kiểm tra thông điệp commit =====
   - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
     rev: v9.18.0
     hooks:
@@ -35,7 +35,7 @@ repos:
         stages: [commit-msg]
         additional_dependencies: ["@commitlint/config-conventional"]
 
-  # ===== Generic file checks =====
+  # ===== Kiểm tra tệp chung =====
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v5.0.0
     hooks:
@@ -48,7 +48,7 @@ repos:
       - id: check-merge-conflict
       - id: debug-statements  # phát hiện print()/breakpoint() còn sót
 
-  # ===== Frontend: ESLint + Prettier =====
+  # ===== Frontend: ESLint và Prettier =====
   - repo: local
     hooks:
       - id: eslint-frontend

@@ -1,4 +1,4 @@
-# Python Virtual Environment & Cache
+# Môi trường ảo và bộ nhớ đệm Python
 .venv/
 venv/
 __pycache__/
@@ -10,16 +10,16 @@ __pycache__/
 htmlcov/
 .coverage
 
-# Environment & Secrets
+# Môi trường và thông tin bí mật
 .env
 .env.local
 .env.*.local
 
-# IDE & OS
+# IDE và hệ điều hành
 .vscode/
 .idea/
 .DS_Store
 
-# Test & Docs
+# Kiểm thử và tài liệu
 tests/
 alembic/versions/__pycache__/

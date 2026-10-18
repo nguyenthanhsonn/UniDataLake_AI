@@ -241,9 +241,9 @@ def test_versions_fingerprints_and_config_immutable():
     dictionaries.clear()
     assert engine.standardize(typed(types)).accepted
     with pytest.raises(FrozenInstanceError):
-        engine.version = "changed"  # pyright: ignore[reportAttributeAccessIssue] -- tests frozen config
+        engine.version = "changed"  # pyright: ignore[reportAttributeAccessIssue] -- kiểm tra cấu hình bị đóng băng
     with pytest.raises(TypeError):
-        engine.references["x"] = "bad"  # pyright: ignore[reportIndexIssue] -- tests immutable mapping
+        engine.references["x"] = "bad"  # pyright: ignore[reportIndexIssue] -- kiểm tra ánh xạ bất biến
     with pytest.raises(IdentityConfigurationError, match="TYPE_HANDOFF_MISMATCH"):
         engine.standardize(replace(typed(types), configuration_fingerprint="changed"))
 

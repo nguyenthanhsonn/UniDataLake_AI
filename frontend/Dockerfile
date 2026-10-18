@@ -1,15 +1,15 @@
 FROM node:20-alpine AS base
 
-# Enable pnpm package manager
+# Bật trình quản lý gói pnpm
 RUN corepack enable && corepack prepare pnpm@10.0.0 --activate
 
-# Stage 1: Install dependencies
+# Giai đoạn 1: Cài thư viện phụ thuộc
 FROM base AS deps
 WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 
-# Stage 2: Build frontend application
+# Giai đoạn 2: Dựng ứng dụng frontend
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
@@ -17,7 +17,7 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN pnpm build
 
-# Stage 3: Production runner
+# Giai đoạn 3: Môi trường chạy production
 FROM base AS runner
 WORKDIR /app
 

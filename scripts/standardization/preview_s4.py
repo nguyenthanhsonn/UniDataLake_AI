@@ -1,4 +1,4 @@
-"""Synthetic S2 -> S3 -> S4 preview; no database allocation or Silver writes."""
+"""Bản xem trước S2 → S3 → S4 giả lập; không cấp phát trong cơ sở dữ liệu hay ghi Silver."""
 
 from __future__ import annotations
 
@@ -16,18 +16,23 @@ from app.modules.pipeline.identity_standardization import (
     IdentityStandardizationService,
     ValueDictionary,
 )
-from app.modules.pipeline.type_standardization import FieldOptions, TypeStandardizationService
+from app.modules.pipeline.type_standardization import (
+    FieldOptions,
+    TypeStandardizationService,
+)
 
 
 def normalize_case(case_id, *, preview=True):
     mapped = preview_case(case_id) if preview else map_case(case_id)
     contract = json.loads(
-        (ROOT / f"docs/standardization/silver-schemas/{mapped.key.domain_id}.json").read_text(
-            encoding="utf-8"
-        )
+        (
+            ROOT / f"docs/standardization/silver-schemas/{mapped.key.domain_id}.json"
+        ).read_text(encoding="utf-8")
     )
     fixture = json.loads(
-        (ROOT / "data/standardization/s4/preview-profiles.json").read_text(encoding="utf-8")
+        (ROOT / "data/standardization/s4/preview-profiles.json").read_text(
+            encoding="utf-8"
+        )
     )
     options = {}
     if mapped.key.entity == "admission_method":
@@ -36,9 +41,14 @@ def normalize_case(case_id, *, preview=True):
             "is_active": FieldOptions(true_tokens=("Có",), false_tokens=("Không",)),
         }
     if mapped.key.entity == "semester":
-        options = {n: FieldOptions(date_format="%d/%m/%Y") for n in ("start_date", "end_date")}
+        options = {
+            n: FieldOptions(date_format="%d/%m/%Y") for n in ("start_date", "end_date")
+        }
     types = TypeStandardizationService(
-        key=mapped.key, conversion_version="synthetic-types-1", contract=contract, options=options
+        key=mapped.key,
+        conversion_version="synthetic-types-1",
+        contract=contract,
+        options=options,
     )
     profile = fixture["profiles"][mapped.key.entity]
     when = datetime.fromisoformat(fixture["effective_at"])

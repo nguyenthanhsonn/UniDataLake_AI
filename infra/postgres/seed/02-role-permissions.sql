@@ -1,8 +1,8 @@
 -- =============================================================================
--- UniLake AI - Role & Role-Permission Seed Data
+-- UniLake AI - Dữ liệu khởi tạo vai trò và phân quyền
 -- =============================================================================
 
--- 1. Ensure Roles exist in app.role
+-- 1. Bảo đảm các vai trò tồn tại trong app.role
 INSERT INTO app.role (role_code, role_name, description) VALUES
 ('ADMIN',       'Quản trị viên hệ thống', 'Toàn quyền quản trị hệ thống và phân quyền'),
 ('SUPER_ADMIN', 'Super Admin',            'Toàn quyền hệ thống tối cao'),
@@ -15,7 +15,7 @@ DO UPDATE SET
     role_name = EXCLUDED.role_name,
     description = EXCLUDED.description;
 
--- 2. Seed Role-Permission Mappings
+-- 2. Nạp các ánh xạ vai trò và quyền
 
 -- ====================== ADMIN & SUPER_ADMIN (Full quyền) ======================
 INSERT INTO app.role_permission (role_id, permission_id)

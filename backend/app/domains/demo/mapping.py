@@ -1,4 +1,4 @@
-"""Source mappings for the demo domain."""
+"""Các ánh xạ nguồn cho miền demo."""
 
 from __future__ import annotations
 

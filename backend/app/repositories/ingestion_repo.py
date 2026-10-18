@@ -1,4 +1,4 @@
-"""Durable PostgreSQL queue. Every mutation commits before external I/O."""
+"""Hàng đợi PostgreSQL bền vững. Mọi thay đổi đều commit trước I/O bên ngoài."""
 
 from __future__ import annotations
 
@@ -44,13 +44,14 @@ class IngestionRepository:
         return source, dataset, layer, system
 
     async def active(self, source_id: int) -> IngestionJob | None:
-        return await self.db.scalar(
+        result = await self.db.scalars(
             select(IngestionJob).where(
                 IngestionJob.data_source_id == source_id,
                 IngestionJob.job_type == JOB_TYPE,
                 IngestionJob.status.in_(("QUEUED", "RUNNING")),
             )
         )
+        return result.first()
 
     async def create(self, **values: Any) -> IngestionJob:
         job = IngestionJob(job_type=JOB_TYPE, created_at=utcnow(), **values)

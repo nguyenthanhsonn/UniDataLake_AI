@@ -90,10 +90,10 @@ async def read_data_source_batch(
     object_version_id: str | None = None,
     expected_input_version: str | None = None,
 ) -> BronzeBatch:
-    """Normalization entrypoint with pinned file evidence; no storage writes.
+    """Điểm vào chuẩn hóa với bằng chứng tệp đã cố định; không ghi lưu trữ.
 
-    DB readers need a durable export/snapshot contract before this hand-off.
-    Legacy read_data_source remains a raw read API and cannot certify provenance.
+    Reader cơ sở dữ liệu cần hợp đồng xuất/chụp bền vững trước bước bàn giao này.
+    API đọc thô read_data_source cũ không thể chứng nhận nguồn gốc dữ liệu.
     """
     _validate_data_source_id(data_source_id)
     if not isinstance(binding, MappingBinding) or any(

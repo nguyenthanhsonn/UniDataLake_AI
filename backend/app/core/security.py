@@ -1,4 +1,4 @@
-"""Security helpers for passwords and HMAC-signed JWT tokens."""
+"""Tiện ích bảo mật cho mật khẩu và JWT được ký bằng HMAC."""
 
 from __future__ import annotations
 
@@ -25,7 +25,7 @@ def _b64url_decode(data: str) -> bytes:
 
 # Hàm hash_password để hash một mật khẩu với PBKDF2-HMAC-SHA256
 def hash_password(password: str) -> str:
-    """Hash a password with PBKDF2-HMAC-SHA256."""
+    """Băm mật khẩu bằng PBKDF2-HMAC-SHA256."""
     salt = token_bytes(16)
     digest = hashlib.pbkdf2_hmac("sha256", password.encode(), salt, 210_000)
     return f"pbkdf2_sha256${_b64url_encode(salt)}${_b64url_encode(digest)}"
@@ -33,7 +33,7 @@ def hash_password(password: str) -> str:
 
 # Hàm verify_password để verify một mật khẩu với PBKDF2-HMAC-SHA256
 def verify_password(password: str, password_hash: str) -> bool:
-    """Verify a password against a PBKDF2 hash."""
+    """Xác minh mật khẩu với giá trị băm PBKDF2."""
     try:
         algorithm, encoded_salt, encoded_digest = password_hash.split("$", 2)
     except ValueError:
@@ -55,7 +55,7 @@ def create_access_token(
     expires_delta: timedelta | None = None,
     claims: dict[str, Any] | None = None,
 ) -> str:
-    """Create a compact HS256 JWT access token."""
+    """Tạo access token JWT HS256 dạng rút gọn."""
     expire_at = datetime.now(UTC) + (
         expires_delta or timedelta(minutes=settings.jwt_access_token_expire_minutes)
     )
@@ -76,7 +76,7 @@ def create_refresh_token(
     expires_delta: timedelta | None = None,
     claims: dict[str, Any] | None = None,
 ) -> str:
-    """Create a compact HS256 JWT refresh token (default 7 days)."""
+    """Tạo refresh token JWT HS256 dạng rút gọn (mặc định 7 ngày)."""
     token_claims = {"type": "refresh", "jti": token_urlsafe(16), **(claims or {})}
     return create_access_token(
         subject,
@@ -87,7 +87,7 @@ def create_refresh_token(
 
 # Hàm decode_access_token để verify một compact HS256 JWT access token
 def decode_access_token(token: str) -> dict[str, Any]:
-    """Decode and verify a compact HS256 JWT access token."""
+    """Giải mã và xác minh access token JWT HS256 dạng rút gọn."""
     try:
         encoded_header, encoded_payload, encoded_signature = token.split(".", 2)
     except ValueError as exc:

@@ -1,4 +1,4 @@
-"""Version-pinned structural mapping. No casting, identity resolution or storage writes."""
+"""Ánh xạ cấu trúc cố định phiên bản. Không ép kiểu, phân giải định danh hay ghi lưu trữ."""
 
 from __future__ import annotations
 
@@ -25,12 +25,12 @@ class MappingKey:
 @dataclass(frozen=True)
 class FieldMapping:
     target: str
-    # JSON Pointer: /a/b, /a~1b, /items/0/id. Wildcards/explode are not implicit.
+    # JSON Pointer: /a/b, /a~1b, /items/0/id. Không ngầm hỗ trợ ký tự đại diện hoặc tách mảng thành dòng.
     sources: tuple[str, ...]
-    operation: str = "copy"  # copy, coalesce, concat, split
+    operation: str = "copy"  # Các phép ánh xạ: copy, coalesce, concat, split
     separator: str = " "
     index: int = 0
-    conflict: str = "error"  # coalesce only: error or first_present
+    conflict: str = "error"  # Chỉ với coalesce: error hoặc first_present
 
 
 @dataclass(frozen=True)
@@ -39,10 +39,10 @@ class MappingProfile:
     source_type: str
     target_fields: tuple[str, ...]
     fields: tuple[FieldMapping, ...]
-    # Later stages own these fields; never synthesize null/default values for them.
+    # Các trường này thuộc giai đoạn sau; không tự sinh null hay giá trị mặc định cho chúng.
     deferred_fields: tuple[str, ...] = ()
     ignored_sources: tuple[str, ...] = ()
-    # Required source paths are structural; a present null is not a missing column.
+    # Đường dẫn nguồn bắt buộc xét theo cấu trúc; giá trị null hiện hữu không phải cột bị thiếu.
     source_fields: tuple[str, ...] = ()
 
 
@@ -52,7 +52,7 @@ class MappingIssue:
     severity: str
     locator: str | None
     field: str | None
-    # Messages deliberately exclude raw values and credentials.
+    # Thông báo cố ý loại bỏ giá trị thô và thông tin xác thực.
 
 
 class MappingConfigurationError(ValueError):
@@ -65,7 +65,7 @@ class MappingConfigurationError(ValueError):
 class MappedRow:
     locator: str
     values: dict[str, object]
-    # Preview shows only mapped inputs; deliberately excluded fields never appear here.
+    # Bản xem trước chỉ hiển thị đầu vào đã ánh xạ; các trường chủ động loại bỏ không xuất hiện ở đây.
     before: dict[str, object] | None = None
 
 
@@ -80,7 +80,7 @@ class MappingResult:
     inspected_count: int
     total_count: int
     preview: bool
-    # This is an intermediate structure, not validated Silver.
+    # Đây là cấu trúc trung gian, chưa phải Silver đã kiểm tra.
     silver_ready: bool = False
     provenance: FileProvenance | None = None
 
@@ -206,7 +206,7 @@ def _value(record: Mapping[str, object], field: FieldMapping) -> tuple[object, s
         present = [value for exists, value in values if exists]
         if not present:
             return None, "REQUIRED_SOURCE_FIELD_MISSING"
-        # null is present; no silent fallback from explicit null to another alias.
+        # null là giá trị hiện hữu; không âm thầm chuyển từ null tường minh sang bí danh khác.
         if field.conflict == "error" and any(
             type(v) is not type(present[0]) or v != present[0] for v in present[1:]
         ):
@@ -232,7 +232,7 @@ class SchemaMappingService:
         self.registry = registry
 
     def map_batch(self, batch: BronzeBatch, *, preview_limit: int | None = None) -> MappingResult:
-        """Map a pinned batch. Caller supplies physical locators; no storage side effects."""
+        """Ánh xạ batch đã cố định. Bên gọi cung cấp vị trí vật lý; không phát sinh ghi lưu trữ."""
         if batch.mapping_binding is None:
             raise MappingConfigurationError("MAPPING_BINDING_REQUIRED")
         binding = batch.mapping_binding
@@ -264,7 +264,7 @@ class SchemaMappingService:
             raise MappingConfigurationError("INVALID_RECORD_LOCATORS")
         if preview_limit is not None and (isinstance(preview_limit, bool) or preview_limit <= 0):
             raise MappingConfigurationError("INVALID_PREVIEW_LIMIT")
-        # Check declared shape before mapping even when batch is empty.
+        # Kiểm tra cấu trúc đã khai báo trước khi ánh xạ, kể cả khi batch rỗng.
         declared = set(batch.source_paths)
         for path in declared:
             _tokens(path)

@@ -1,4 +1,4 @@
-"""S4 -> validated Parquet -> immutable manifest -> transactional active pointer."""
+"""S4 → Parquet đã kiểm tra → bản kê bất biến → con trỏ hiện hành cập nhật qua giao dịch."""
 
 from __future__ import annotations
 
@@ -230,7 +230,7 @@ class SilverPublicationService:
     ) -> PublicationReceipt:
         if not results:
             raise SilverError("NO_INPUT_BATCHES")
-        # Exclude attempt/capture times and batch IDs from logical idempotency.
+        # Loại thời gian thử/chụp và mã batch khỏi khóa chống xử lý lặp logic.
         inputs = []
         for result in results:
             source = asdict(result.provenance) if result.provenance else None
@@ -412,7 +412,7 @@ class SilverPublicationService:
                 "updated_lineage": lineage,
                 "entities": entities,
             }
-            # Governance gate before any object writes. Lineage for new entities is available.
+            # Kiểm tra điều kiện quản trị trước mọi thao tác ghi đối tượng. Đã có nguồn gốc cho thực thể mới.
             manifest["business_issues"] = [asdict(issue) for issue in self._gate(tables, manifest)]
             prefix = f"silver/{self.mode}/{checksum(self.scope.encode())}/{run_id}"
             for entity, records in updates.items():
@@ -441,7 +441,7 @@ class SilverPublicationService:
                         str(exc) if isinstance(exc, SilverError) else "STORAGE_OR_METADATA_FAILURE",
                     )
                 ]
-            # If metadata is unavailable, leave the attempt for reconciliation.
+            # Nếu metadata không khả dụng, giữ lại lần thử để đối soát.
             with suppress(Exception):
                 self.repository.fail(run_id, [asdict(i) for i in issues])
             if isinstance(exc, SilverError):

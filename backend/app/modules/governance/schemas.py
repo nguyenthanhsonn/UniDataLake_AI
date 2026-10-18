@@ -1,4 +1,4 @@
-"""Pydantic schemas for governance endpoints."""
+"""Các schema Pydantic cho endpoint quản trị dữ liệu."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from app.domains.base import DataLayer  # noqa: TC001
 
 
 class FieldDefinitionSchema(BaseModel):
-    """Field metadata schema for governance responses."""
+    """Schema metadata trường cho phản hồi quản trị dữ liệu."""
 
     name: str
     data_type: str
@@ -17,7 +17,7 @@ class FieldDefinitionSchema(BaseModel):
 
 
 class CatalogEntrySchema(BaseModel):
-    """Catalog entry schema for governance responses."""
+    """Schema mục catalog cho phản hồi quản trị dữ liệu."""
 
     domain_id: str
     dataset: str

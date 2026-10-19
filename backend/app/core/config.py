@@ -15,6 +15,8 @@ class Settings(BaseSettings):
             ".env",
             "../.env.bronze-accounts.local",
             ".env.bronze-accounts.local",
+            "../.env.silver-backend.local",
+            ".env.silver-backend.local",
             "../.env.source-reader.local",
             ".env.source-reader.local",
         ),
@@ -56,6 +58,8 @@ class Settings(BaseSettings):
     )
     bronze_reader_access_key: str = Field(default="", alias="BRONZE_READER_ACCESS_KEY")
     bronze_reader_secret_key: str = Field(default="", alias="BRONZE_READER_SECRET_KEY", repr=False)
+    silver_writer_access_key: str = Field(default="", alias="SILVER_WRITER_ACCESS_KEY")
+    silver_writer_secret_key: str = Field(default="", alias="SILVER_WRITER_SECRET_KEY", repr=False)
     source_minio_access_key: str = Field(default="", alias="SOURCE_MINIO_ACCESS_KEY")
     source_minio_secret_key: str = Field(default="", alias="SOURCE_MINIO_SECRET_KEY", repr=False)
     minio_secure: bool = Field(default=False, alias="MINIO_SECURE")

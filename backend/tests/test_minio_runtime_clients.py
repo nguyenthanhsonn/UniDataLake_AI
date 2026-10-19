@@ -51,6 +51,7 @@ def test_export_runtime_keeps_admin_and_writer_out_of_backend(tmp_path: Path) ->
     export_runtime(path)
     backend = dotenv_values(tmp_path / ".env.bronze-backend.local")
     worker = dotenv_values(tmp_path / ".env.bronze-worker.local")
+    silver_backend = dotenv_values(tmp_path / ".env.silver-backend.local")
     assert "BRONZE_WRITER_SECRET_KEY" not in backend
     assert "BRONZE_VERIFIER_SECRET_KEY" not in backend
     assert "BRONZE_WRITER_SECRET_KEY" in worker
@@ -60,3 +61,16 @@ def test_export_runtime_keeps_admin_and_writer_out_of_backend(tmp_path: Path) ->
         assert "MINIO_SECRET_KEY" not in values
         assert "SOURCE_MINIO_SECRET_KEY" in values
         assert "BRONZE_READER_SECRET_KEY" in values
+        assert "SILVER_WRITER_SECRET_KEY" not in backend
+        assert "SILVER_WRITER_SECRET_KEY" in silver_backend
+
+
+def test_silver_writer_client_requires_its_scoped_credentials(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(settings, "silver_writer_access_key", "")
+    constructor = Mock()
+    monkeypatch.setattr(clients, "Minio", constructor)
+    with pytest.raises(ValueError, match="MINIO_SILVER_WRITER_CREDENTIALS_REQUIRED"):
+        clients.silver_writer_client()
+    constructor.assert_not_called()

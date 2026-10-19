@@ -27,7 +27,10 @@ class Settings(BaseSettings):
     app_env: str = Field(default="development", alias="ENVIRONMENT")
     debug: bool = Field(default=False, alias="DEBUG")
     api_v1_prefix: str = Field(default="/api/v1", alias="API_V1_PREFIX")  # MỚI
-    cors_origins: str = Field(default="http://localhost:3000", alias="CORS_ORIGINS")  # MỚI
+    cors_origins: str = Field(
+        default="http://localhost:3000,http://localhost:3001,http://127.0.0.1:3000,http://127.0.0.1:3001",
+        alias="CORS_ORIGINS",
+    )  # MỚI
 
     db_host: str = Field(default="localhost", alias="DB_HOST")
     db_port: int = Field(default=5432, alias="DB_PORT")

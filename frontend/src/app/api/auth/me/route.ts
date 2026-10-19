@@ -3,14 +3,7 @@ import { NextResponse } from 'next/server'
 
 import type { AuthUser, RoleCode } from '@/types/auth'
 
-const VALID_ROLE_CODES: RoleCode[] = [
-  'SUPER_ADMIN',
-  'DATA_ENGINEER',
-  'DATA_GOVERNANCE',
-  'DATA_ANALYST',
-  'ACADEMIC_ADMIN',
-  'USER',
-]
+const VALID_ROLE_CODES: RoleCode[] = ['ADMIN', 'DATA_ADMIN', 'ANALYST', 'MANAGER', 'VIEWER']
 
 function parseJwtPayload(token: string): Record<string, unknown> | null {
   try {
@@ -45,7 +38,7 @@ export async function GET() {
     : []
 
   if (roles.length === 0) {
-    roles.push('USER')
+    roles.push('VIEWER')
   }
 
   const sub = typeof payload.sub === 'string' ? payload.sub : undefined

@@ -24,7 +24,7 @@ const announcements = [
   },
 ]
 
-export function HomeView() {
+export function ViewerView() {
   return (
     <div className="space-y-6">
       {/* Welcome Banner */}
@@ -83,7 +83,7 @@ export function HomeView() {
             <Info className="size-4 text-indigo-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">USER</div>
+            <div className="text-2xl font-bold">VIEWER</div>
             <p className="text-xs text-slate-500">
               Liên hệ Quản trị viên để cấp thêm vai trò chuyên biệt
             </p>
@@ -133,3 +133,5 @@ export function HomeView() {
     </div>
   )
 }
+
+export { ViewerView as HomeView }

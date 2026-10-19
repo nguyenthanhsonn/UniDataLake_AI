@@ -8,7 +8,7 @@ const sampleUsers = [
     username: 'admin_sys',
     fullName: 'Nguyễn Văn Quản',
     email: 'admin@unilake.edu.vn',
-    roles: ['SUPER_ADMIN'],
+    roles: ['ADMIN'],
     status: 'Đang hoạt động',
     lastLogin: 'Hôm nay, 08:42',
   },
@@ -16,7 +16,7 @@ const sampleUsers = [
     username: 'de_toan',
     fullName: 'Lê Hoàng Toàn',
     email: 'toan.lh@unilake.edu.vn',
-    roles: ['DATA_ENGINEER', 'DATA_ANALYST'],
+    roles: ['DATA_ADMIN', 'ANALYST'],
     status: 'Đang hoạt động',
     lastLogin: 'Hôm nay, 08:30',
   },
@@ -24,7 +24,7 @@ const sampleUsers = [
     username: 'gov_mai',
     fullName: 'Trần Thị Mai',
     email: 'mai.tt@unilake.edu.vn',
-    roles: ['DATA_GOVERNANCE'],
+    roles: ['DATA_ADMIN'],
     status: 'Đang hoạt động',
     lastLogin: 'Hôm qua, 16:15',
   },
@@ -32,7 +32,7 @@ const sampleUsers = [
     username: 'analyst_minh',
     fullName: 'Phạm Đức Minh',
     email: 'minh.pd@unilake.edu.vn',
-    roles: ['DATA_ANALYST'],
+    roles: ['ANALYST'],
     status: 'Đang hoạt động',
     lastLogin: 'Hôm qua, 14:02',
   },
@@ -40,7 +40,7 @@ const sampleUsers = [
     username: 'academic_huong',
     fullName: 'Vũ Thu Hương',
     email: 'huong.vt@unilake.edu.vn',
-    roles: ['ACADEMIC_ADMIN'],
+    roles: ['MANAGER'],
     status: 'Đang hoạt động',
     lastLogin: '04/10/2026',
   },
@@ -48,7 +48,7 @@ const sampleUsers = [
     username: 'staff_nam',
     fullName: 'Đặng Thành Nam',
     email: 'nam.dt@unilake.edu.vn',
-    roles: ['USER'],
+    roles: ['VIEWER'],
     status: 'Đang hoạt động',
     lastLogin: '02/10/2026',
   },
@@ -63,8 +63,8 @@ export function AdminView() {
           Quản trị hệ thống & Phân quyền RBAC
         </h2>
         <p className="text-sm text-slate-500 dark:text-slate-400">
-          Không gian dành riêng cho vai trò SUPER_ADMIN — Quản lý tài khoản, gán role_code và giám
-          sát hạ tầng.
+          Không gian dành riêng cho vai trò ADMIN — Quản lý tài khoản, gán role_code và giám sát hạ
+          tầng.
         </p>
       </div>
 
@@ -106,8 +106,8 @@ export function AdminView() {
             <ShieldCheck className="size-4 text-indigo-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">6</div>
-            <p className="text-xs text-slate-500">SUPER_ADMIN, DE, GOV, ANALYST, ACAD, USER</p>
+            <div className="text-2xl font-bold">5</div>
+            <p className="text-xs text-slate-500">ADMIN, DATA_ADMIN, ANALYST, MANAGER, VIEWER</p>
           </CardContent>
         </Card>
 
@@ -164,7 +164,7 @@ export function AdminView() {
                         {u.roles.map((r) => (
                           <Badge
                             key={r}
-                            variant={r === 'SUPER_ADMIN' ? 'destructive' : 'secondary'}
+                            variant={r === 'ADMIN' ? 'destructive' : 'secondary'}
                             className="font-mono text-[10px]"
                           >
                             {r}

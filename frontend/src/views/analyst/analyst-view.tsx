@@ -25,7 +25,7 @@ const sampleQueries = [
   },
 ]
 
-export function AnalyticsView() {
+export function AnalystView() {
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -34,8 +34,8 @@ export function AnalyticsView() {
           Phân tích dữ liệu & Trợ lý NLQ AI
         </h2>
         <p className="text-sm text-slate-500 dark:text-slate-400">
-          Không gian dành riêng cho vai trò DATA_ANALYST — Truy vấn dữ liệu tự nhiên, sinh SQL tự
-          động qua DuckDB và trực quan hóa KPI.
+          Không gian dành riêng cho vai trò ANALYST — Truy vấn dữ liệu tự nhiên, sinh SQL tự động
+          qua DuckDB và trực quan hóa KPI.
         </p>
       </div>
 
@@ -153,3 +153,5 @@ export function AnalyticsView() {
     </div>
   )
 }
+
+export { AnalystView as AnalyticsView }

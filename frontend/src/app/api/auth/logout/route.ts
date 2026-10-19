@@ -10,5 +10,6 @@ export function POST() {
     maxAge: 0,
   })
   response.cookies.delete('access_token')
+  response.cookies.delete('refresh_token')
   return response
 }

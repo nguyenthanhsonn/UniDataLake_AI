@@ -5,12 +5,15 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
 import { zodResolver } from '@hookform/resolvers/zod'
+import axios from 'axios'
+import Cookies from 'js-cookie'
 import { ArrowRight, CircleAlert, Eye, EyeOff, Layers, LoaderCircle, X } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
+import { API_SignIn } from '@/api/api_auth'
 import { getDefaultHomeForRoles } from '@/config/roles'
-import type { RoleCode } from '@/types/auth'
+import type { ApiErrorBody, LoginFormValues, RoleCode } from '@/types/auth'
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -24,14 +27,6 @@ export const loginSchema = z.object({
     }),
   password: z.string().min(1, 'Vui lòng nhập mật khẩu.'),
 })
-
-export type LoginFormValues = z.infer<typeof loginSchema>
-
-interface ApiErrorBody {
-  error?: { code?: string; message?: string }
-  detail?: string
-  message?: string
-}
 
 const DEFAULT_LOGIN_ERROR = 'Tên đăng nhập hoặc mật khẩu chưa đúng. Vui lòng kiểm tra lại.'
 
@@ -57,29 +52,45 @@ export function LoginView() {
   async function onSubmit(values: LoginFormValues) {
     setServerError(null)
     try {
-      // Backend nhận JSON { username, password }.
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(values),
+      const data = await API_SignIn(values)
+
+      // Thiết lập cookie để middleware và Next.js SSR nhận diện xác thực
+      Cookies.set('access_token', data.access_token, {
+        expires: 1, // 1 ngày
+        path: '/',
+        sameSite: 'lax',
       })
-
-      if (!res.ok) {
-        const body = (await res.json().catch(() => ({}))) as ApiErrorBody
-        setServerError(body.error?.message ?? body.detail ?? body.message ?? DEFAULT_LOGIN_ERROR)
-        return
+      if (data.refresh_token) {
+        Cookies.set('refresh_token', data.refresh_token, {
+          expires: 7, // 7 ngày
+          path: '/',
+          sameSite: 'lax',
+        })
       }
 
-      const meRes = await fetch('/api/auth/me')
-      if (meRes.ok) {
-        const meData = (await meRes.json()) as { user?: { roles?: RoleCode[] } }
-        router.push(getDefaultHomeForRoles(meData.user?.roles ?? []))
-      } else {
-        router.push('/home')
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('access_token', data.access_token)
+        if (data.refresh_token) {
+          localStorage.setItem('refresh_token', data.refresh_token)
+        }
+        if (data.user) {
+          localStorage.setItem('user', JSON.stringify(data.user))
+        }
       }
+
+      const role = data.user?.role?.toUpperCase() as RoleCode | undefined
+      const userRoles: RoleCode[] = role ? [role] : ['VIEWER']
+      const redirectPath = getDefaultHomeForRoles(userRoles)
+
+      router.push(redirectPath)
       router.refresh()
-    } catch {
-      setServerError('Không thể kết nối đến máy chủ. Vui lòng thử lại sau.')
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        const body = err.response?.data as ApiErrorBody | undefined
+        setServerError(body?.error?.message ?? body?.detail ?? body?.message ?? DEFAULT_LOGIN_ERROR)
+      } else {
+        setServerError('Không thể kết nối đến máy chủ. Vui lòng thử lại sau.')
+      }
     }
   }
 

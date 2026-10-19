@@ -4,19 +4,12 @@ import type { NextRequest } from 'next/server'
 import { getDefaultHomeForRoles, hasAccessToRoute } from '@/config/roles'
 import type { RoleCode } from '@/types/auth'
 
-const VALID_ROLES: RoleCode[] = [
-  'SUPER_ADMIN',
-  'DATA_ENGINEER',
-  'DATA_GOVERNANCE',
-  'DATA_ANALYST',
-  'ACADEMIC_ADMIN',
-  'USER',
-]
+const VALID_ROLES: RoleCode[] = ['ADMIN', 'DATA_ADMIN', 'ANALYST', 'MANAGER', 'VIEWER']
 
 function extractRolesFromToken(token: string): RoleCode[] {
   try {
     const parts = token.split('.')
-    if (parts.length !== 3 || !parts[1]) return ['USER']
+    if (parts.length !== 3 || !parts[1]) return ['VIEWER']
 
     const base64Url = parts[1]
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/')
@@ -32,9 +25,9 @@ function extractRolesFromToken(token: string): RoleCode[] {
           .filter((r): r is RoleCode => VALID_ROLES.includes(r as RoleCode))
       : []
 
-    return roles.length > 0 ? roles : ['USER']
+    return roles.length > 0 ? roles : ['VIEWER']
   } catch {
-    return ['USER']
+    return ['VIEWER']
   }
 }
 

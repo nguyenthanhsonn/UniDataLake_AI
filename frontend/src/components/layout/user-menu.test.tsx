@@ -8,8 +8,8 @@ const logout = vi.fn()
 
 vi.mock('@/hooks/use-auth', () => ({
   useAuth: () => ({
-    user: { username: 'analyst', fullName: 'Trần Thị Mai Phương', roles: ['DATA_ANALYST', 'USER'] },
-    roles: ['DATA_ANALYST', 'USER'],
+    user: { username: 'analyst', fullName: 'Trần Thị Mai Phương', roles: ['ANALYST', 'VIEWER'] },
+    roles: ['ANALYST', 'VIEWER'],
     logout,
     isLoggingOut: false,
   }),
@@ -35,24 +35,24 @@ describe('UserMenu', () => {
   })
 
   it('shows the user name and current role on the trigger', () => {
-    render(<UserMenu role="DATA_ANALYST" />)
+    render(<UserMenu role="ANALYST" />)
 
     const trigger = screen.getByRole('button', { name: 'Mở menu người dùng' })
     expect(trigger).toHaveTextContent('Trần Thị Mai Phương')
-    expect(trigger).toHaveTextContent('[DATA_ANALYST]')
+    expect(trigger).toHaveTextContent('[ANALYST]')
   })
 
   it('lists the workspaces the user can switch to and logs out', async () => {
     const user = userEvent.setup()
-    render(<UserMenu role="DATA_ANALYST" />)
+    render(<UserMenu role="ANALYST" />)
 
     await user.click(screen.getByRole('button', { name: 'Mở menu người dùng' }))
 
     expect(await screen.findByRole('menuitem', { name: /Chuyên viên phân tích/ })).toHaveAttribute(
       'href',
-      '/analytics'
+      '/analyst'
     )
-    expect(screen.getByRole('menuitem', { name: /Người dùng/ })).toHaveAttribute('href', '/home')
+    expect(screen.getByRole('menuitem', { name: /Người xem/ })).toHaveAttribute('href', '/viewer')
 
     await user.click(screen.getByRole('menuitem', { name: 'Đăng xuất' }))
     expect(logout).toHaveBeenCalledTimes(1)

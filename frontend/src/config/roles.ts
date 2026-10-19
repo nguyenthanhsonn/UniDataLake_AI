@@ -1,76 +1,60 @@
 import type { RoleCode, RoleDefinition } from '@/types/auth'
 
 export const ROLE_CODES: Record<RoleCode, RoleCode> = {
-  SUPER_ADMIN: 'SUPER_ADMIN',
-  DATA_ENGINEER: 'DATA_ENGINEER',
-  DATA_GOVERNANCE: 'DATA_GOVERNANCE',
-  DATA_ANALYST: 'DATA_ANALYST',
-  ACADEMIC_ADMIN: 'ACADEMIC_ADMIN',
-  USER: 'USER',
+  ADMIN: 'ADMIN',
+  DATA_ADMIN: 'DATA_ADMIN',
+  ANALYST: 'ANALYST',
+  MANAGER: 'MANAGER',
+  VIEWER: 'VIEWER',
 }
 
 export const ROLE_DEFINITIONS: Record<RoleCode, RoleDefinition> = {
-  SUPER_ADMIN: {
-    code: 'SUPER_ADMIN',
+  ADMIN: {
+    code: 'ADMIN',
     name: 'Quản trị hệ thống',
     homePath: '/admin',
     description: 'Toàn quyền cấu hình, phân quyền và quản trị hệ thống',
     badgeVariant: 'destructive',
   },
-  DATA_ENGINEER: {
-    code: 'DATA_ENGINEER',
-    name: 'Kỹ sư dữ liệu',
-    homePath: '/engineering',
-    description: 'Quản lý pipeline ingestion, ETL Medallion và hạ tầng dữ liệu',
+  DATA_ADMIN: {
+    code: 'DATA_ADMIN',
+    name: 'Quản trị & Kỹ thuật dữ liệu',
+    homePath: '/data',
+    description: 'Quản lý pipeline ingestion, Medallion, catalog và chất lượng dữ liệu',
     badgeVariant: 'default',
   },
-  DATA_GOVERNANCE: {
-    code: 'DATA_GOVERNANCE',
-    name: 'Quản trị dữ liệu',
-    homePath: '/governance',
-    description: 'Data catalog, chất lượng dữ liệu DQ, phân loại và bảo mật',
-    badgeVariant: 'secondary',
-  },
-  DATA_ANALYST: {
-    code: 'DATA_ANALYST',
+  ANALYST: {
+    code: 'ANALYST',
     name: 'Chuyên viên phân tích',
-    homePath: '/analytics',
+    homePath: '/analyst',
     description: 'Truy vấn NLQ AI, báo cáo phân tích và trực quan hóa dữ liệu',
     badgeVariant: 'default',
   },
-  ACADEMIC_ADMIN: {
-    code: 'ACADEMIC_ADMIN',
+  MANAGER: {
+    code: 'MANAGER',
     name: 'Quản trị đào tạo',
-    homePath: '/academic',
+    homePath: '/manager',
     description: 'Quản lý tuyển sinh, chương trình đào tạo và học viên',
     badgeVariant: 'secondary',
   },
-  USER: {
-    code: 'USER',
-    name: 'Người dùng',
-    homePath: '/home',
+  VIEWER: {
+    code: 'VIEWER',
+    name: 'Người xem',
+    homePath: '/viewer',
     description: 'Cổng thông tin dữ liệu và báo cáo tổng hợp đại học',
     badgeVariant: 'outline',
   },
 }
 
 /** Thứ tự ưu tiên để xác định trang chủ mặc định cho người dùng có nhiều vai trò */
-export const ROLE_PRIORITY: RoleCode[] = [
-  'SUPER_ADMIN',
-  'DATA_ENGINEER',
-  'DATA_GOVERNANCE',
-  'DATA_ANALYST',
-  'ACADEMIC_ADMIN',
-  'USER',
-]
+export const ROLE_PRIORITY: RoleCode[] = ['ADMIN', 'DATA_ADMIN', 'ANALYST', 'MANAGER', 'VIEWER']
 
 export const ROLE_ROUTE_PREFIXES: Record<RoleCode, string> = {
-  SUPER_ADMIN: '/admin',
-  DATA_ENGINEER: '/engineering',
-  DATA_GOVERNANCE: '/governance',
-  DATA_ANALYST: '/analytics',
-  ACADEMIC_ADMIN: '/academic',
-  USER: '/home',
+  ADMIN: '/admin',
+  DATA_ADMIN: '/data',
+  ANALYST: '/analyst',
+  MANAGER: '/manager',
+  VIEWER: '/viewer',
 }
 
 export function getDefaultHomeForRoles(roles: RoleCode[]): string {
@@ -79,20 +63,43 @@ export function getDefaultHomeForRoles(roles: RoleCode[]): string {
       return ROLE_DEFINITIONS[role].homePath
     }
   }
-  return '/home'
+  return '/viewer'
 }
 
 export function getRoleFromPrefix(pathname: string): RoleCode | null {
-  for (const [role, prefix] of Object.entries(ROLE_ROUTE_PREFIXES) as [RoleCode, string][]) {
-    if (pathname === prefix || pathname.startsWith(`${prefix}/`)) {
-      return role
-    }
+  if (
+    pathname === '/data' ||
+    pathname.startsWith('/data/') ||
+    pathname.startsWith('/engineering') ||
+    pathname.startsWith('/governance')
+  ) {
+    return 'DATA_ADMIN'
+  }
+  if (
+    pathname === '/analyst' ||
+    pathname.startsWith('/analyst/') ||
+    pathname.startsWith('/analytics')
+  ) {
+    return 'ANALYST'
+  }
+  if (
+    pathname === '/manager' ||
+    pathname.startsWith('/manager/') ||
+    pathname.startsWith('/academic')
+  ) {
+    return 'MANAGER'
+  }
+  if (pathname === '/viewer' || pathname.startsWith('/viewer/') || pathname.startsWith('/home')) {
+    return 'VIEWER'
+  }
+  if (pathname === '/admin' || pathname.startsWith('/admin/')) {
+    return 'ADMIN'
   }
   return null
 }
 
 export function hasAccessToRoute(pathname: string, userRoles: RoleCode[]): boolean {
-  if (userRoles.includes('SUPER_ADMIN')) {
+  if (userRoles.includes('ADMIN')) {
     return true
   }
   const requiredRole = getRoleFromPrefix(pathname)

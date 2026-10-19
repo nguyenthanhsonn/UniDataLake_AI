@@ -38,7 +38,7 @@ const programs = [
   },
 ]
 
-export function AcademicView() {
+export function ManagerView() {
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -47,8 +47,8 @@ export function AcademicView() {
           Quản trị đào tạo & Học vụ
         </h2>
         <p className="text-sm text-slate-500 dark:text-slate-400">
-          Không gian dành riêng cho vai trò ACADEMIC_ADMIN — Quản lý công tác tuyển sinh, chương
-          trình đào tạo và theo dõi sinh viên chính quy.
+          Không gian dành riêng cho vai trò MANAGER — Quản lý công tác tuyển sinh, chương trình đào
+          tạo và theo dõi sinh viên chính quy.
         </p>
       </div>
 
@@ -163,3 +163,5 @@ export function AcademicView() {
     </div>
   )
 }
+
+export { ManagerView as AcademicView }

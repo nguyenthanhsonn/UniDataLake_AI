@@ -1,7 +1,7 @@
 import type { MenuGroup, MenuItem, RoleCode } from '@/types/auth'
 
 export const ROLE_MENUS: Record<RoleCode, MenuGroup[]> = {
-  SUPER_ADMIN: [
+  ADMIN: [
     {
       groupTitle: 'Quản trị hệ thống',
       items: [
@@ -21,7 +21,7 @@ export const ROLE_MENUS: Record<RoleCode, MenuGroup[]> = {
           title: 'Vai trò & Quyền hạn',
           href: '/admin/roles',
           iconName: 'Shield',
-          description: 'Cấu hình 6 nhóm quyền RBAC',
+          description: 'Cấu hình nhóm quyền RBAC',
         },
         {
           title: 'Cấu hình hệ thống',
@@ -39,64 +39,61 @@ export const ROLE_MENUS: Record<RoleCode, MenuGroup[]> = {
     },
   ],
 
-  DATA_ENGINEER: [
+  DATA_ADMIN: [
     {
       groupTitle: 'Kỹ thuật dữ liệu',
       items: [
         {
-          title: 'Ingestion Pipelines',
-          href: '/engineering',
+          title: 'Tổng quan & Ingestion',
+          href: '/data',
           iconName: 'GitBranch',
           description: 'Quản lý các luồng nạp dữ liệu tự động',
         },
         {
           title: 'Nguồn dữ liệu',
-          href: '/engineering/sources',
+          href: '/data/sources',
           iconName: 'Database',
           description: 'PostgreSQL, CSV, REST API connectors',
         },
         {
           title: 'Medallion Storage',
-          href: '/engineering/storage',
+          href: '/data/storage',
           iconName: 'Layers',
           badge: 'Bronze / Silver / Gold',
           description: 'Lưu trữ Delta Lake & MinIO theo tầng',
         },
         {
           title: 'DuckDB & Hạ tầng',
-          href: '/engineering/infra',
+          href: '/data/infra',
           iconName: 'HardDrive',
           description: 'Engine tính toán phân tích cục bộ',
         },
       ],
     },
-  ],
-
-  DATA_GOVERNANCE: [
     {
       groupTitle: 'Quản trị dữ liệu',
       items: [
         {
           title: 'Data Catalog',
-          href: '/governance',
+          href: '/data/catalog',
           iconName: 'BookOpen',
           description: 'Từ điển dữ liệu và metadata quản trị đại học',
         },
         {
           title: 'Phân loại & PII',
-          href: '/governance/classification',
+          href: '/data/classification',
           iconName: 'ShieldCheck',
           description: 'Bảo vệ thông tin cá nhân sinh viên và cán bộ',
         },
         {
           title: 'Chất lượng dữ liệu (DQ)',
-          href: '/governance/quality',
+          href: '/data/quality',
           iconName: 'CheckCircle2',
           description: 'Bộ quy tắc kiểm tra tính toàn vẹn dữ liệu',
         },
         {
           title: 'Chính sách truy cập',
-          href: '/governance/policies',
+          href: '/data/policies',
           iconName: 'KeyRound',
           description: 'Phân quyền mức bảng và cột dữ liệu',
         },
@@ -104,32 +101,32 @@ export const ROLE_MENUS: Record<RoleCode, MenuGroup[]> = {
     },
   ],
 
-  DATA_ANALYST: [
+  ANALYST: [
     {
       groupTitle: 'Phân tích & Khai phá',
       items: [
         {
           title: 'Trợ lý NLQ AI',
-          href: '/analytics',
+          href: '/analyst',
           iconName: 'Bot',
           badge: 'AI',
           description: 'Hỏi dữ liệu quản trị bằng ngôn ngữ tự nhiên',
         },
         {
           title: 'Dashboards & KPIs',
-          href: '/analytics/dashboards',
+          href: '/analyst/dashboards',
           iconName: 'BarChart3',
           description: 'Biểu đồ tuyển sinh, học tập và tài chính',
         },
         {
           title: 'Khám phá dữ liệu',
-          href: '/analytics/explore',
+          href: '/analyst/explore',
           iconName: 'Table',
           description: 'Truy vấn trực tiếp qua SQL Read-only',
         },
         {
           title: 'Lịch sử truy vấn',
-          href: '/analytics/history',
+          href: '/analyst/history',
           iconName: 'History',
           description: 'Xem lại các câu hỏi NLQ và kết quả',
         },
@@ -137,31 +134,31 @@ export const ROLE_MENUS: Record<RoleCode, MenuGroup[]> = {
     },
   ],
 
-  ACADEMIC_ADMIN: [
+  MANAGER: [
     {
       groupTitle: 'Quản trị đào tạo',
       items: [
         {
           title: 'Tổng quan học vụ',
-          href: '/academic',
+          href: '/manager',
           iconName: 'GraduationCap',
           description: 'Thống kê tình hình đào tạo toàn trường',
         },
         {
           title: 'Tuyển sinh',
-          href: '/academic/admissions',
+          href: '/manager/admissions',
           iconName: 'UserPlus',
           description: 'Đợt tuyển sinh, phương thức và điểm chuẩn',
         },
         {
           title: 'Chương trình đào tạo',
-          href: '/academic/programs',
+          href: '/manager/programs',
           iconName: 'Layers',
           description: 'Ngành học, khung chương trình và học phần',
         },
         {
           title: 'Hồ sơ sinh viên',
-          href: '/academic/students',
+          href: '/manager/students',
           iconName: 'Users',
           description: 'Danh sách và trạng thái sinh viên chính quy',
         },
@@ -169,25 +166,25 @@ export const ROLE_MENUS: Record<RoleCode, MenuGroup[]> = {
     },
   ],
 
-  USER: [
+  VIEWER: [
     {
       groupTitle: 'Cổng thông tin',
       items: [
         {
           title: 'Bảng tin dữ liệu',
-          href: '/home',
+          href: '/viewer',
           iconName: 'Home',
           description: 'Trang chủ và thông báo dữ liệu mới',
         },
         {
           title: 'Báo cáo của tôi',
-          href: '/home/reports',
+          href: '/viewer/reports',
           iconName: 'FileBarChart',
           description: 'Các báo cáo được chia sẻ và lưu trữ',
         },
         {
           title: 'Tra cứu thông tin',
-          href: '/home/search',
+          href: '/viewer/search',
           iconName: 'Search',
           description: 'Tìm kiếm chỉ mục và số liệu tổng hợp',
         },

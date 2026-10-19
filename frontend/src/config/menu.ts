@@ -8,7 +8,7 @@ export const ROLE_MENUS: Record<RoleCode, MenuGroup[]> = {
       items: [
         { title: 'Người dùng & Phân quyền', href: '/admin', iconName: 'Users' },
         { title: 'Cấu hình hệ thống & AI', href: '/admin/settings', iconName: 'Settings' },
-        { title: 'Nhật ký hệ thống', href: '/admin/logs', iconName: 'ScrollText' },
+        { title: 'Nhật ký hệ thống', href: '/admin/system-logs', iconName: 'ScrollText' },
       ],
     },
   ],

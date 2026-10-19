@@ -4,15 +4,11 @@ import Link from 'next/link'
 
 import { Bell, Building2, ChevronDown, Layers, Menu, Sparkles } from 'lucide-react'
 
-import { hasAccessToRoute } from '@/config/roles'
-import { useAuth } from '@/hooks/use-auth'
+import { ASK_AI_PATHS } from '@/config/menu'
 import type { RoleCode } from '@/types/auth'
 
 import { DomainSelector } from './domain-selector'
 import { UserMenu } from './user-menu'
-
-/** Trang Hỏi AI (NLQ) hiện nằm trong không gian phân tích. */
-const ASK_AI_PATH = '/analytics'
 
 interface TopbarProps {
   role: RoleCode
@@ -20,8 +16,7 @@ interface TopbarProps {
 }
 
 export function Topbar({ role, onOpenMobile }: TopbarProps) {
-  const { roles } = useAuth()
-  const canAskAi = hasAccessToRoute(ASK_AI_PATH, roles)
+  const askAiPath = ASK_AI_PATHS[role]
 
   return (
     <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-2 border-b border-slate-200 bg-white px-3 sm:gap-3 md:px-4">
@@ -63,9 +58,9 @@ export function Topbar({ role, onOpenMobile }: TopbarProps) {
 
       <div className="flex-1" />
 
-      {canAskAi && (
+      {askAiPath && (
         <Link
-          href={ASK_AI_PATH}
+          href={askAiPath}
           className="flex h-8 shrink-0 items-center gap-1.5 rounded-md border border-indigo-200 bg-indigo-50 px-3 text-xs font-semibold text-indigo-700 transition-colors hover:bg-indigo-100"
         >
           <Sparkles className="size-3.5" />

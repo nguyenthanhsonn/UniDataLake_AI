@@ -1,102 +1,28 @@
 import type { MenuGroup, MenuItem, RoleCode } from '@/types/auth'
 
+/** Menu sidebar theo bản thiết kế Figma "UniLake AI – Frontend" (mỗi vai trò một nhóm). */
 export const ROLE_MENUS: Record<RoleCode, MenuGroup[]> = {
   ADMIN: [
     {
       groupTitle: 'Quản trị hệ thống',
       items: [
-        {
-          title: 'Tổng quan hệ thống',
-          href: '/admin',
-          iconName: 'LayoutDashboard',
-          description: 'Giám sát tài nguyên, phân quyền và trạng thái',
-        },
-        {
-          title: 'Người dùng',
-          href: '/admin/users',
-          iconName: 'Users',
-          description: 'Quản lý tài khoản và phân quyền người dùng',
-        },
-        {
-          title: 'Vai trò & Quyền hạn',
-          href: '/admin/roles',
-          iconName: 'Shield',
-          description: 'Cấu hình nhóm quyền RBAC',
-        },
-        {
-          title: 'Cấu hình hệ thống',
-          href: '/admin/settings',
-          iconName: 'Settings',
-          description: 'Tham số API, bảo mật và kết nối dịch vụ',
-        },
-        {
-          title: 'Nhật ký kiểm toán',
-          href: '/admin/audit-logs',
-          iconName: 'FileText',
-          description: 'Audit log và lịch sử thao tác người dùng',
-        },
+        { title: 'Người dùng & Phân quyền', href: '/admin', iconName: 'Users' },
+        { title: 'Cấu hình hệ thống & AI', href: '/admin/settings', iconName: 'Settings' },
+        { title: 'Nhật ký hệ thống', href: '/admin/logs', iconName: 'ScrollText' },
       ],
     },
   ],
 
   DATA_ADMIN: [
     {
-      groupTitle: 'Kỹ thuật dữ liệu',
-      items: [
-        {
-          title: 'Tổng quan & Ingestion',
-          href: '/data',
-          iconName: 'GitBranch',
-          description: 'Quản lý các luồng nạp dữ liệu tự động',
-        },
-        {
-          title: 'Nguồn dữ liệu',
-          href: '/data/sources',
-          iconName: 'Database',
-          description: 'PostgreSQL, CSV, REST API connectors',
-        },
-        {
-          title: 'Medallion Storage',
-          href: '/data/storage',
-          iconName: 'Layers',
-          badge: 'Bronze / Silver / Gold',
-          description: 'Lưu trữ Delta Lake & MinIO theo tầng',
-        },
-        {
-          title: 'DuckDB & Hạ tầng',
-          href: '/data/infra',
-          iconName: 'HardDrive',
-          description: 'Engine tính toán phân tích cục bộ',
-        },
-      ],
-    },
-    {
       groupTitle: 'Quản trị dữ liệu',
       items: [
-        {
-          title: 'Data Catalog',
-          href: '/data/catalog',
-          iconName: 'BookOpen',
-          description: 'Từ điển dữ liệu và metadata quản trị đại học',
-        },
-        {
-          title: 'Phân loại & PII',
-          href: '/data/classification',
-          iconName: 'ShieldCheck',
-          description: 'Bảo vệ thông tin cá nhân sinh viên và cán bộ',
-        },
-        {
-          title: 'Chất lượng dữ liệu (DQ)',
-          href: '/data/quality',
-          iconName: 'CheckCircle2',
-          description: 'Bộ quy tắc kiểm tra tính toàn vẹn dữ liệu',
-        },
-        {
-          title: 'Chính sách truy cập',
-          href: '/data/policies',
-          iconName: 'KeyRound',
-          description: 'Phân quyền mức bảng và cột dữ liệu',
-        },
+        { title: 'Nguồn dữ liệu', href: '/data', iconName: 'Database' },
+        { title: 'Nạp dữ liệu (Ingestion)', href: '/data/ingestion', iconName: 'Upload' },
+        { title: 'Data Catalog', href: '/data/catalog', iconName: 'BookOpen' },
+        { title: 'Data Quality', href: '/data/quality', iconName: 'ShieldCheck' },
+        { title: 'Data Lineage', href: '/data/lineage', iconName: 'Workflow' },
+        { title: 'Hỏi AI (NLQ)', href: '/data/ask', iconName: 'Sparkles', badge: 'AI' },
       ],
     },
   ],
@@ -105,92 +31,45 @@ export const ROLE_MENUS: Record<RoleCode, MenuGroup[]> = {
     {
       groupTitle: 'Phân tích & Khai phá',
       items: [
-        {
-          title: 'Trợ lý NLQ AI',
-          href: '/analyst',
-          iconName: 'Bot',
-          badge: 'AI',
-          description: 'Hỏi dữ liệu quản trị bằng ngôn ngữ tự nhiên',
-        },
-        {
-          title: 'Dashboards & KPIs',
-          href: '/analyst/dashboards',
-          iconName: 'BarChart3',
-          description: 'Biểu đồ tuyển sinh, học tập và tài chính',
-        },
-        {
-          title: 'Khám phá dữ liệu',
-          href: '/analyst/explore',
-          iconName: 'Table',
-          description: 'Truy vấn trực tiếp qua SQL Read-only',
-        },
-        {
-          title: 'Lịch sử truy vấn',
-          href: '/analyst/history',
-          iconName: 'History',
-          description: 'Xem lại các câu hỏi NLQ và kết quả',
-        },
+        { title: 'Tổng quan phân hệ', href: '/analyst', iconName: 'LayoutDashboard' },
+        { title: 'Hỏi AI (NLQ)', href: '/analyst/ask', iconName: 'Sparkles', badge: 'AI' },
+        { title: 'Khám phá dữ liệu', href: '/analyst/explore', iconName: 'Table' },
+        { title: 'Lịch sử truy vấn', href: '/analyst/history', iconName: 'History' },
       ],
     },
   ],
 
   MANAGER: [
     {
-      groupTitle: 'Quản trị đào tạo',
+      groupTitle: 'Quản lý đơn vị',
       items: [
-        {
-          title: 'Tổng quan học vụ',
-          href: '/manager',
-          iconName: 'GraduationCap',
-          description: 'Thống kê tình hình đào tạo toàn trường',
-        },
-        {
-          title: 'Tuyển sinh',
-          href: '/manager/admissions',
-          iconName: 'UserPlus',
-          description: 'Đợt tuyển sinh, phương thức và điểm chuẩn',
-        },
-        {
-          title: 'Chương trình đào tạo',
-          href: '/manager/programs',
-          iconName: 'Layers',
-          description: 'Ngành học, khung chương trình và học phần',
-        },
-        {
-          title: 'Hồ sơ sinh viên',
-          href: '/manager/students',
-          iconName: 'Users',
-          description: 'Danh sách và trạng thái sinh viên chính quy',
-        },
+        { title: 'Tổng quan phân hệ', href: '/manager', iconName: 'LayoutDashboard' },
+        { title: 'Phân tích & So sánh', href: '/manager/analytics', iconName: 'BarChart3' },
+        { title: 'Hỏi AI (NLQ)', href: '/manager/ask', iconName: 'Sparkles', badge: 'AI' },
+        { title: 'Lịch sử truy vấn', href: '/manager/history', iconName: 'History' },
       ],
     },
   ],
 
   VIEWER: [
     {
-      groupTitle: 'Cổng thông tin',
+      groupTitle: 'Điều hành',
       items: [
-        {
-          title: 'Bảng tin dữ liệu',
-          href: '/viewer',
-          iconName: 'Home',
-          description: 'Trang chủ và thông báo dữ liệu mới',
-        },
-        {
-          title: 'Báo cáo của tôi',
-          href: '/viewer/reports',
-          iconName: 'FileBarChart',
-          description: 'Các báo cáo được chia sẻ và lưu trữ',
-        },
-        {
-          title: 'Tra cứu thông tin',
-          href: '/viewer/search',
-          iconName: 'Search',
-          description: 'Tìm kiếm chỉ mục và số liệu tổng hợp',
-        },
+        { title: 'Tổng quan điều hành', href: '/viewer', iconName: 'LayoutDashboard' },
+        { title: 'Dashboard theo phân hệ', href: '/viewer/dashboards', iconName: 'BarChart3' },
+        { title: 'Hỏi AI (NLQ)', href: '/viewer/ask', iconName: 'Sparkles', badge: 'AI' },
+        { title: 'Lịch sử truy vấn', href: '/viewer/history', iconName: 'History' },
       ],
     },
   ],
+}
+
+/** Trang Hỏi AI của từng vai trò; ADMIN không có (nút Ask AI trên header bị ẩn). */
+export const ASK_AI_PATHS: Partial<Record<RoleCode, string>> = {
+  DATA_ADMIN: '/data/ask',
+  ANALYST: '/analyst/ask',
+  MANAGER: '/manager/ask',
+  VIEWER: '/viewer/ask',
 }
 
 export function getMenuItemsForRole(role: RoleCode): MenuItem[] {

@@ -1,10 +1,7 @@
-import { ManagerView } from '@/views/manager/manager-view'
+import { DomainOverviewView } from '@/views/dashboards/domain-overview-view'
 
-export const metadata = {
-  title: 'Quản trị đào tạo & Học vụ | UniLake AI',
-  description: 'Quản lý tuyển sinh, chương trình đào tạo và sinh viên',
-}
+export const metadata = { title: 'Tổng quan phân hệ | UniLake AI' }
 
-export default function ManagerPage() {
-  return <ManagerView />
+export default function DomainOverviewPage() {
+  return <DomainOverviewView askHref="/manager/ask" />
 }

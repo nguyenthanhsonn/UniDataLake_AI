@@ -1,5 +1,7 @@
-import { AdminView } from '@/views/admin/admin-view'
+import { UsersView } from '@/views/admin/users-view'
 
-export default function AdminPage() {
-  return <AdminView />
+export const metadata = { title: 'Người dùng & Phân quyền | UniLake AI' }
+
+export default function UsersPage() {
+  return <UsersView />
 }

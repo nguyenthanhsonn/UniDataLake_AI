@@ -6,12 +6,13 @@ import type { FormEvent } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { CircleAlert, LoaderCircle } from 'lucide-react'
+import { toast } from 'sonner'
 
-import { API_CreateDataSource } from '@/api/api_data'
+import { API_CreateDataSource, API_GetDataSource, API_UpdateDataSource } from '@/api/api_data'
 import { getApiErrorDetails, getApiErrorMessage } from '@/api/http'
-import { Card, PageHeader } from '@/components/page/page-parts'
+import { Card, ErrorState, LoadingState, PageHeader } from '@/components/page/page-parts'
 import {
   SOURCE_SYSTEMS,
   SOURCE_TYPE_CONFIG,
@@ -19,7 +20,7 @@ import {
   buildConfiguration,
 } from '@/config/data-sources'
 import { cn } from '@/lib/utils'
-import type { DataSourceCreatePayload, SourceType } from '@/types/data'
+import type { DataSourceCreatePayload, DataSourceItem, SourceType } from '@/types/data'
 
 const inputClass =
   'h-9 w-full rounded-md border bg-white px-3 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2'
@@ -56,24 +57,53 @@ function Field({ id, label, error, hint, children }: FieldProps) {
   )
 }
 
-export function SourceFormView() {
+function isSourceType(value: string): value is SourceType {
+  return SOURCE_TYPES.includes(value as SourceType)
+}
+
+/** Form dùng chung cho thêm mới (không có `initial`) và chỉnh sửa nguồn dữ liệu. */
+function SourceForm({ initial }: { initial?: DataSourceItem }) {
   const router = useRouter()
   const queryClient = useQueryClient()
-  const [systemId, setSystemId] = useState<string>(String(SOURCE_SYSTEMS[0].id))
-  const [name, setName] = useState('')
-  const [sourceType, setSourceType] = useState<SourceType>('CSV')
-  const [location, setLocation] = useState('')
-  const [description, setDescription] = useState('')
-  const [isActive, setIsActive] = useState(true)
-  const [config, setConfig] = useState<Record<string, string>>(() => defaultConfig('CSV'))
+  const isEdit = initial !== undefined
+  const initialType: SourceType =
+    initial && isSourceType(initial.source_type) ? initial.source_type : 'CSV'
+  const [systemId, setSystemId] = useState<string>(
+    String(initial?.source_system_id ?? SOURCE_SYSTEMS[0].id)
+  )
+  const [name, setName] = useState(initial?.source_name ?? '')
+  const [sourceType, setSourceType] = useState<SourceType>(initialType)
+  const [location, setLocation] = useState(initial?.location ?? '')
+  const [description, setDescription] = useState(initial?.description ?? '')
+  const [isActive, setIsActive] = useState(initial?.is_active ?? true)
+  // Backend không trả configuration về (tránh lộ thông tin kết nối), nên khi sửa chỉ gửi
+  // cấu hình mới nếu người dùng chọn nhập lại.
+  const [replaceConfig, setReplaceConfig] = useState(!isEdit)
+  const [config, setConfig] = useState<Record<string, string>>(() => defaultConfig(initialType))
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   const typeConfig = SOURCE_TYPE_CONFIG[sourceType]
+  const systemMissing =
+    initial !== undefined && !SOURCE_SYSTEMS.some((s) => s.id === initial.source_system_id)
 
-  const create = useMutation({
-    mutationFn: (payload: DataSourceCreatePayload) => API_CreateDataSource(payload),
-    onSuccess: async () => {
+  const save = useMutation({
+    mutationFn: (payload: DataSourceCreatePayload) => {
+      if (!initial) {
+        return API_CreateDataSource(payload)
+      }
+      const { configuration, source_type: _type, ...rest } = payload
+      return API_UpdateDataSource(
+        initial.data_source_id,
+        replaceConfig ? { ...rest, configuration } : rest
+      )
+    },
+    onSuccess: async (saved) => {
       await queryClient.invalidateQueries({ queryKey: ['datasources'] })
+      toast.success(
+        isEdit
+          ? `Đã cập nhật nguồn “${saved.source_name}”.`
+          : `Đã thêm nguồn “${saved.source_name}”.`
+      )
       router.push('/data')
     },
   })
@@ -96,7 +126,9 @@ export function SourceFormView() {
     if (!location.trim()) {
       nextErrors.location = 'Vui lòng nhập vị trí của nguồn.'
     }
-    const built = buildConfiguration(sourceType, config)
+    const built = replaceConfig
+      ? buildConfiguration(sourceType, config)
+      : { configuration: {}, errors: {} }
     for (const [key, message] of Object.entries(built.errors)) {
       nextErrors[`config.${key}`] = message
     }
@@ -104,7 +136,7 @@ export function SourceFormView() {
     if (Object.keys(nextErrors).length > 0) {
       return
     }
-    create.mutate({
+    save.mutate({
       source_system_id: Number(systemId),
       source_name: trimmedName,
       source_type: sourceType,
@@ -117,14 +149,18 @@ export function SourceFormView() {
   }
 
   const errorCount = Object.keys(errors).length
-  const serverDetails = create.isError ? getApiErrorDetails(create.error) : []
+  const serverDetails = save.isError ? getApiErrorDetails(save.error) : []
 
   return (
     <form className="space-y-5" onSubmit={onSubmit} noValidate>
       <PageHeader
-        breadcrumb={['Quản trị dữ liệu', 'Nguồn dữ liệu', 'Thêm mới']}
-        title="Thêm nguồn dữ liệu"
-        description="Chỉ đăng ký nguồn, không chạy Ingestion. Trường cấu hình thay đổi theo Loại nguồn."
+        breadcrumb={['Quản trị dữ liệu', 'Nguồn dữ liệu', isEdit ? 'Chỉnh sửa' : 'Thêm mới']}
+        title={isEdit ? `Chỉnh sửa: ${initial.source_name}` : 'Thêm nguồn dữ liệu'}
+        description={
+          isEdit
+            ? 'Cập nhật thông tin nguồn. Loại nguồn không đổi được; cấu hình chỉ gửi đi khi chọn nhập lại.'
+            : 'Chỉ đăng ký nguồn, không chạy Ingestion. Trường cấu hình thay đổi theo Loại nguồn.'
+        }
         actions={
           <>
             <Link
@@ -135,19 +171,19 @@ export function SourceFormView() {
             </Link>
             <button
               type="submit"
-              disabled={create.isPending}
+              disabled={save.isPending}
               className="inline-flex h-8 items-center gap-1.5 rounded-md bg-indigo-600 px-3 text-xs font-semibold text-white hover:bg-indigo-700 disabled:opacity-70"
             >
-              {create.isPending && (
+              {save.isPending && (
                 <LoaderCircle className="size-3.5 animate-spin" aria-hidden="true" />
               )}
-              {create.isPending ? 'Đang lưu…' : 'Lưu nguồn dữ liệu'}
+              {save.isPending ? 'Đang lưu…' : isEdit ? 'Lưu thay đổi' : 'Lưu nguồn dữ liệu'}
             </button>
           </>
         }
       />
 
-      {(create.isError || errorCount > 0) && (
+      {(save.isError || errorCount > 0) && (
         <div
           role="alert"
           className="flex gap-2 rounded-md border border-rose-200 bg-rose-50 px-3 py-2.5 text-xs"
@@ -155,8 +191,8 @@ export function SourceFormView() {
           <CircleAlert className="mt-px size-4 shrink-0 text-rose-600" aria-hidden="true" />
           <div className="space-y-1 text-rose-700">
             <p className="font-semibold">
-              {create.isError
-                ? getApiErrorMessage(create.error, 'Không lưu được nguồn dữ liệu.')
+              {save.isError
+                ? getApiErrorMessage(save.error, 'Không lưu được nguồn dữ liệu.')
                 : `${errorCount} trường chưa hợp lệ`}
             </p>
             {serverDetails.map((detail) => (
@@ -179,6 +215,11 @@ export function SourceFormView() {
                   value={systemId}
                   onChange={(event) => setSystemId(event.target.value)}
                 >
+                  {systemMissing && (
+                    <option value={initial.source_system_id}>
+                      {initial.source_system_name ?? `#${initial.source_system_id}`}
+                    </option>
+                  )}
                   {SOURCE_SYSTEMS.map((system) => (
                     <option key={system.id} value={system.id}>
                       {system.name}
@@ -202,6 +243,7 @@ export function SourceFormView() {
                   id="source-type"
                   className={cn(inputClass, okClass)}
                   value={sourceType}
+                  disabled={isEdit}
                   onChange={(event) => changeType(event.target.value as SourceType)}
                 >
                   {SOURCE_TYPES.map((type) => (
@@ -255,7 +297,7 @@ export function SourceFormView() {
                   checked={isActive}
                   onChange={(event) => setIsActive(event.target.checked)}
                 />
-                Bật nguồn ngay sau khi lưu
+                {isEdit ? 'Nguồn đang hoạt động' : 'Bật nguồn ngay sau khi lưu'}
               </label>
             </div>
           </Card>
@@ -270,60 +312,73 @@ export function SourceFormView() {
               <span className="font-mono text-[10px] text-slate-400">configuration (JSONB)</span>
             }
           >
-            <div className="grid gap-4 md:grid-cols-2">
-              {typeConfig.fields.map((field) => {
-                const id = `config-${field.key}`
-                const error = errors[`config.${field.key}`]
-                const common = {
-                  id,
-                  value: config[field.key] ?? '',
-                  'aria-invalid': error ? true : undefined,
-                  'aria-describedby': error ? `${id}-error` : undefined,
-                  onChange: (
-                    event: React.ChangeEvent<
-                      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+            {isEdit && (
+              <label className="mb-4 flex items-center gap-2 text-xs text-slate-700">
+                <input
+                  type="checkbox"
+                  className="size-4 rounded border-slate-300 accent-indigo-600"
+                  checked={replaceConfig}
+                  onChange={(event) => setReplaceConfig(event.target.checked)}
+                />
+                Nhập lại cấu hình (cấu hình hiện tại không hiển thị vì lý do bảo mật)
+              </label>
+            )}
+            {replaceConfig && (
+              <div className="grid gap-4 md:grid-cols-2">
+                {typeConfig.fields.map((field) => {
+                  const id = `config-${field.key}`
+                  const error = errors[`config.${field.key}`]
+                  const common = {
+                    id,
+                    value: config[field.key] ?? '',
+                    'aria-invalid': error ? true : undefined,
+                    'aria-describedby': error ? `${id}-error` : undefined,
+                    onChange: (
+                      event: React.ChangeEvent<
+                        HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+                      >
+                    ) => setConfig((prev) => ({ ...prev, [field.key]: event.target.value })),
+                  }
+                  const className = cn(inputClass, 'font-mono', error ? badClass : okClass)
+                  return (
+                    <div
+                      key={field.key}
+                      className={field.kind === 'json' ? 'md:col-span-2' : undefined}
                     >
-                  ) => setConfig((prev) => ({ ...prev, [field.key]: event.target.value })),
-                }
-                const className = cn(inputClass, 'font-mono', error ? badClass : okClass)
-                return (
-                  <div
-                    key={field.key}
-                    className={field.kind === 'json' ? 'md:col-span-2' : undefined}
-                  >
-                    <Field
-                      id={id}
-                      label={`${field.label}${field.required ? ' *' : ''}`}
-                      error={error}
-                      hint={field.hint}
-                    >
-                      {field.kind === 'boolean' ? (
-                        <select {...common} className={className}>
-                          <option value="true">true</option>
-                          <option value="false">false</option>
-                        </select>
-                      ) : field.kind === 'select' ? (
-                        <select {...common} className={className}>
-                          {field.options?.map((option) => (
-                            <option key={option} value={option}>
-                              {option}
-                            </option>
-                          ))}
-                        </select>
-                      ) : field.kind === 'json' ? (
-                        <textarea {...common} rows={3} className={cn(className, 'h-auto py-2')} />
-                      ) : (
-                        <input
-                          {...common}
-                          inputMode={field.kind === 'number' ? 'numeric' : undefined}
-                          className={className}
-                        />
-                      )}
-                    </Field>
-                  </div>
-                )
-              })}
-            </div>
+                      <Field
+                        id={id}
+                        label={`${field.label}${field.required ? ' *' : ''}`}
+                        error={error}
+                        hint={field.hint}
+                      >
+                        {field.kind === 'boolean' ? (
+                          <select {...common} className={className}>
+                            <option value="true">true</option>
+                            <option value="false">false</option>
+                          </select>
+                        ) : field.kind === 'select' ? (
+                          <select {...common} className={className}>
+                            {field.options?.map((option) => (
+                              <option key={option} value={option}>
+                                {option}
+                              </option>
+                            ))}
+                          </select>
+                        ) : field.kind === 'json' ? (
+                          <textarea {...common} rows={3} className={cn(className, 'h-auto py-2')} />
+                        ) : (
+                          <input
+                            {...common}
+                            inputMode={field.kind === 'number' ? 'numeric' : undefined}
+                            className={className}
+                          />
+                        )}
+                      </Field>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
           </Card>
         </div>
 
@@ -346,4 +401,28 @@ export function SourceFormView() {
       </div>
     </form>
   )
+}
+
+export function SourceFormView() {
+  return <SourceForm />
+}
+
+export function SourceEditView({ id }: { id: number }) {
+  const detail = useQuery({
+    queryKey: ['datasources', 'detail', id],
+    queryFn: () => API_GetDataSource(id),
+  })
+
+  if (detail.isPending) {
+    return <LoadingState label="Đang tải thông tin nguồn dữ liệu…" />
+  }
+  if (detail.isError) {
+    return (
+      <ErrorState
+        message={getApiErrorMessage(detail.error, 'Không tải được nguồn dữ liệu.')}
+        onRetry={() => void detail.refetch()}
+      />
+    )
+  }
+  return <SourceForm key={detail.data.data_source_id} initial={detail.data} />
 }

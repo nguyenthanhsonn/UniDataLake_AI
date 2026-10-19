@@ -17,6 +17,11 @@ export async function API_ListDataSources(
   return res.data
 }
 
+export async function API_GetDataSource(id: number): Promise<DataSourceItem> {
+  const res = await http.get<DataSourceItem>(`/datasources/${id}`)
+  return res.data
+}
+
 export async function API_CreateDataSource(
   payload: DataSourceCreatePayload
 ): Promise<DataSourceItem> {

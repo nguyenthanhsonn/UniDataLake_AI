@@ -6,6 +6,7 @@ import Link from 'next/link'
 
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
+import { toast } from 'sonner'
 
 import { API_ListDataSources, API_UpdateDataSource } from '@/api/api_data'
 import { getApiErrorMessage } from '@/api/http'
@@ -62,7 +63,10 @@ export function SourcesView() {
   const toggle = useMutation({
     mutationFn: (source: DataSourceItem) =>
       API_UpdateDataSource(source.data_source_id, { is_active: !source.is_active }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['datasources'] }),
+    onSuccess: async (saved) => {
+      await queryClient.invalidateQueries({ queryKey: ['datasources'] })
+      toast.success(`Đã ${saved.is_active ? 'bật' : 'tắt'} nguồn “${saved.source_name}”.`)
+    },
   })
 
   const all = summary.data?.items ?? []
@@ -263,7 +267,14 @@ export function SourcesView() {
                         {source.is_active ? 'ACTIVE' : 'INACTIVE'}
                       </Tag>
                     </td>
-                    <td className="px-3 py-2.5 text-right">
+                    <td className="whitespace-nowrap px-3 py-2.5 text-right">
+                      <Link
+                        href={`/data/sources/${source.data_source_id}`}
+                        className="inline-flex h-8 items-center rounded-md px-3 text-xs font-semibold text-indigo-700 hover:bg-indigo-50"
+                        aria-label={`Sửa nguồn ${source.source_name}`}
+                      >
+                        Sửa
+                      </Link>
                       <Button
                         variant="ghost"
                         disabled={toggle.isPending}

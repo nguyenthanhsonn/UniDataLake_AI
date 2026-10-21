@@ -1,10 +1,7 @@
-import { AnalystView } from '@/views/analyst/analyst-view'
+import { DomainOverviewView } from '@/views/dashboards/domain-overview-view'
 
-export const metadata = {
-  title: 'Phân tích dữ liệu & NLQ AI | UniLake AI',
-  description: 'Trợ lý NLQ AI, biểu đồ phân tích và trực quan hóa dữ liệu',
-}
+export const metadata = { title: 'Tổng quan phân hệ | UniLake AI' }
 
-export default function AnalystPage() {
-  return <AnalystView />
+export default function DomainOverviewPage() {
+  return <DomainOverviewView askHref="/analyst/ask" />
 }

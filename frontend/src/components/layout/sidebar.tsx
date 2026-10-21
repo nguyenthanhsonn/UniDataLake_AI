@@ -21,13 +21,17 @@ import {
   KeyRound,
   Layers,
   LayoutDashboard,
+  ScrollText,
   Search,
   Settings,
   Shield,
   ShieldCheck,
+  Sparkles,
   Table,
+  Upload,
   UserPlus,
   Users,
+  Workflow,
 } from 'lucide-react'
 
 import { ROLE_MENUS } from '@/config/menu'
@@ -57,6 +61,10 @@ const ICON_MAP: Record<string, ComponentType<{ className?: string }>> = {
   Home,
   FileBarChart,
   Search,
+  ScrollText,
+  Sparkles,
+  Upload,
+  Workflow,
 }
 
 interface SidebarProps {
@@ -68,6 +76,11 @@ export function Sidebar({ role, onCloseMobile }: SidebarProps) {
   const pathname = usePathname()
   const roleDef = ROLE_DEFINITIONS[role]
   const menuGroups = ROLE_MENUS[role] ?? []
+  // Mục đang mở là mục có đường dẫn dài nhất khớp với URL (vd. /data/sources/new → Nguồn dữ liệu).
+  const activeHref = menuGroups
+    .flatMap((group) => group.items.map((item) => item.href))
+    .filter((href) => pathname === href || pathname.startsWith(`${href}/`))
+    .sort((a, b) => b.length - a.length)[0]
 
   return (
     <aside className="flex h-full w-64 flex-col bg-slate-900 p-3 text-slate-400">
@@ -91,9 +104,7 @@ export function Sidebar({ role, onCloseMobile }: SidebarProps) {
             <ul className="space-y-1">
               {group.items.map((item) => {
                 const IconComponent = ICON_MAP[item.iconName] ?? LayoutDashboard
-                const isActive =
-                  pathname === item.href ||
-                  (item.href !== roleDef.homePath && pathname.startsWith(`${item.href}/`))
+                const isActive = item.href === activeHref
 
                 return (
                   <li key={item.href}>

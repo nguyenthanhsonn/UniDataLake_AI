@@ -48,11 +48,14 @@ describe('UserMenu', () => {
 
     await user.click(screen.getByRole('button', { name: 'Mở menu người dùng' }))
 
-    expect(await screen.findByRole('menuitem', { name: /Chuyên viên phân tích/ })).toHaveAttribute(
+    expect(await screen.findByRole('menuitem', { name: /Chuyên viên Phân tích/ })).toHaveAttribute(
       'href',
       '/analyst'
     )
-    expect(screen.getByRole('menuitem', { name: /Người xem/ })).toHaveAttribute('href', '/viewer')
+    expect(screen.getByRole('menuitem', { name: /Ban Giám hiệu/ })).toHaveAttribute(
+      'href',
+      '/viewer'
+    )
 
     await user.click(screen.getByRole('menuitem', { name: 'Đăng xuất' }))
     expect(logout).toHaveBeenCalledTimes(1)

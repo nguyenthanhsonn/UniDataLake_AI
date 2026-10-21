@@ -20,9 +20,12 @@ from app.infra.minio.service_accounts import (
 )
 
 
-@pytest.mark.parametrize("role", ACCOUNTS)
-def test_policy_has_only_bronze_permissions(role: str) -> None:
-    policy = policy_for(role, "bronze")
+@pytest.mark.parametrize(
+    ("role", "bucket"),
+    [(role, "silver" if role == "silver-writer" else "bronze") for role in ACCOUNTS],
+)
+def test_policy_has_only_bucket_scoped_permissions(role: str, bucket: str) -> None:
+    policy = policy_for(role, bucket)
     actions = {
         a
         for statement in policy["Statement"]
@@ -30,10 +33,10 @@ def test_policy_has_only_bronze_permissions(role: str) -> None:
         for a in statement["Action"]
     }
     resources = {r for statement in policy["Statement"] for r in statement["Resource"]}
-    assert resources == {"arn:aws:s3:::bronze", "arn:aws:s3:::bronze/*"}
+    assert resources == {f"arn:aws:s3:::{bucket}", f"arn:aws:s3:::{bucket}/*"}
     assert not any("Delete" in a or "admin" in a or "*" in a for a in actions)
-    assert ("s3:PutObject" in actions) == (role == "writer")
-    assert ("s3:GetObjectVersion" in actions) == (role != "writer")
+    assert ("s3:PutObject" in actions) == (role in {"writer", "silver-writer"})
+    assert ("s3:GetObjectVersion" in actions) == (role in {"verifier", "reader", "silver-writer"})
     assert ("s3:ListBucket" in actions) == (role == "reader")
     if role == "writer":
         denied = {a for s in policy["Statement"] if s["Effect"] == "Deny" for a in s["Action"]}
@@ -46,6 +49,9 @@ def test_policy_has_only_bronze_permissions(role: str) -> None:
     if role == "reader":
         denied = {a for s in policy["Statement"] if s["Effect"] == "Deny" for a in s["Action"]}
         assert denied == {"s3:PutObject*", "s3:DeleteObject*", "s3:AbortMultipartUpload"}
+    if role == "silver-writer":
+        denied = {a for s in policy["Statement"] if s["Effect"] == "Deny" for a in s["Action"]}
+        assert denied == {"s3:DeleteObject", "s3:DeleteObjectVersion"}
 
 
 def test_attach_reader_policy_preserves_secret_and_other_accounts() -> None:
@@ -86,11 +92,13 @@ def test_prepare_and_provision(tmp_path: Path, capsys: pytest.CaptureFixture[str
     admin = Mock()
     # Admin trả secret trong response: provision tuyệt đối không được in response này.
     admin.add_service_account.return_value = "sensitive-admin-response"
-    provision(admin, credentials, "bronze")
-    assert admin.add_service_account.call_count == 3
+    provision(admin, credentials, "bronze", "silver")
+    assert admin.add_service_account.call_count == 4
     for call, role in zip(admin.add_service_account.call_args_list, ACCOUNTS, strict=True):
-        assert call.kwargs["policy"] == policy_for(role, "bronze")
-        assert call.kwargs["access_key"] == f"bronze-{role}"
+        bucket = "silver" if role == "silver-writer" else "bronze"
+        assert call.kwargs["policy"] == policy_for(role, bucket)
+        expected_key = "silver-writer" if role == "silver-writer" else f"bronze-{role}"
+        assert call.kwargs["access_key"] == expected_key
     output = capsys.readouterr().out
     assert "sensitive-admin-response" not in output
     for key, value in credentials.items():
@@ -103,6 +111,6 @@ def test_prepare_and_provision(tmp_path: Path, capsys: pytest.CaptureFixture[str
 
 def test_missing_credentials_creates_nothing() -> None:
     admin = Mock()
-    with pytest.raises(ValueError, match="BRONZE_ACCOUNT_CREDENTIALS_REQUIRED"):
-        provision(admin, {}, "bronze")
+    with pytest.raises(ValueError, match="MINIO_ACCOUNT_CREDENTIALS_REQUIRED"):
+        provision(admin, {}, "bronze", "silver")
     admin.add_service_account.assert_not_called()

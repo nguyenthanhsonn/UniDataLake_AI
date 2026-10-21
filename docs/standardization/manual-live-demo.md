@@ -371,6 +371,58 @@ Thử lỗi Bronze: POST HR với source_table="missing.xlsx". API có thể QUE
 FAILED/INGESTION_READING_FAILED, không có output được publish. Đưa ID này vào runner Silver
 phải bị chặn SUCCESSFUL_BRONZE_JOB_REQUIRED, chưa tạo Silver run.
 
+## Chạy Cleaning qua Swagger
+
+Endpoint thủ công:
+
+```http
+POST /api/v1/pipeline/cleaning/ingestion-jobs/{ingestion_job_id}
+Authorization: Bearer <token có role ADMIN hoặc DATA_ADMIN>
+Content-Type: application/json
+
+{
+  "session": "cleaning-demo",
+  "base_snapshot": "active"
+}
+```
+
+`base_snapshot` có thể là `"active"` để tiếp tục từ head của session, UUID snapshot
+cụ thể để chỉ rõ parent, hoặc `null` để khởi tạo session mới. Chỉ dùng `session`
+riêng cho rehearsal; mặc định endpoint ghi vào scope rehearsal, không phải production.
+Trước đó cần:
+
+1. Khởi động DB/MinIO, apply migrations và tạo catalog/crosswalk fixture của
+   live demo; runner cần release crosswalk `manual-ingestion-demo-v1`.
+2. Đảm bảo MinIO bucket Bronze và Silver có versioning/các cấu hình cần thiết.
+   Từ repo root, nếu chưa provision service accounts:
+
+   ```bash
+   PYTHONPATH=backend .venv/bin/python -m app.infra.minio.service_accounts prepare
+   PYTHONPATH=backend .venv/bin/python -m app.infra.minio.service_accounts apply
+   PYTHONPATH=backend .venv/bin/python -m app.infra.minio.service_accounts export-runtime
+   ```
+
+   `prepare`/`apply` yêu cầu cấu hình MinIO admin cục bộ. Không commit hoặc chia sẻ
+   file `.env*.local`; `export-runtime` tạo `.env.silver-backend.local` với
+   credentials writer riêng, bị giới hạn trong bucket Silver. Restart backend để
+   nạp credentials mới.
+3. Tạo ingestion job bằng catalog `DEMO_FLOW_<domain>`, đợi job `SUCCESS`, rồi dùng
+   đúng `ingestion_job_id` của job đó. Endpoint hiện chỉ nhận ba datasource demo,
+   CSV/XLSX theo đúng profile phẳng của domain; không dùng file thật hoặc catalog
+   nguồn khác.
+
+Trong Swagger tại `/docs`, đăng nhập và gửi request. `PUBLISHED` trả report
+cleaning cùng snapshot ID; `QUARANTINED` trả issue/counts và không publish Silver;
+`EMPTY` nghĩa là không còn record để publish. Lỗi prerequisite trả mã lỗi trong
+response, ví dụ `SUCCESSFUL_BRONZE_JOB_REQUIRED`,
+`DEDICATED_DEMO_CATALOG_REQUIRED` hoặc
+`PIPELINE_OBJECT_STORAGE_UNAVAILABLE`. Đối chiếu snapshot trong MinIO/PostgreSQL
+theo scope `manual-cleaning-cleaning-demo`.
+
+Đây là API đồng bộ phục vụ file demo nhỏ và rehearsal ba profile, chưa phải worker
+queue hay pipeline production cho 22 entity. Không gọi đồng thời nhiều request trên
+cùng session; việc publish vẫn tuân theo kiểm tra base snapshot của Silver.
+
 ## 10. Đối chiếu bằng chứng
 
 ```sql

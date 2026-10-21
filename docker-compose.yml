@@ -116,6 +116,7 @@ services:
     # Chỉ nạp SA đọc Bronze/nguồn; không cấp writer hoặc credentials root cho web.
     env_file:
       - .env.bronze-backend.local
+      - .env.silver-backend.local
 
     environment: &backend-environment
       - ENVIRONMENT=${ENVIRONMENT:-development}

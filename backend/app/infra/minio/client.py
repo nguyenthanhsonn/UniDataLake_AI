@@ -50,6 +50,12 @@ def bronze_reader_client() -> Minio:
     )
 
 
+def silver_writer_client() -> Minio:
+    return _scoped_client(
+        settings.silver_writer_access_key, settings.silver_writer_secret_key, "SILVER_WRITER"
+    )
+
+
 def source_reader_client(bucket: str) -> Minio:
     # Bronze dùng SA downstream; bucket nguồn khác phải có SA đọc nguồn riêng.
     if bucket == settings.minio_bucket_bronze:

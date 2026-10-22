@@ -18,6 +18,11 @@ from app.core.config import settings
 from app.infra.minio.bronze import object_key
 from app.infra.minio.client import bronze_verifier_client, bronze_writer_client
 from app.modules.ingestion.contracts import CapturedArtifact
+from app.modules.ingestion.input_validator import (
+    InputValidationError,
+    InputValidator,
+    ValidationBlockedError,
+)
 from app.modules.ingestion.readers.factory import SourceReaderFactory
 from app.modules.ingestion.readers.minio_file_resolver import resolve_file_request
 
@@ -42,6 +47,8 @@ class BronzeCapture:
         self.temp.cleanup()
 
     def read(self, request: ReadRequest) -> CapturedArtifact:
+        if request.validation_policy is not None:
+            return self.read_validated(request)
         reader = SourceReaderFactory.get_reader(request.source_type)
         version = None
         if request.source_type in {"CSV", "EXCEL"}:
@@ -69,6 +76,55 @@ class BronzeCapture:
         with path.open("rb") as stream:
             digest = hashlib.file_digest(stream, "sha256").hexdigest()
         return CapturedArtifact(path, result.rows_read, digest, version)
+
+    def read_validated(self, request: ReadRequest) -> CapturedArtifact:
+        if request.validation_policy is None or request.ingestion_job_id is None:
+            raise ValueError("VALIDATION_CONTEXT_REQUIRED")
+        validator = InputValidator(request.validation_policy, request.ingestion_job_id)
+        version = None
+        try:
+            if request.source_type != request.validation_policy.parser.kind:
+                raise InputValidationError("IN-COM-002", "SOURCE_SCHEMA_MISMATCH")
+            if request.source_type in {"CSV", "EXCEL"}:
+                with resolve_file_request(request) as resolved:
+                    origin = Path(resolved.location or "").expanduser()
+                    if origin.is_dir():
+                        origin /= request.source_table or ""
+                    if origin.name != request.source_table:
+                        raise InputValidationError("IN-COM-002", "SOURCE_SCHEMA_MISMATCH")
+                    before = origin.stat()
+                    validator.budget(size=before.st_size)
+                    path = Path(self.temp.name) / origin.name
+                    # Copy có giới hạn; nguồn tăng kích thước trong lúc copy cũng bị chặn.
+                    copied = 0
+                    with origin.open("rb") as source, path.open("wb") as target:
+                        while chunk := source.read(1024 * 1024):
+                            copied += len(chunk)
+                            validator.budget(size=copied)
+                            target.write(chunk)
+                    after = origin.stat()
+                    if (before.st_size, before.st_mtime_ns) != (after.st_size, after.st_mtime_ns):
+                        raise InputValidationError("IN-COM-008", "SOURCE_CHANGED")
+                    version = resolved.object_version_id
+                with path.open("rb") as stream:
+                    digest = hashlib.file_digest(stream, "sha256").hexdigest()
+                validator.file(path)
+                with path.open("rb") as stream:
+                    if hashlib.file_digest(stream, "sha256").hexdigest() != digest:
+                        raise InputValidationError("IN-COM-008", "SOURCE_CHANGED")
+                validator.pass_rules("IN-COM-008")
+            else:
+                path = Path(self.temp.name) / "snapshot.parquet"
+                validator.postgres(request, path)
+                with path.open("rb") as stream:
+                    digest = hashlib.file_digest(stream, "sha256").hexdigest()
+            validator.budget()
+        except Exception as exc:
+            raise ValidationBlockedError(validator.failure_report(exc)) from None
+        report = validator.report()
+        if not report.can_accept:
+            raise ValidationBlockedError(report)
+        return CapturedArtifact(path, validator.rows, digest, version, report)
 
 
 def store_bronze(

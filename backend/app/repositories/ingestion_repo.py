@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,6 +12,9 @@ from app.core.exceptions import AppException
 from app.modules.datasources.models import DataLayer, Dataset, DataSource, SourceSystem
 from app.modules.ingestion.models import IngestionJob
 from app.repositories.datasource_repo import DataSourceRepository
+
+if TYPE_CHECKING:
+    from app.modules.ingestion.validation import ValidationReport
 
 JOB_TYPE = "EXECUTION_V1"
 LEASE_SECONDS = 120
@@ -124,6 +127,25 @@ class IngestionRepository:
                 IngestionJob.lease_expires_at > utcnow(),
             )
             .values(stage=stage, rows_read=rows)
+            .returning(IngestionJob.ingestion_job_id)
+        )
+        updated_id = result.scalar_one_or_none()
+        await self.db.commit()
+        if updated_id is None:
+            raise RuntimeError("INGESTION_LEASE_LOST")
+
+    async def save_validation(self, job_id: int, report: ValidationReport) -> None:
+        """Commit report trước upload; lease mất thì dừng, không công bố kết quả cũ."""
+        result = await self.db.execute(
+            update(IngestionJob)
+            .where(
+                IngestionJob.ingestion_job_id == job_id,
+                IngestionJob.status == "RUNNING",
+                IngestionJob.lease_expires_at > utcnow(),
+            )
+            .values(
+                validation_report=report.model_dump(mode="json"), rows_read=report.records_scanned
+            )
             .returning(IngestionJob.ingestion_job_id)
         )
         updated_id = result.scalar_one_or_none()

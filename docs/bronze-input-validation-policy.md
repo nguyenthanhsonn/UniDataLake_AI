@@ -202,6 +202,11 @@ Chưa tạo persistent landing/quarantine trong V1. Job bị chặn vẫn có re
 Điều kiện nghiệm thu: không có đường ingestion production bỏ qua kiểm tra bắt buộc; có report truy vết được; lỗi không tạo SUCCESS giả; không mất bytes nguồn; kiểm thử cả ba loại nguồn. Các rule nghiệp vụ và phê duyệt schema Silver nằm ngoài nghiệm thu đầu vào Bronze này.
 # Tiến độ triển khai contract (2026-10-22)
 
+**Cập nhật sau bước contract:** đã nối runtime opt-in theo từng job; xem
+[hướng dẫn runtime](bronze-validation-runtime.md). Các dòng "chưa tích hợp runtime" bên dưới
+mô tả mốc contract ban đầu, không phải trạng thái mới nhất. Report hiện lưu JSONB trong job;
+registry, giới hạn tài nguyên cứng và nghiệm thu live còn chưa hoàn tất.
+
 Đã bổ sung `backend/app/modules/ingestion/validation.py` và test tại
 `backend/tests/test_bronze_validation_contracts.py`:
 

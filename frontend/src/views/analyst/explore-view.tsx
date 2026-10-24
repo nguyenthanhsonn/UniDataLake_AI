@@ -5,7 +5,7 @@ import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 
 import { API_GetCatalog } from '@/api/api_data'
-import { getApiErrorMessage } from '@/api/http'
+import { getApiErrorMessage, getApiRequestId } from '@/api/http'
 import {
   Card,
   EmptyState,
@@ -62,6 +62,7 @@ export function ExploreView() {
         <LoadingState />
       ) : catalog.isError ? (
         <ErrorState
+          requestId={getApiRequestId(catalog.error)}
           message={getApiErrorMessage(catalog.error, 'Không tải được danh sách dataset.')}
           onRetry={() => void catalog.refetch()}
         />

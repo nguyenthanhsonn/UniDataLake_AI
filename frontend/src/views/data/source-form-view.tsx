@@ -11,7 +11,7 @@ import { CircleAlert, LoaderCircle } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { API_CreateDataSource, API_GetDataSource, API_UpdateDataSource } from '@/api/api_data'
-import { getApiErrorDetails, getApiErrorMessage } from '@/api/http'
+import { getApiErrorDetails, getApiErrorMessage, getApiRequestId } from '@/api/http'
 import { Card, ErrorState, LoadingState, PageHeader } from '@/components/page/page-parts'
 import {
   SOURCE_SYSTEMS,
@@ -419,6 +419,7 @@ export function SourceEditView({ id }: { id: number }) {
   if (detail.isError) {
     return (
       <ErrorState
+        requestId={getApiRequestId(detail.error)}
         message={getApiErrorMessage(detail.error, 'Không tải được nguồn dữ liệu.')}
         onRetry={() => void detail.refetch()}
       />

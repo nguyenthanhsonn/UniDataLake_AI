@@ -5,9 +5,9 @@ import { useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import Cookies from 'js-cookie'
 
 import { ROLE_PRIORITY } from '@/config/roles'
+import { clearStoredSession } from '@/lib/session'
 import type { AuthMeResponse, AuthUser, RoleCode } from '@/types/auth'
 
 async function fetchCurrentUser(): Promise<AuthUser | null> {
@@ -41,13 +41,7 @@ export function useAuth() {
   const logoutMutation = useMutation({
     mutationFn: logoutApi,
     onSuccess: () => {
-      Cookies.remove('access_token', { path: '/' })
-      Cookies.remove('refresh_token', { path: '/' })
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('access_token')
-        localStorage.removeItem('refresh_token')
-        localStorage.removeItem('user')
-      }
+      clearStoredSession()
       queryClient.setQueryData(['auth', 'me'], null)
       void queryClient.invalidateQueries()
       router.push('/login')

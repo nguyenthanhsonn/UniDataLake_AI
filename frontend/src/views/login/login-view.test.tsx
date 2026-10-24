@@ -77,6 +77,18 @@ describe('LoginView', () => {
     Cookies.remove('refresh_token')
   })
 
+  it('báo phiên hết hạn khi bị chuyển về /login?expired=1', () => {
+    window.history.pushState({}, '', '/login?expired=1')
+    render(<LoginView />)
+    expect(screen.getByRole('status')).toHaveTextContent('Phiên đăng nhập đã hết hạn')
+    window.history.pushState({}, '', '/')
+  })
+
+  it('không báo phiên hết hạn khi vào trang đăng nhập bình thường', () => {
+    render(<LoginView />)
+    expect(screen.queryByText('Phiên đăng nhập đã hết hạn')).not.toBeInTheDocument()
+  })
+
   it('báo lỗi từng trường khi để trống và không gọi API', async () => {
     render(<LoginView />)
     await fillAndSubmit('', '')

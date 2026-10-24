@@ -1,18 +1,19 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { useRouter } from 'next/navigation'
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import axios from 'axios'
 import Cookies from 'js-cookie'
-import { ArrowRight, CircleAlert, Eye, EyeOff, Layers, LoaderCircle, X } from 'lucide-react'
+import { ArrowRight, CircleAlert, Clock, Eye, EyeOff, Layers, LoaderCircle, X } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
 import { API_SignIn } from '@/api/api_auth'
 import { getDefaultHomeForRoles } from '@/config/roles'
+import { SESSION_EXPIRED_PARAM } from '@/lib/session'
 import type { ApiErrorBody, LoginFormValues, RoleCode } from '@/types/auth'
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -40,6 +41,12 @@ export function LoginView() {
   const router = useRouter()
   const [showPassword, setShowPassword] = useState(false)
   const [serverError, setServerError] = useState<string | null>(null)
+  const [sessionExpired, setSessionExpired] = useState(false)
+
+  // Bị đưa về đây vì token hết hạn (/login?expired=1): báo cho người dùng biết lý do.
+  useEffect(() => {
+    setSessionExpired(new URLSearchParams(window.location.search).has(SESSION_EXPIRED_PARAM))
+  }, [])
   const {
     register,
     handleSubmit,
@@ -51,6 +58,7 @@ export function LoginView() {
 
   async function onSubmit(values: LoginFormValues) {
     setServerError(null)
+    setSessionExpired(false)
     try {
       const data = await API_SignIn(values)
 
@@ -166,6 +174,21 @@ export function LoginView() {
               Dùng tài khoản của trường để truy cập hệ thống.
             </p>
           </header>
+
+          {sessionExpired && !serverError && (
+            <div
+              role="status"
+              className="flex items-start gap-2.5 rounded-lg border border-amber-200 bg-amber-50 p-3"
+            >
+              <Clock className="mt-0.5 size-4 shrink-0 text-amber-700" aria-hidden="true" />
+              <div className="space-y-0.5">
+                <p className="text-xs font-bold text-amber-800">Phiên đăng nhập đã hết hạn</p>
+                <p className="text-xs leading-[17px] text-slate-700">
+                  Vui lòng đăng nhập lại để tiếp tục làm việc.
+                </p>
+              </div>
+            </div>
+          )}
 
           {serverError && (
             <div

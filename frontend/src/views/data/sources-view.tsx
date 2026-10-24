@@ -9,7 +9,7 @@ import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { API_ListDataSources, API_UpdateDataSource } from '@/api/api_data'
-import { getApiErrorMessage } from '@/api/http'
+import { getApiErrorMessage, getApiRequestId } from '@/api/http'
 import {
   Button,
   Card,
@@ -192,6 +192,7 @@ export function SourcesView() {
         ) : list.isError ? (
           <div className="p-4">
             <ErrorState
+              requestId={getApiRequestId(list.error)}
               message={getApiErrorMessage(list.error, 'Không tải được danh sách nguồn dữ liệu.')}
               onRetry={() => void list.refetch()}
             />

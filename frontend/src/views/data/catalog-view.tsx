@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Search } from 'lucide-react'
 
 import { API_GetCatalog } from '@/api/api_data'
-import { getApiErrorMessage } from '@/api/http'
+import { getApiErrorMessage, getApiRequestId } from '@/api/http'
 import {
   Card,
   EmptyState,
@@ -59,6 +59,7 @@ export function CatalogView() {
         <LoadingState />
       ) : catalog.isError ? (
         <ErrorState
+          requestId={getApiRequestId(catalog.error)}
           message={getApiErrorMessage(catalog.error, 'Không tải được Data Catalog.')}
           onRetry={() => void catalog.refetch()}
         />

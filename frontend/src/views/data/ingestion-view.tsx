@@ -7,7 +7,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { CircleAlert, Play, RefreshCw, X } from 'lucide-react'
 
 import { API_CreateIngestionJob, API_ListDataSources, API_ListIngestionJobs } from '@/api/api_data'
-import { getApiErrorMessage } from '@/api/http'
+import { getApiErrorMessage, getApiRequestId } from '@/api/http'
 import {
   Button,
   Card,
@@ -239,6 +239,7 @@ export function IngestionView() {
         ) : jobs.isError ? (
           <div className="p-4">
             <ErrorState
+              requestId={getApiRequestId(jobs.error)}
               message={getApiErrorMessage(jobs.error, 'Không tải được lịch sử nạp dữ liệu.')}
               onRetry={() => void jobs.refetch()}
             />

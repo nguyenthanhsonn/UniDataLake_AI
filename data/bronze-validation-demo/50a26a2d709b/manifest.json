@@ -1,0 +1,45 @@
+{
+  "session": "50a26a2d709b",
+  "directory": "D:\\Caps1\\UniDataLake_AI\\data\\bronze-validation-demo\\50a26a2d709b",
+  "catalog": {
+    "CSV": {
+      "source_system_id": 8,
+      "data_source_id": 4,
+      "dataset_id": 4,
+      "domain": "admissions"
+    },
+    "EXCEL": {
+      "source_system_id": 9,
+      "data_source_id": 5,
+      "dataset_id": 5,
+      "domain": "academic"
+    },
+    "POSTGRESQL": {
+      "source_system_id": 10,
+      "data_source_id": 6,
+      "dataset_id": 6,
+      "domain": "hr"
+    }
+  },
+  "source_schema": "bv_src_50a26a2d709b",
+  "source_reader": "bv_read_50a26a2d709b",
+  "worker_location": "/data/bronze-validation-demo/50a26a2d709b/inputs",
+  "cases": [
+    "csv-business-pass",
+    "csv-duplicate",
+    "csv-empty-fail",
+    "csv-empty-warning",
+    "csv-extra-fail",
+    "csv-extra-warning",
+    "csv-limit-fail",
+    "csv-missing",
+    "csv-pass",
+    "csv-width-fail",
+    "excel-formula-fail",
+    "excel-pass",
+    "excel-sheet-fail",
+    "policy-binding-rejected",
+    "postgres-pass",
+    "postgres-type-fail"
+  ]
+}

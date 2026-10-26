@@ -7,12 +7,14 @@ from contextlib import contextmanager
 from dataclasses import replace
 from pathlib import Path, PurePosixPath
 from tempfile import TemporaryDirectory
+from time import monotonic
 from typing import TYPE_CHECKING
 from urllib.parse import SplitResult, urlsplit
 
 from minio import Minio
 
 from app.infra.minio.client import source_reader_client
+from app.modules.ingestion.input_validator import InputValidationError
 
 if TYPE_CHECKING:
     from .contract import ReadRequest
@@ -84,6 +86,37 @@ def resolve_file_request(
     # Khi reader đọc xong hoặc ném lỗi, TemporaryDirectory vẫn được dọn.
     with TemporaryDirectory(prefix=TEMP_DIR_PREFIX) as temp_dir:
         local_path = Path(temp_dir) / filename
+
+        if request.validation_policy is not None:
+            limits = request.validation_policy.limits
+            # Validation path tải có giới hạn, không fget toàn object rồi mới chặn.
+            stat = client.stat_object(bucket, object_key, version_id=version_id)
+            if stat.size is None:
+                raise InputValidationError("IN-COM-003", "SOURCE_UNAVAILABLE", infrastructure=True)
+            if stat.size > limits.max_file_bytes:
+                raise InputValidationError("IN-COM-005", "RESOURCE_LIMIT_EXCEEDED")
+            response = client.get_object(bucket, object_key, version_id=version_id)
+            started, total = monotonic(), 0
+            try:
+                with local_path.open("wb") as stream:
+                    for chunk in response.stream(1024 * 1024):
+                        total += len(chunk)
+                        if (
+                            total > limits.max_file_bytes
+                            or monotonic() - started > limits.timeout_seconds
+                        ):
+                            raise InputValidationError("IN-COM-005", "RESOURCE_LIMIT_EXCEEDED")
+                        stream.write(chunk)
+                if total != stat.size:
+                    raise InputValidationError("IN-COM-008", "SOURCE_CHANGED")
+                actual_version = response.headers.get("x-amz-version-id")
+                if version_id is not None and actual_version != version_id:
+                    raise InputValidationError("IN-COM-008", "SOURCE_CHANGED")
+            finally:
+                response.close()
+                response.release_conn()
+            yield replace(request, location=str(local_path), object_version_id=version_id)
+            return
 
         downloaded = _download_object(
             client=client,

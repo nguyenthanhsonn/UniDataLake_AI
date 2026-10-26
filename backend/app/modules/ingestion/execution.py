@@ -9,7 +9,9 @@ from typing import TYPE_CHECKING, Any, ParamSpec, Protocol, TypeVar
 
 from app.core.exceptions import AppException
 from app.modules.ingestion.contracts import BronzeWriteContext
+from app.modules.ingestion.input_validator import ValidationBlockedError, required_rule_ids
 from app.modules.ingestion.readers.request_builder import build_read_request
+from app.modules.ingestion.validation_binding import bind_policy, pin_policy
 from app.repositories.ingestion_repo import IngestionRepository, utcnow
 
 if TYPE_CHECKING:
@@ -85,11 +87,18 @@ class IngestionExecutionService:
         context = await repo.context(request.data_source_id, request.dataset_id, lock=True)
         existing = await repo.active(request.data_source_id)
         error = "SOURCE_ALREADY_RUNNING" if existing else None
+        validation_input = None
         if not error:
             try:
-                validate_context(context, request.source_table)
+                read_request = validate_context(context, request.source_table)
             except ValueError as exc:
                 error = str(exc)
+            if not error and request.validation_policy is not None:
+                try:
+                    validation_input = pin_policy(request.validation_policy, context, read_request)
+                except (ValueError, TypeError, LookupError):
+                    # Pydantic/codec errors có thể chứa đầu vào: chỉ đưa mã an toàn ra API.
+                    error = "VALIDATION_POLICY_INVALID"
         job = await repo.create(
             data_source_id=request.data_source_id,
             dataset_id=request.dataset_id,
@@ -100,6 +109,7 @@ class IngestionExecutionService:
             stage="VALIDATION" if error else "QUEUED",
             error_message=error,
             finished_at=utcnow() if error else None,
+            validation_input=validation_input,
         )
         if error:
             raise AppException(
@@ -125,6 +135,8 @@ class IngestionExecutionService:
                 raise ValueError("INGESTION_JOB_CONTEXT_REQUIRED")
             context = await repo.context(job.data_source_id, job.dataset_id)
             request = validate_context(context, job.source_table)
+            if job.validation_input is not None:
+                request = bind_policy(job.validation_input, context, request, job_id)
             domain = context[1].domain
             # Thời điểm lấy dữ liệu khác thời điểm enqueue; không dùng created_at làm giả
             # thời gian capture khi job phải chờ lâu trong hàng đợi.
@@ -136,8 +148,24 @@ class IngestionExecutionService:
             )
             # Kết thúc giao dịch đọc trước khi thực hiện I/O nguồn có thể kéo dài.
             await repo.db.commit()
+            if request.validation_policy is not None:
+                stage = "VALIDATING"
+                await repo.stage(job_id, stage, 0)
             with capture() as captured:
                 artifact = await run_io(captured.read, request)
+                if request.validation_policy is not None:
+                    report = artifact.validation_report
+                    if (
+                        report is None
+                        or not report.can_accept
+                        or report.ingestion_job_id != job_id
+                        or report.policy_fingerprint != request.validation_policy.fingerprint
+                        or {c.rule_id for c in report.checks if c.required}
+                        != set(required_rule_ids(request.source_type))
+                    ):
+                        raise ValueError("VALIDATION_REPORT_REQUIRED")
+                    # Nếu PostgreSQL không lưu được báo cáo, không gọi upload.
+                    await repo.save_validation(job_id, report)
                 stage = "WRITING"
                 await repo.stage(job_id, stage, artifact.rows)
                 output = await run_io(store, artifact, domain, write_context)
@@ -146,6 +174,10 @@ class IngestionExecutionService:
         except asyncio.CancelledError:
             # Để thời hạn giữ job tự hết hạn: I/O trên luồng có thể vẫn đang chạy.
             raise
+        except ValidationBlockedError as exc:
+            await repo.db.rollback()
+            await repo.save_validation(job_id, exc.report)
+            await repo.finish(job_id, error="BRONZE_INPUT_VALIDATION_BLOCKED")
         except Exception:
             # Ngoại lệ từ bộ kết nối có thể chứa thông tin xác thực hoặc giá trị dữ liệu nguồn.
             # Chỉ công khai các mã lỗi có kiểm soát theo từng giai đoạn.

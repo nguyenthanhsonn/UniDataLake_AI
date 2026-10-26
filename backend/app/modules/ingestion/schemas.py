@@ -13,6 +13,8 @@ class IngestionStart(BaseModel):
     data_source_id: int = Field(gt=0, strict=True)
     dataset_id: int = Field(gt=0, strict=True)
     source_table: str = Field(min_length=1, max_length=200)
+    # API nhận JSON; service kiểm tra strict contract và binding trước enqueue.
+    validation_policy: dict[str, Any] | None = None
 
 
 class IngestionJobRead(BaseModel):
@@ -34,3 +36,4 @@ class IngestionJobRead(BaseModel):
     rows_rejected: int | None
     error_message: str | None
     output: dict[str, Any] | None
+    validation_report: dict[str, Any] | None = None

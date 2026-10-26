@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Any, Protocol
 
 if TYPE_CHECKING:
     from app.modules.ingestion.contracts import FileProvenance
+    from app.modules.ingestion.validation import ValidationPolicy
 
 
 @dataclass
@@ -14,6 +15,8 @@ class ReadRequest:
     configuration: dict[str, Any]
     source_table: str | None = None
     object_version_id: str | None = None
+    validation_policy: ValidationPolicy | None = None
+    ingestion_job_id: int | None = None
 
 
 @dataclass

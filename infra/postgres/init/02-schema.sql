@@ -379,7 +379,9 @@ CREATE TABLE IF NOT EXISTS ingestion_job (
     requested_by VARCHAR(100),
     stage VARCHAR(30),
     lease_expires_at TIMESTAMP,
-    output JSONB
+    output JSONB,
+    validation_input JSONB,
+    validation_report JSONB
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS uq_ingestion_execution_active_source

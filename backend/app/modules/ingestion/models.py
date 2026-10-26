@@ -52,3 +52,5 @@ class IngestionJob(Base):
     stage: Mapped[str | None] = mapped_column(String(30), nullable=True)
     lease_expires_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     output: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    validation_input: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    validation_report: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)

@@ -11,6 +11,7 @@ if TYPE_CHECKING:
     from pathlib import Path
 
     from app.domains.base import Record
+    from app.modules.ingestion.validation import ValidationReport
 
 
 @dataclass(frozen=True)
@@ -21,6 +22,7 @@ class CapturedArtifact:
     rows: int
     sha256: str
     source_version_id: str | None = None
+    validation_report: ValidationReport | None = None
 
 
 @dataclass(frozen=True)

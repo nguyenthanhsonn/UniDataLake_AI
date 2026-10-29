@@ -2,13 +2,25 @@ import { AxiosError, AxiosHeaders } from 'axios'
 import Cookies from 'js-cookie'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { redirectToLoginExpired } from '@/lib/session'
+import { API_RefreshToken } from '@/api/api_auth'
+import { readRefreshToken, redirectToLoginExpired, storeSession } from '@/lib/session'
 
-import { getApiErrorMessage, getApiRequestId, http } from './http'
+import {
+  getApiErrorDetails,
+  getApiErrorMessage,
+  getApiRequestId,
+  http,
+  shouldRetryRequest,
+} from './http'
 
 import type { AxiosAdapter, InternalAxiosRequestConfig } from 'axios'
 
-vi.mock('@/lib/session', () => ({ redirectToLoginExpired: vi.fn() }))
+vi.mock('@/lib/session', () => ({
+  redirectToLoginExpired: vi.fn(),
+  readRefreshToken: vi.fn(),
+  storeSession: vi.fn(),
+}))
+vi.mock('@/api/api_auth', () => ({ API_RefreshToken: vi.fn() }))
 
 function errorWith(status: number, data: unknown, headers: Record<string, string> = {}) {
   const config = { headers: new AxiosHeaders() } as InternalAxiosRequestConfig
@@ -53,6 +65,42 @@ describe('getApiErrorMessage', () => {
   })
 })
 
+describe('lỗi kiểm tra dữ liệu của FastAPI (422)', () => {
+  const error = errorWith(422, {
+    detail: [
+      { type: 'missing', loc: ['body', 'username'], msg: 'Field required' },
+      { type: 'missing', loc: ['body', 'password'], msg: 'Field required' },
+    ],
+  })
+
+  it('hiện câu chung và liệt kê từng trường lỗi', () => {
+    expect(getApiErrorMessage(error, 'x')).toMatch(/không hợp lệ/)
+    expect(getApiErrorDetails(error)).toEqual([
+      'username: Field required',
+      'password: Field required',
+    ])
+  })
+
+  it('vẫn đọc details.errors của envelope chuẩn', () => {
+    const envelope = errorWith(422, {
+      error: { details: { errors: ['Missing required configuration: encoding'] } },
+    })
+    expect(getApiErrorDetails(envelope)).toEqual(['Missing required configuration: encoding'])
+    expect(getApiErrorDetails(new Error('x'))).toEqual([])
+  })
+})
+
+describe('shouldRetryRequest', () => {
+  it('chỉ thử lại khi mất kết nối hoặc lỗi máy chủ', () => {
+    expect(shouldRetryRequest(new AxiosError('net', 'ERR_NETWORK'))).toBe(true)
+    expect(shouldRetryRequest(errorWith(503, {}))).toBe(true)
+    expect(shouldRetryRequest(new AxiosError('slow', 'ECONNABORTED'))).toBe(false)
+    expect(shouldRetryRequest(errorWith(403, {}))).toBe(false)
+    expect(shouldRetryRequest(errorWith(422, {}))).toBe(false)
+    expect(shouldRetryRequest(new Error('x'))).toBe(false)
+  })
+})
+
 describe('getApiRequestId', () => {
   it('lấy request_id từ envelope lỗi hoặc header', () => {
     expect(getApiRequestId(errorWith(500, { error: { request_id: 'req_01' } }))).toBe('req_01')
@@ -82,6 +130,9 @@ describe('http interceptors', () => {
 
   beforeEach(() => {
     vi.mocked(redirectToLoginExpired).mockReset()
+    vi.mocked(readRefreshToken).mockReset()
+    vi.mocked(storeSession).mockReset()
+    vi.mocked(API_RefreshToken).mockReset()
     Cookies.remove('access_token')
     localStorage.clear()
   })
@@ -101,10 +152,75 @@ describe('http interceptors', () => {
     expect(sent).toBe('Bearer abc')
   })
 
-  it('đưa về trang đăng nhập khi request có token bị trả 401', async () => {
+  it('đưa về trang đăng nhập khi 401 mà không có refresh token', async () => {
     Cookies.set('access_token', 'expired')
     http.defaults.adapter = respondWith(401)
     await expect(http.get('/datasources')).rejects.toBeInstanceOf(AxiosError)
+    expect(API_RefreshToken).not.toHaveBeenCalled()
+    expect(redirectToLoginExpired).toHaveBeenCalledTimes(1)
+  })
+
+  it('làm mới token rồi gửi lại request khi gặp 401', async () => {
+    Cookies.set('access_token', 'expired')
+    vi.mocked(readRefreshToken).mockReturnValue('refresh-1')
+    vi.mocked(API_RefreshToken).mockResolvedValue({
+      access_token: 'fresh',
+      refresh_token: 'refresh-2',
+      token_type: 'bearer',
+      user: { user_id: 1, username: 'admin', role: 'ADMIN' },
+    })
+    const seen: string[] = []
+    http.defaults.adapter = (config) => {
+      const auth = String(config.headers.get('Authorization'))
+      seen.push(auth)
+      return respondWith(auth === 'Bearer fresh' ? 200 : 401)(config)
+    }
+
+    const res = await http.get('/datasources')
+
+    expect(res.status).toBe(200)
+    expect(seen).toEqual(['Bearer expired', 'Bearer fresh'])
+    expect(API_RefreshToken).toHaveBeenCalledWith('refresh-1')
+    expect(storeSession).toHaveBeenCalledWith(expect.objectContaining({ access_token: 'fresh' }))
+    expect(redirectToLoginExpired).not.toHaveBeenCalled()
+  })
+
+  it('chỉ gọi refresh một lần cho nhiều request cùng hết hạn', async () => {
+    Cookies.set('access_token', 'expired')
+    vi.mocked(readRefreshToken).mockReturnValue('refresh-1')
+    vi.mocked(API_RefreshToken).mockResolvedValue({
+      access_token: 'fresh',
+      refresh_token: 'refresh-2',
+      token_type: 'bearer',
+      user: { user_id: 1, username: 'admin', role: 'ADMIN' },
+    })
+    http.defaults.adapter = (config) =>
+      respondWith(String(config.headers.get('Authorization')) === 'Bearer fresh' ? 200 : 401)(
+        config
+      )
+
+    await Promise.all([http.get('/a'), http.get('/b'), http.get('/c')])
+
+    expect(API_RefreshToken).toHaveBeenCalledTimes(1)
+  })
+
+  it('về trang đăng nhập khi làm mới thất bại hoặc token mới vẫn bị 401', async () => {
+    Cookies.set('access_token', 'expired')
+    vi.mocked(readRefreshToken).mockReturnValue('refresh-1')
+    vi.mocked(API_RefreshToken).mockRejectedValueOnce(new Error('revoked'))
+    http.defaults.adapter = respondWith(401)
+    await expect(http.get('/datasources')).rejects.toBeInstanceOf(AxiosError)
+    expect(redirectToLoginExpired).toHaveBeenCalledTimes(1)
+
+    vi.mocked(redirectToLoginExpired).mockReset()
+    vi.mocked(API_RefreshToken).mockResolvedValueOnce({
+      access_token: 'still-bad',
+      refresh_token: 'r',
+      token_type: 'bearer',
+      user: { user_id: 1, username: 'admin', role: 'ADMIN' },
+    })
+    await expect(http.get('/datasources')).rejects.toBeInstanceOf(AxiosError)
+    expect(API_RefreshToken).toHaveBeenCalledTimes(2)
     expect(redirectToLoginExpired).toHaveBeenCalledTimes(1)
   })
 

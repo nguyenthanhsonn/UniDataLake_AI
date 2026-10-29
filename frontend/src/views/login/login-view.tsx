@@ -6,14 +6,13 @@ import { useRouter } from 'next/navigation'
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import axios from 'axios'
-import Cookies from 'js-cookie'
 import { ArrowRight, CircleAlert, Clock, Eye, EyeOff, Layers, LoaderCircle, X } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
 import { API_SignIn } from '@/api/api_auth'
 import { getDefaultHomeForRoles } from '@/config/roles'
-import { SESSION_EXPIRED_PARAM } from '@/lib/session'
+import { SESSION_EXPIRED_PARAM, storeSession } from '@/lib/session'
 import type { ApiErrorBody, LoginFormValues, RoleCode } from '@/types/auth'
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -62,29 +61,7 @@ export function LoginView() {
     try {
       const data = await API_SignIn(values)
 
-      // Thiết lập cookie để middleware và Next.js SSR nhận diện xác thực
-      Cookies.set('access_token', data.access_token, {
-        expires: 1, // 1 ngày
-        path: '/',
-        sameSite: 'lax',
-      })
-      if (data.refresh_token) {
-        Cookies.set('refresh_token', data.refresh_token, {
-          expires: 7, // 7 ngày
-          path: '/',
-          sameSite: 'lax',
-        })
-      }
-
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('access_token', data.access_token)
-        if (data.refresh_token) {
-          localStorage.setItem('refresh_token', data.refresh_token)
-        }
-        if (data.user) {
-          localStorage.setItem('user', JSON.stringify(data.user))
-        }
-      }
+      storeSession(data)
 
       const role = data.user?.role?.toUpperCase() as RoleCode | undefined
       const userRoles: RoleCode[] = role ? [role] : ['VIEWER']

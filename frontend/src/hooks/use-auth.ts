@@ -6,8 +6,9 @@ import { useRouter } from 'next/navigation'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
+import { API_Logout } from '@/api/api_auth'
 import { ROLE_PRIORITY } from '@/config/roles'
-import { clearStoredSession } from '@/lib/session'
+import { clearStoredSession, readRefreshToken } from '@/lib/session'
 import type { AuthMeResponse, AuthUser, RoleCode } from '@/types/auth'
 
 async function fetchCurrentUser(): Promise<AuthUser | null> {
@@ -20,7 +21,12 @@ async function fetchCurrentUser(): Promise<AuthUser | null> {
 }
 
 async function logoutApi(): Promise<void> {
-  await fetch('/api/auth/logout', { method: 'POST' })
+  // Báo backend thu hồi refresh token; lỗi mạng không được chặn người dùng đăng xuất.
+  const refreshToken = readRefreshToken()
+  if (refreshToken) {
+    await API_Logout(refreshToken).catch(() => undefined)
+  }
+  await fetch('/api/auth/logout', { method: 'POST' }).catch(() => undefined)
 }
 
 export function useAuth() {

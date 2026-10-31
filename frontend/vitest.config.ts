@@ -8,5 +8,7 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.ts'],
     include: ['src/**/*.test.{ts,tsx}'],
+    // Test form gõ nhiều ô bằng userEvent; trên CI/máy bận dễ vượt mức 5 giây mặc định.
+    testTimeout: 15_000,
   },
 })

@@ -241,7 +241,16 @@ export function LoadingState({ label = 'Đang tải dữ liệu…' }: { label?:
   )
 }
 
-export function ErrorState({ message, onRetry }: { message: string; onRetry?: () => void }) {
+export function ErrorState({
+  message,
+  onRetry,
+  requestId,
+}: {
+  message: string
+  onRetry?: () => void
+  /** Mã request_id backend trả về, hiển thị để người dùng báo lại khi cần tra log. */
+  requestId?: string
+}) {
   return (
     <div
       role="alert"
@@ -251,6 +260,7 @@ export function ErrorState({ message, onRetry }: { message: string; onRetry?: ()
         <CircleAlert className="size-4" aria-hidden="true" />
         {message}
       </div>
+      {requestId && <p className="font-mono text-[11px] text-rose-600">Mã tra cứu: {requestId}</p>}
       {onRetry && (
         <Button onClick={onRetry} icon={<RefreshCw className="size-3.5" aria-hidden="true" />}>
           Thử lại

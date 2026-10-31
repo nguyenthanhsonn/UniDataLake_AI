@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "skills": {
+    "data-engineering-data-pipeline": {
+      "source": "new-career-begin/queryweaver",
+      "sourceType": "github",
+      "skillPath": ".kiro/skills/data-engineering-data-pipeline/SKILL.md",
+      "computedHash": "43a21177a2be08f3140c97aee73e577499e24bdf8548a8d88e9e7aa3b2e1aafe"
+    },
+    "data-engineering-medallion-pipeline": {
+      "source": "reason-machines/data-skills",
+      "sourceType": "github",
+      "skillPath": "skills/data-engineering-medallion-pipeline/SKILL.md",
+      "computedHash": "c44811593fda88029dc678ece466999403d48652861ba586e70d1f5165802619"
+    },
+    "python-backend": {
+      "source": "jiatastic/open-python-skills",
+      "sourceType": "github",
+      "skillPath": "skills/fastapi-design/SKILL.md",
+      "computedHash": "79043c6c790d2a68ea6da31db8be02a77e0f2946c64e5e20f4d540f76d80e0dc"
+    }
+  }
+}

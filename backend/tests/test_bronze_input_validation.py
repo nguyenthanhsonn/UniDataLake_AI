@@ -281,7 +281,7 @@ async def test_worker_persists_before_upload_and_blocks_on_failure(tmp_path, mon
         events.append("upload")
         if failure == "write":
             raise RuntimeError("storage unavailable")
-        return {"uri": "s3://bronze/test"}
+        return {"uri": "s3://bronze/test", "version_id": "test-version"}
 
     await IngestionExecutionService(repo).execute(
         IngestionJob(

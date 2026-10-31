@@ -1,0 +1,38 @@
+{
+  "data_source_id": 8,
+  "dataset_id": 8,
+  "source_table": "academic.xlsx",
+  "validation_policy": {
+    "policy_id": "demo-eb2c5cfbf9be-excel-sheet-fail",
+    "version": "1",
+    "source_system_id": 12,
+    "data_source_id": 8,
+    "dataset_id": 8,
+    "parser": {
+      "kind": "EXCEL",
+      "sheet_name": "MissingSheet",
+      "header_row": 1,
+      "skip_rows": 0,
+      "formula_policy": "reject"
+    },
+    "columns": [
+      {
+        "name": "student_id"
+      },
+      {
+        "name": "course_name"
+      }
+    ],
+    "column_order": "any",
+    "allow_extra_columns": false,
+    "allow_empty_records": false,
+    "limits": {
+      "max_file_bytes": 10485760,
+      "max_columns": 100,
+      "max_records": 100000,
+      "max_cell_chars": 10000,
+      "timeout_seconds": 60,
+      "memory_limit_bytes": 67108864
+    }
+  }
+}

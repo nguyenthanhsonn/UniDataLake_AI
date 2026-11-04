@@ -2,6 +2,7 @@
 
 import type { ComponentType } from 'react'
 
+import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
@@ -10,9 +11,12 @@ import {
   BookOpen,
   Bot,
   CheckCircle2,
+  ClipboardCheck,
   Database,
   FileBarChart,
+  FileCheck2,
   FileText,
+  FolderSearch,
   GitBranch,
   GraduationCap,
   HardDrive,
@@ -65,6 +69,9 @@ const ICON_MAP: Record<string, ComponentType<{ className?: string }>> = {
   Sparkles,
   Upload,
   Workflow,
+  ClipboardCheck,
+  FolderSearch,
+  FileCheck2,
 }
 
 interface SidebarProps {
@@ -83,25 +90,49 @@ export function Sidebar({ role, onCloseMobile }: SidebarProps) {
     .sort((a, b) => b.length - a.length)[0]
 
   return (
-    <aside className="flex h-full w-64 flex-col bg-slate-900 p-3 text-slate-400">
-      {/* Role Workspace */}
-      {/* Trong ngăn kéo mobile, chừa chỗ cho nút đóng ở góc phải. */}
-      <div className={`pb-3 pl-2 pt-1.5 ${onCloseMobile ? 'pr-11' : 'pr-2'}`}>
-        <p className="font-mono text-[9px] font-medium uppercase tracking-widest text-slate-500">
-          Phân hệ vai trò (RBAC)
-        </p>
-        <div className="mt-1 flex items-center justify-between gap-2">
-          <p className="truncate text-xs font-semibold text-white">{roleDef.name}</p>
-          <span className="font-mono text-[9px] font-bold text-slate-400">V1.0</span>
+    <aside className="glass-panel-strong flex h-full w-[17rem] flex-col rounded-[2rem] p-3 text-slate-600">
+      <div className={`pb-5 pl-2 pt-2 ${onCloseMobile ? 'pr-12' : 'pr-2'}`}>
+        <div className="flex items-center gap-3">
+          <Image
+            src="/assets/ui/unilake-glass-orb.png"
+            alt=""
+            width={48}
+            height={48}
+            priority
+            className="size-12 object-contain drop-shadow-[0_10px_18px_rgba(99,102,241,0.2)]"
+          />
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <p className="text-[15px] font-extrabold tracking-[-0.02em] text-slate-950">
+                UniLake AI
+              </p>
+              <span className="rounded-full border border-white/80 bg-white/70 px-1.5 py-0.5 text-[8px] font-bold text-indigo-600">
+                V2
+              </span>
+            </div>
+            <p className="truncate text-[10px] font-medium text-slate-500">
+              {roleDef.workspaceLabel}
+            </p>
+          </div>
+        </div>
+        <div className="mt-4 rounded-2xl border border-white/80 bg-white/45 px-3 py-2.5 shadow-sm">
+          <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+            Không gian vai trò
+          </p>
+          <p className="mt-1 truncate text-xs font-bold text-slate-800">{roleDef.name}</p>
         </div>
       </div>
 
       {/* Navigation Menu */}
-      <nav className="flex-1 space-y-4 overflow-y-auto" aria-label="Điều hướng chính">
+      <nav className="flex-1 space-y-5 overflow-y-auto px-1" aria-label="Điều hướng chính">
         {menuGroups.map((group, groupIdx) => (
           <div key={group.groupTitle ?? groupIdx}>
-            {group.groupTitle && <h3 className="sr-only">{group.groupTitle}</h3>}
-            <ul className="space-y-1">
+            {group.groupTitle && (
+              <h3 className="px-3 pb-2 text-[9px] font-bold uppercase tracking-[0.16em] text-slate-400">
+                {group.groupTitle}
+              </h3>
+            )}
+            <ul className="space-y-1.5">
               {group.items.map((item) => {
                 const IconComponent = ICON_MAP[item.iconName] ?? LayoutDashboard
                 const isActive = item.href === activeHref
@@ -112,18 +143,22 @@ export function Sidebar({ role, onCloseMobile }: SidebarProps) {
                       href={item.href}
                       onClick={onCloseMobile}
                       aria-current={isActive ? 'page' : undefined}
-                      className={`flex h-9 items-center gap-2.5 rounded-md px-3 text-[13px] transition-colors ${
+                      className={`group flex min-h-10 items-center gap-2.5 rounded-2xl px-3 text-[12px] transition-all ${
                         isActive
-                          ? 'bg-indigo-600 font-semibold text-white'
-                          : 'font-medium text-slate-400 hover:bg-slate-800 hover:text-slate-200'
+                          ? 'border border-white/90 bg-white/85 font-bold text-slate-950 shadow-[0_8px_24px_rgba(82,89,130,0.12)]'
+                          : 'font-semibold text-slate-500 hover:bg-white/50 hover:text-slate-900'
                       }`}
                     >
-                      <IconComponent className="size-4 shrink-0" />
+                      <span
+                        className={`flex size-7 shrink-0 items-center justify-center rounded-xl ${isActive ? 'bg-indigo-100 text-indigo-600' : 'text-slate-400 group-hover:bg-white/60 group-hover:text-indigo-500'}`}
+                      >
+                        <IconComponent className="size-3.5" />
+                      </span>
                       <span className="flex-1 truncate">{item.title}</span>
                       {item.badge && (
                         <span
                           className={`rounded px-1.5 py-px font-mono text-[9px] font-bold uppercase ${
-                            isActive ? 'bg-indigo-500 text-white' : 'bg-slate-800 text-indigo-200'
+                            isActive ? 'bg-slate-950 text-white' : 'bg-indigo-100 text-indigo-600'
                           }`}
                         >
                           {item.badge}
@@ -138,14 +173,22 @@ export function Sidebar({ role, onCloseMobile }: SidebarProps) {
         ))}
       </nav>
 
-      {/* Lakehouse note */}
-      <div className="mt-3 rounded-md bg-slate-800 p-2.5">
-        <div className="flex items-center justify-between">
-          <span className="text-[10px] text-slate-400">Kiến trúc dữ liệu</span>
-          <span className="font-mono text-[10px] font-bold text-amber-500">Lakehouse</span>
+      <div className="mt-4 overflow-hidden rounded-[1.4rem] border border-white/80 bg-gradient-to-br from-slate-950 to-slate-800 p-3.5 text-white shadow-[0_12px_30px_rgba(15,23,42,0.18)]">
+        <div className="flex items-center gap-2.5">
+          <Image
+            src="/assets/ui/ai-spark-sticker.png"
+            alt=""
+            width={40}
+            height={40}
+            className="size-10 object-contain"
+          />
+          <div>
+            <p className="text-[11px] font-bold">UniLake Copilot</p>
+            <p className="text-[9px] text-slate-300">AI theo ngữ cảnh dữ liệu</p>
+          </div>
         </div>
-        <p className="mt-1 text-[10px] leading-[14px] text-slate-500">
-          Bronze (thô) → Silver (chuẩn hoá) → Gold (phân tích)
+        <p className="mt-2.5 text-[10px] leading-4 text-slate-300">
+          Bronze → Silver → Gold, luôn truy vết được nguồn dữ liệu.
         </p>
       </div>
     </aside>

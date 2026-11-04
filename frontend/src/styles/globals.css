@@ -12,6 +12,7 @@
 
 body {
   margin: 0;
+  min-height: 100vh;
 }
 
 button,
@@ -27,7 +28,7 @@ a {
 /* Giá trị là bộ ba HSL vì tailwind.config.ts bọc mỗi biến bằng hsl(var(--x)). */
 @layer base {
   :root {
-    --background: 210 40% 98%;
+    --background: 225 33% 97%;
     --foreground: 222 47% 11%;
     --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
@@ -42,7 +43,7 @@ a {
     --accent: 226 100% 97%;
     --accent-foreground: 245 58% 51%;
     --destructive: 347 77% 50%;
-    --border: 214 32% 91%;
+    --border: 220 24% 90%;
     --input: 213 27% 84%;
     --ring: 239 84% 67%;
     --chart-1: 243 75% 59%;
@@ -50,9 +51,9 @@ a {
     --chart-3: 222 47% 11%;
     --chart-4: 38 92% 50%;
     --chart-5: 347 77% 50%;
-    --radius: 0.5rem;
-    --sidebar: 222 47% 11%;
-    --sidebar-foreground: 215 20% 65%;
+    --radius: 1.25rem;
+    --sidebar: 0 0% 100%;
+    --sidebar-foreground: 215 16% 47%;
     --sidebar-primary: 243 75% 59%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 217 33% 17%;
@@ -101,5 +102,56 @@ a {
   body {
     @apply bg-background text-foreground;
     font-feature-settings: 'cv11', 'ss01';
+  }
+}
+
+@layer components {
+  .app-backdrop {
+    background:
+      radial-gradient(circle at 8% 14%, rgb(255 224 218 / 0.72), transparent 26rem),
+      radial-gradient(circle at 83% 7%, rgb(224 221 255 / 0.9), transparent 31rem),
+      radial-gradient(circle at 74% 86%, rgb(215 244 235 / 0.65), transparent 34rem),
+      linear-gradient(135deg, #f8f8fb 0%, #f1f1f5 47%, #f7f5fa 100%);
+  }
+
+  .glass-panel {
+    border: 1px solid rgb(255 255 255 / 0.78);
+    background: rgb(255 255 255 / 0.58);
+    box-shadow:
+      0 18px 55px rgb(71 75 110 / 0.11),
+      inset 0 1px 0 rgb(255 255 255 / 0.9);
+    backdrop-filter: blur(26px) saturate(145%);
+    -webkit-backdrop-filter: blur(26px) saturate(145%);
+  }
+
+  .glass-panel-strong {
+    border: 1px solid rgb(255 255 255 / 0.88);
+    background: linear-gradient(145deg, rgb(255 255 255 / 0.78), rgb(247 247 252 / 0.58));
+    box-shadow:
+      0 20px 70px rgb(61 65 96 / 0.13),
+      inset 0 1px 0 rgb(255 255 255 / 0.96);
+    backdrop-filter: blur(32px) saturate(150%);
+    -webkit-backdrop-filter: blur(32px) saturate(150%);
+  }
+
+  .glass-control {
+    border: 1px solid rgb(255 255 255 / 0.82);
+    background: rgb(255 255 255 / 0.62);
+    box-shadow:
+      0 7px 24px rgb(71 75 110 / 0.08),
+      inset 0 1px 0 rgb(255 255 255 / 0.95);
+    backdrop-filter: blur(18px) saturate(135%);
+    -webkit-backdrop-filter: blur(18px) saturate(135%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

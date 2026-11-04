@@ -1,6 +1,35 @@
 import type { MenuGroup, MenuItem, RoleCode } from '@/types/auth'
 
-/** Menu sidebar theo bản thiết kế Figma "UniLake AI – Frontend" (mỗi vai trò một nhóm). */
+function managerMenu(base: string, label: string): MenuGroup[] {
+  return [
+    {
+      groupTitle: `${label} · Điều hành`,
+      items: [
+        { title: 'Tổng quan', href: base, iconName: 'LayoutDashboard' },
+        { title: 'Phê duyệt nghiệp vụ', href: `${base}/approvals`, iconName: 'ClipboardCheck' },
+        { title: 'Phân tích & So sánh', href: `${base}/analytics`, iconName: 'BarChart3' },
+        { title: 'Hỏi UniLake AI', href: `${base}/ask`, iconName: 'Sparkles', badge: 'AI' },
+        { title: 'Lịch sử truy vấn', href: `${base}/history`, iconName: 'History' },
+      ],
+    },
+  ]
+}
+
+function staffMenu(base: string, recordLabel: string): MenuGroup[] {
+  return [
+    {
+      groupTitle: 'Không gian nghiệp vụ',
+      items: [
+        { title: 'Tổng quan công việc', href: base, iconName: 'LayoutDashboard' },
+        { title: recordLabel, href: `${base}/records`, iconName: 'FolderSearch' },
+        { title: 'Chi tiết & Xử lý', href: `${base}/detail`, iconName: 'FileCheck2' },
+        { title: 'Hỏi UniLake AI', href: `${base}/ask`, iconName: 'Sparkles', badge: 'AI' },
+        { title: 'Lịch sử truy vấn', href: `${base}/history`, iconName: 'History' },
+      ],
+    },
+  ]
+}
+
 export const ROLE_MENUS: Record<RoleCode, MenuGroup[]> = {
   ADMIN: [
     {
@@ -12,67 +41,47 @@ export const ROLE_MENUS: Record<RoleCode, MenuGroup[]> = {
       ],
     },
   ],
-
   DATA_ADMIN: [
     {
-      groupTitle: 'Quản trị dữ liệu',
+      groupTitle: 'Data Lake Studio',
       items: [
         { title: 'Nguồn dữ liệu', href: '/data', iconName: 'Database' },
-        { title: 'Nạp dữ liệu (Ingestion)', href: '/data/ingestion', iconName: 'Upload' },
+        { title: 'Nạp dữ liệu', href: '/data/ingestion', iconName: 'Upload' },
         { title: 'Data Catalog', href: '/data/catalog', iconName: 'BookOpen' },
         { title: 'Data Quality', href: '/data/quality', iconName: 'ShieldCheck' },
         { title: 'Data Lineage', href: '/data/lineage', iconName: 'Workflow' },
-        { title: 'Hỏi AI (NLQ)', href: '/data/ask', iconName: 'Sparkles', badge: 'AI' },
+        { title: 'Hỏi UniLake AI', href: '/data/ask', iconName: 'Sparkles', badge: 'AI' },
       ],
     },
   ],
-
-  ANALYST: [
-    {
-      groupTitle: 'Phân tích & Khai phá',
-      items: [
-        { title: 'Tổng quan phân hệ', href: '/analyst', iconName: 'LayoutDashboard' },
-        { title: 'Hỏi AI (NLQ)', href: '/analyst/ask', iconName: 'Sparkles', badge: 'AI' },
-        { title: 'Khám phá dữ liệu', href: '/analyst/explore', iconName: 'Table' },
-        { title: 'Lịch sử truy vấn', href: '/analyst/history', iconName: 'History' },
-      ],
-    },
-  ],
-
-  MANAGER: [
-    {
-      groupTitle: 'Quản lý đơn vị',
-      items: [
-        { title: 'Tổng quan phân hệ', href: '/manager', iconName: 'LayoutDashboard' },
-        { title: 'Phân tích & So sánh', href: '/manager/analytics', iconName: 'BarChart3' },
-        { title: 'Hỏi AI (NLQ)', href: '/manager/ask', iconName: 'Sparkles', badge: 'AI' },
-        { title: 'Lịch sử truy vấn', href: '/manager/history', iconName: 'History' },
-      ],
-    },
-  ],
-
   VIEWER: [
     {
       groupTitle: 'Điều hành',
       items: [
         { title: 'Tổng quan điều hành', href: '/viewer', iconName: 'LayoutDashboard' },
-        { title: 'Dashboard theo phân hệ', href: '/viewer/dashboards', iconName: 'BarChart3' },
-        { title: 'Hỏi AI (NLQ)', href: '/viewer/ask', iconName: 'Sparkles', badge: 'AI' },
+        { title: 'Dashboard phân hệ', href: '/viewer/dashboards', iconName: 'BarChart3' },
+        { title: 'Hỏi UniLake AI', href: '/viewer/ask', iconName: 'Sparkles', badge: 'AI' },
         { title: 'Lịch sử truy vấn', href: '/viewer/history', iconName: 'History' },
       ],
     },
   ],
+  ADMISSIONS_MANAGER: managerMenu('/workspaces/admissions/manager', 'Tuyển sinh'),
+  ADMISSIONS_STAFF: staffMenu('/workspaces/admissions/staff', 'Hồ sơ tuyển sinh'),
+  ACADEMIC_MANAGER: managerMenu('/workspaces/academic/manager', 'Đào tạo'),
+  ACADEMIC_STAFF: staffMenu('/workspaces/academic/staff', 'Hồ sơ học vụ'),
+  HR_MANAGER: managerMenu('/workspaces/hr/manager', 'Nhân sự'),
+  HR_STAFF: staffMenu('/workspaces/hr/staff', 'Hồ sơ nhân sự'),
 }
 
-/** Trang Hỏi AI của từng vai trò; ADMIN không có (nút Ask AI trên header bị ẩn). */
-export const ASK_AI_PATHS: Partial<Record<RoleCode, string>> = {
-  DATA_ADMIN: '/data/ask',
-  ANALYST: '/analyst/ask',
-  MANAGER: '/manager/ask',
-  VIEWER: '/viewer/ask',
-}
+export const ASK_AI_PATHS: Partial<Record<RoleCode, string>> = Object.fromEntries(
+  (Object.entries(ROLE_MENUS) as [RoleCode, MenuGroup[]][])
+    .map(([role, groups]) => [
+      role,
+      groups.flatMap((group) => group.items).find((item) => item.badge === 'AI')?.href,
+    ])
+    .filter((entry): entry is [RoleCode, string] => Boolean(entry[1]))
+)
 
 export function getMenuItemsForRole(role: RoleCode): MenuItem[] {
-  const groups = ROLE_MENUS[role] ?? []
-  return groups.flatMap((group) => group.items)
+  return (ROLE_MENUS[role] ?? []).flatMap((group) => group.items)
 }

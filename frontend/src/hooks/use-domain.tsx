@@ -23,22 +23,36 @@ function readStoredDomain(): DomainCode | null {
 }
 
 /** Giữ phân hệ đang chọn ở mức giao diện; chưa lọc dữ liệu phía backend. */
-export function DomainProvider({ children }: { children: ReactNode }) {
-  const [code, setCode] = useState<DomainCode>(DEFAULT_DOMAIN)
+export function DomainProvider({
+  children,
+  lockedDomain,
+}: {
+  children: ReactNode
+  lockedDomain?: DomainCode
+}) {
+  const [code, setCode] = useState<DomainCode>(lockedDomain ?? DEFAULT_DOMAIN)
 
   useEffect(() => {
+    if (lockedDomain) {
+      setCode(lockedDomain)
+      return
+    }
     const stored = readStoredDomain()
     if (stored) setCode(stored)
-  }, [])
+  }, [lockedDomain])
 
-  const setDomain = useCallback((next: DomainCode) => {
-    setCode(next)
-    try {
-      window.sessionStorage.setItem(DOMAIN_STORAGE_KEY, next)
-    } catch {
-      // Trình duyệt chặn storage thì vẫn đổi được phân hệ trong phiên hiện tại.
-    }
-  }, [])
+  const setDomain = useCallback(
+    (next: DomainCode) => {
+      if (lockedDomain) return
+      setCode(next)
+      try {
+        window.sessionStorage.setItem(DOMAIN_STORAGE_KEY, next)
+      } catch {
+        // Trình duyệt chặn storage thì vẫn đổi được phân hệ trong phiên hiện tại.
+      }
+    },
+    [lockedDomain]
+  )
 
   const value = useMemo(() => ({ domain: getDomain(code), setDomain }), [code, setDomain])
 

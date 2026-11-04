@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react'
 
+import Image from 'next/image'
+
 import { ChevronRight, CircleAlert, Inbox, LoaderCircle, RefreshCw } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
@@ -17,10 +19,10 @@ export function PageHeader({
   actions?: ReactNode
 }) {
   return (
-    <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-      <div className="min-w-0 space-y-1">
+    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+      <div className="min-w-0 space-y-1.5">
         <nav aria-label="Breadcrumb">
-          <ol className="flex flex-wrap items-center gap-1 font-mono text-[10px] font-medium uppercase tracking-wider text-slate-400">
+          <ol className="flex flex-wrap items-center gap-1 text-[9px] font-bold uppercase tracking-[0.15em] text-slate-400">
             {breadcrumb.map((item, index) => (
               <li key={`${item}-${index}`} className="flex items-center gap-1">
                 {index > 0 && <ChevronRight className="size-3" aria-hidden="true" />}
@@ -31,7 +33,9 @@ export function PageHeader({
             ))}
           </ol>
         </nav>
-        <h1 className="text-xl font-bold text-slate-900">{title}</h1>
+        <h1 className="text-[1.75rem] font-extrabold leading-tight tracking-[-0.035em] text-slate-950 md:text-[2.05rem]">
+          {title}
+        </h1>
         {description && (
           <p className="max-w-3xl text-[13px] leading-5 text-slate-500">{description}</p>
         )}
@@ -57,17 +61,17 @@ export function Card({
   bodyClassName?: string
 }) {
   return (
-    <section className={cn('rounded-lg border border-slate-200 bg-white', className)}>
+    <section className={cn('glass-panel overflow-hidden rounded-[1.55rem]', className)}>
       {(title || right) && (
-        <header className="flex flex-wrap items-start justify-between gap-2 border-b border-slate-200 px-4 py-3">
+        <header className="flex flex-wrap items-start justify-between gap-2 border-b border-white/80 px-5 py-4">
           <div className="min-w-0">
-            {title && <h2 className="text-sm font-semibold text-slate-900">{title}</h2>}
+            {title && <h2 className="text-sm font-bold tracking-tight text-slate-900">{title}</h2>}
             {subtitle && <p className="mt-0.5 text-[11px] text-slate-500">{subtitle}</p>}
           </div>
           {right}
         </header>
       )}
-      <div className={cn('p-4', bodyClassName)}>{children}</div>
+      <div className={cn('p-5', bodyClassName)}>{children}</div>
     </section>
   )
 }
@@ -84,11 +88,9 @@ export function KpiCard({
   tone?: Tone
 }) {
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-4">
-      <p className="font-mono text-[10px] font-medium uppercase tracking-wider text-slate-500">
-        {label}
-      </p>
-      <p className="mt-1.5 font-mono text-2xl font-bold text-slate-900">{value}</p>
+    <div className="glass-panel rounded-[1.45rem] p-5 transition-transform hover:-translate-y-0.5">
+      <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-slate-500">{label}</p>
+      <p className="mt-2 text-2xl font-extrabold -tracking-wide text-slate-950">{value}</p>
       {hint && <p className={cn('mt-1 text-[11px]', HINT_TONE[tone])}>{hint}</p>}
     </div>
   )
@@ -118,7 +120,7 @@ export function Tag({ children, tone = 'slate' }: { children: ReactNode; tone?: 
   return (
     <span
       className={cn(
-        'inline-flex items-center whitespace-nowrap rounded border px-1.5 py-px font-mono text-[10px] font-bold uppercase',
+        'inline-flex items-center whitespace-nowrap rounded-full border px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide',
         TAG_TONE[tone]
       )}
     >
@@ -178,7 +180,7 @@ export function ProgressRow({
         <span className="font-medium text-slate-700">{label}</span>
         <span className="font-mono text-slate-500">{value}</span>
       </div>
-      <div className="h-2 rounded-full bg-slate-100">
+      <div className="h-2 rounded-full bg-white/70 shadow-inner">
         <div
           className={cn('h-2 rounded-full', fill)}
           style={{ width: `${Math.min(100, Math.max(0, percent))}%` }}
@@ -200,15 +202,15 @@ export function Button({
 }) {
   const styles = {
     primary: 'bg-indigo-600 text-white hover:bg-indigo-700 disabled:bg-indigo-600/60',
-    outline: 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50',
-    soft: 'border border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100',
-    ghost: 'text-slate-600 hover:bg-slate-100',
+    outline: 'glass-control text-slate-700 hover:bg-white/80',
+    soft: 'border border-indigo-200/70 bg-indigo-50/70 text-indigo-700 hover:bg-indigo-100/80',
+    ghost: 'text-slate-600 hover:bg-white/60',
   }[variant]
   return (
     <button
       type="button"
       className={cn(
-        'inline-flex h-8 items-center justify-center gap-1.5 whitespace-nowrap rounded-md px-3 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-70',
+        'inline-flex h-9 items-center justify-center gap-1.5 whitespace-nowrap rounded-2xl px-3.5 text-xs font-bold transition-all hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 disabled:cursor-not-allowed disabled:opacity-70',
         styles,
         className
       )}
@@ -222,7 +224,7 @@ export function Button({
 
 export function FilterChip({ label, value }: { label: string; value: string }) {
   return (
-    <span className="inline-flex h-8 items-center gap-1 rounded-md border border-slate-300 bg-white px-2.5 text-xs">
+    <span className="glass-control inline-flex h-9 items-center gap-1 rounded-2xl px-3 text-xs">
       <span className="text-slate-500">{label}</span>
       <span className="font-medium text-slate-800">{value}</span>
     </span>
@@ -254,7 +256,7 @@ export function ErrorState({
   return (
     <div
       role="alert"
-      className="flex flex-col items-center gap-3 rounded-md border border-rose-200 bg-rose-50 px-4 py-6 text-center"
+      className="flex flex-col items-center gap-3 rounded-[1.4rem] border border-rose-200/80 bg-rose-50/70 px-4 py-7 text-center backdrop-blur-xl"
     >
       <div className="flex items-center gap-2 text-sm font-medium text-rose-700">
         <CircleAlert className="size-4" aria-hidden="true" />
@@ -273,7 +275,19 @@ export function ErrorState({
 export function EmptyState({ title, description }: { title: string; description?: string }) {
   return (
     <div className="flex flex-col items-center gap-1.5 py-10 text-center">
-      <Inbox className="size-6 text-slate-300" aria-hidden="true" />
+      <div className="relative mb-1 size-16">
+        <Image
+          src="/assets/ui/ai-spark-sticker.png"
+          alt=""
+          fill
+          sizes="64px"
+          className="object-contain"
+        />
+        <Inbox
+          className="absolute bottom-0 right-0 size-5 rounded-full bg-white p-1 text-slate-400 shadow"
+          aria-hidden="true"
+        />
+      </div>
       <p className="text-sm font-medium text-slate-700">{title}</p>
       {description && <p className="max-w-md text-xs text-slate-500">{description}</p>}
     </div>
@@ -283,7 +297,7 @@ export function EmptyState({ title, description }: { title: string; description?
 /** Ghi chú nhỏ cho biết số liệu đang là dữ liệu mẫu vì backend chưa có API tương ứng. */
 export function MockNotice({ api }: { api: string }) {
   return (
-    <p className="rounded-md border border-dashed border-amber-300 bg-amber-50 px-3 py-2 text-[11px] text-amber-800">
+    <p className="rounded-2xl border border-dashed border-amber-300/80 bg-amber-50/70 px-3 py-2 text-[11px] text-amber-800 backdrop-blur-xl">
       Đang hiển thị dữ liệu mẫu theo thiết kế. Backend chưa có{' '}
       <code className="font-mono">{api}</code>; sẽ nối khi API sẵn sàng.
     </p>

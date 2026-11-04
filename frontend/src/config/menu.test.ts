@@ -7,6 +7,14 @@ import { ASK_AI_PATHS, ROLE_MENUS } from './menu'
 import { ROLE_DEFINITIONS, getRoleFromPrefix } from './roles'
 
 function pageFile(href: string): string {
+  if (href.startsWith('/workspaces/')) {
+    const segmentCount = href.split('/').filter(Boolean).length
+    return path.join(
+      process.cwd(),
+      'src/app/workspaces/[domain]/[scope]',
+      segmentCount > 3 ? '[view]/page.tsx' : 'page.tsx'
+    )
+  }
   return path.join(process.cwd(), 'src/app', href, 'page.tsx')
 }
 

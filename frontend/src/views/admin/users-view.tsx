@@ -12,9 +12,13 @@ import type { RoleCode } from '@/types/auth'
 const ROLE_TONE: Record<RoleCode, Tone> = {
   ADMIN: 'amber',
   DATA_ADMIN: 'emerald',
-  ANALYST: 'sky',
-  MANAGER: 'indigo',
   VIEWER: 'slate',
+  ADMISSIONS_MANAGER: 'indigo',
+  ADMISSIONS_STAFF: 'sky',
+  ACADEMIC_MANAGER: 'indigo',
+  ACADEMIC_STAFF: 'sky',
+  HR_MANAGER: 'indigo',
+  HR_STAFF: 'sky',
 }
 
 const USERS: {
@@ -27,7 +31,7 @@ const USERS: {
   lastLogin: string
 }[] = [
   {
-    name: 'GS. Đặng Quang Vinh',
+    name: 'Nguyễn Toàn',
     email: 'vinh.dq@unilake.edu.vn',
     role: 'VIEWER',
     domains: 'Tuyển sinh · Đào tạo · Nhân sự',
@@ -36,25 +40,25 @@ const USERS: {
     lastLogin: '10 phút trước',
   },
   {
-    name: 'TS. Nguyễn Văn Hùng',
+    name: 'Trí Đức',
     email: 'hung.nv@unilake.edu.vn',
-    role: 'MANAGER',
+    role: 'ADMISSIONS_MANAGER',
     domains: 'Tuyển sinh',
     unit: 'Phòng Tuyển sinh',
     locked: false,
     lastLogin: 'Hôm qua',
   },
   {
-    name: 'ThS. Trần Thị Mai Phương',
+    name: 'Tô Loan',
     email: 'phuong.ttm@unilake.edu.vn',
-    role: 'ANALYST',
-    domains: 'Tuyển sinh · Đào tạo',
-    unit: 'Phòng Đào tạo',
+    role: 'ADMISSIONS_STAFF',
+    domains: 'Tuyển sinh',
+    unit: 'Phòng Tuyển sinh',
     locked: false,
     lastLogin: '25 phút trước',
   },
   {
-    name: 'KS. Lê Hoàng Minh',
+    name: 'Nguyễn Thanh Sơn',
     email: 'minh.lh@unilake.edu.vn',
     role: 'DATA_ADMIN',
     domains: 'Tuyển sinh · Đào tạo · Nhân sự',
@@ -63,7 +67,7 @@ const USERS: {
     lastLogin: '1 giờ trước',
   },
   {
-    name: 'KS. Nguyễn Bảo Long',
+    name: 'Trương Đình Đạt',
     email: 'long.nb@unilake.edu.vn',
     role: 'ADMIN',
     domains: 'Tất cả',
@@ -72,11 +76,11 @@ const USERS: {
     lastLogin: 'Vừa xong',
   },
   {
-    name: 'TS. Vũ Thị Mai Liên',
+    name: 'Nguyễn Đăng Quang Huy',
     email: 'lien.vtm@unilake.edu.vn',
-    role: 'VIEWER',
-    domains: 'Nhân sự',
-    unit: 'Phòng Nhân sự',
+    role: 'ACADEMIC_MANAGER',
+    domains: 'Đào tạo',
+    unit: 'Phòng Đào tạo',
     locked: true,
     lastLogin: '1 tuần trước',
   },
@@ -98,7 +102,7 @@ export function UsersView() {
       <PageHeader
         breadcrumb={['Quản trị hệ thống', 'Người dùng & Phân quyền']}
         title="Người dùng & Phân quyền (RBAC)"
-        description="Quản trị tài khoản, vai trò và phạm vi phân hệ được truy cập. Vai trò theo thiết kế DB: ADMIN · DATA_ADMIN · ANALYST · MANAGER · VIEWER."
+        description="Quản trị tài khoản, 9 vai trò và phạm vi phân hệ được truy cập theo mô hình RBAC mới."
       />
       <MockNotice api="GET /users" />
 
@@ -110,8 +114,8 @@ export function UsersView() {
         />
         <KpiCard
           label="Vai trò (RBAC)"
-          value="5"
-          hint="ADMIN · DATA_ADMIN · ANALYST · MANAGER · VIEWER"
+          value="9"
+          hint="Hệ thống · Dữ liệu · Điều hành · 6 vai trò nghiệp vụ"
         />
         <KpiCard
           label="Phạm vi theo phân hệ"
@@ -134,7 +138,7 @@ export function UsersView() {
                 aria-hidden="true"
               />
               <input
-                className="h-8 w-56 rounded-md border border-slate-300 pl-8 pr-2 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+                className="glass-control h-9 w-56 rounded-2xl pl-8 pr-2 text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
                 placeholder="Tìm theo tên, email…"
                 value={keyword}
                 onChange={(event) => setKeyword(event.target.value)}
@@ -143,7 +147,7 @@ export function UsersView() {
             <label>
               <span className="sr-only">Lọc theo vai trò</span>
               <select
-                className="h-8 rounded-md border border-slate-300 bg-white px-2 text-xs"
+                className="glass-control h-9 rounded-2xl px-2 text-xs"
                 value={role}
                 onChange={(event) => setRole(event.target.value as RoleCode | '')}
               >
@@ -161,7 +165,7 @@ export function UsersView() {
       >
         <div className="overflow-x-auto">
           <table className="w-full min-w-[820px] text-left text-xs">
-            <thead className="bg-slate-50 font-mono text-[10px] uppercase tracking-wider text-slate-500">
+            <thead className="bg-white/35 text-[10px] uppercase tracking-wider text-slate-500">
               <tr>
                 {[
                   'Tài khoản',
@@ -177,7 +181,7 @@ export function UsersView() {
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-white/70">
               {rows.map((user) => (
                 <tr key={user.email}>
                   <td className="px-3 py-2.5">

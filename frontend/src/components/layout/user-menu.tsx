@@ -31,8 +31,8 @@ export function getInitials(name: string): string {
 export function UserMenu({ role }: UserMenuProps) {
   const { user, roles, logout, isLoggingOut } = useAuth()
   const roleDef = ROLE_DEFINITIONS[role]
-  const displayName = user?.fullName ?? user?.username ?? 'Người dùng'
-  const secondaryLine = user?.email ?? user?.username ?? 'Chưa đăng nhập'
+  const displayName = user?.fullName ?? user?.username ?? roleDef.sampleUser
+  const secondaryLine = user?.email ?? user?.username ?? roleDef.workspaceLabel
   // Giữ thứ tự ưu tiên vai trò để danh sách không nhảy khi token đổi thứ tự.
   const switchableRoles = ROLE_PRIORITY.filter((item) => roles.includes(item))
 
@@ -40,9 +40,9 @@ export function UserMenu({ role }: UserMenuProps) {
     <DropdownMenu>
       <DropdownMenuTrigger
         aria-label="Mở menu người dùng"
-        className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white py-1 pl-1 pr-2 text-left transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 data-[state=open]:border-indigo-500 data-[state=open]:ring-1 data-[state=open]:ring-indigo-500"
+        className="glass-control flex min-h-10 items-center gap-2 rounded-2xl py-1 pl-1 pr-2 text-left transition-all hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
       >
-        <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-[10px] font-bold text-indigo-700">
+        <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-200 via-violet-100 to-rose-100 text-[10px] font-extrabold text-indigo-700 shadow-inner">
           {getInitials(displayName)}
         </span>
         <span className="hidden min-w-0 flex-col lg:flex">
@@ -50,15 +50,15 @@ export function UserMenu({ role }: UserMenuProps) {
             <span className="max-w-40 truncate text-xs font-semibold text-slate-900">
               {displayName}
             </span>
-            <span className="rounded border border-indigo-200 bg-indigo-50 px-1.5 py-px font-mono text-[10px] font-bold text-indigo-700">
-              [{role}]
-            </span>
           </span>
           <span className="truncate text-[10px] text-slate-500">{roleDef.name}</span>
         </span>
         <ChevronDown className="size-3.5 shrink-0 text-slate-400" />
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-80">
+      <DropdownMenuContent
+        align="end"
+        className="w-80 rounded-2xl border-white/80 bg-white/90 p-2 shadow-[0_24px_70px_rgba(71,75,110,0.2)] backdrop-blur-2xl"
+      >
         <div className="space-y-0.5 px-2 py-1.5">
           <div className="flex items-center gap-1.5">
             <p className="min-w-0 flex-1 truncate text-sm font-bold text-slate-900">

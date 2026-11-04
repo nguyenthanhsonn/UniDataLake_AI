@@ -1,10 +1,8 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-import { getDefaultHomeForRoles, hasAccessToRoute } from '@/config/roles'
+import { getDefaultHomeForRoles, hasAccessToRoute, normalizeRoleCode } from '@/config/roles'
 import type { RoleCode } from '@/types/auth'
-
-const VALID_ROLES: RoleCode[] = ['ADMIN', 'DATA_ADMIN', 'ANALYST', 'MANAGER', 'VIEWER']
 
 function extractRolesFromToken(token: string): RoleCode[] {
   try {
@@ -20,9 +18,7 @@ function extractRolesFromToken(token: string): RoleCode[] {
     const rawRoles = (payload.roles as unknown[]) ?? (payload.role ? [payload.role] : [])
 
     const roles: RoleCode[] = Array.isArray(rawRoles)
-      ? rawRoles
-          .map((r) => String(r).toUpperCase())
-          .filter((r): r is RoleCode => VALID_ROLES.includes(r as RoleCode))
+      ? rawRoles.map(normalizeRoleCode).filter((r): r is RoleCode => r !== null)
       : []
 
     return roles.length > 0 ? roles : ['VIEWER']

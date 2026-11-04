@@ -2,16 +2,17 @@
 
 import { useEffect, useState } from 'react'
 
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import axios from 'axios'
-import { ArrowRight, CircleAlert, Clock, Eye, EyeOff, Layers, LoaderCircle, X } from 'lucide-react'
+import { ArrowRight, CircleAlert, Clock, Eye, EyeOff, LoaderCircle, X } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 
 import { API_SignIn } from '@/api/api_auth'
-import { getDefaultHomeForRoles } from '@/config/roles'
+import { getDefaultHomeForRoles, normalizeRoleCode } from '@/config/roles'
 import { SESSION_EXPIRED_PARAM, storeSession } from '@/lib/session'
 import type { ApiErrorBody, LoginFormValues, RoleCode } from '@/types/auth'
 
@@ -31,8 +32,8 @@ export const loginSchema = z.object({
 const DEFAULT_LOGIN_ERROR = 'Tên đăng nhập hoặc mật khẩu chưa đúng. Vui lòng kiểm tra lại.'
 
 const fieldClass =
-  'h-10 w-full rounded-md border bg-white px-3 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2'
-const fieldOk = 'border-slate-300 focus-visible:border-indigo-500 focus-visible:ring-indigo-500/30'
+  'h-11 w-full rounded-2xl border bg-white/60 px-3.5 text-sm text-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,.9)] backdrop-blur-xl placeholder:text-slate-400 focus-visible:outline-none focus-visible:ring-2'
+const fieldOk = 'border-white/90 focus-visible:border-indigo-400 focus-visible:ring-indigo-500/20'
 const fieldInvalid =
   'border-2 border-rose-500 bg-rose-50 focus-visible:border-rose-500 focus-visible:ring-rose-500/30'
 
@@ -63,7 +64,7 @@ export function LoginView() {
 
       storeSession(data)
 
-      const role = data.user?.role?.toUpperCase() as RoleCode | undefined
+      const role = normalizeRoleCode(data.user?.role)
       const userRoles: RoleCode[] = role ? [role] : ['VIEWER']
       const redirectPath = getDefaultHomeForRoles(userRoles)
 
@@ -80,29 +81,36 @@ export function LoginView() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col bg-white lg:grid lg:grid-cols-[2fr_3fr]">
+    <main className="app-backdrop relative flex min-h-screen flex-col overflow-hidden p-3 lg:grid lg:grid-cols-[1.1fr_1fr] lg:p-5">
+      <div className="pointer-events-none absolute -bottom-28 -left-24 size-96 rounded-full bg-rose-200/40 blur-3xl" />
+      <div className="pointer-events-none absolute -right-24 -top-28 size-[28rem] rounded-full bg-indigo-200/50 blur-3xl" />
       <section
-        className="flex flex-col justify-between gap-6 bg-slate-900 px-6 py-8 lg:px-14 lg:py-12"
+        className="glass-panel-strong relative flex flex-col justify-between gap-7 overflow-hidden rounded-[2.2rem] px-6 py-7 lg:px-12 lg:py-11"
         aria-label="Giới thiệu UniLake AI"
       >
         <div className="flex items-center gap-2.5">
-          <div className="flex size-9 items-center justify-center rounded-lg bg-indigo-600 text-white">
-            <Layers className="size-5" />
-          </div>
-          <span className="text-lg font-bold text-white">UniLake AI</span>
-          <span className="rounded border border-indigo-200 bg-indigo-50 px-1.5 py-px font-mono text-[10px] font-bold text-indigo-700">
-            v1.0
+          <Image
+            src="/assets/ui/unilake-glass-orb.png"
+            alt=""
+            width={52}
+            height={52}
+            priority
+            className="size-12 object-contain"
+          />
+          <span className="text-lg font-extrabold tracking-tight text-slate-950">UniLake AI</span>
+          <span className="rounded-full border border-white/90 bg-white/60 px-2 py-0.5 text-[9px] font-bold text-indigo-700">
+            V2
           </span>
         </div>
 
         <div className="space-y-5">
-          <p className="hidden font-mono text-[10px] font-medium uppercase tracking-widest text-indigo-200 lg:block">
+          <p className="hidden text-[10px] font-bold uppercase tracking-[0.18em] text-indigo-500 lg:block">
             Data lake đa nguồn · AI Analytics
           </p>
-          <h1 className="text-2xl font-bold leading-tight text-white lg:text-[34px] lg:leading-[42px]">
+          <h1 className="max-w-xl text-3xl font-extrabold leading-tight tracking-[-0.045em] text-slate-950 lg:text-[46px] lg:leading-[1.08]">
             Dữ liệu quản trị đại học, hỏi bằng ngôn ngữ tự nhiên.
           </h1>
-          <p className="hidden text-sm leading-6 text-slate-400 lg:block">
+          <p className="hidden max-w-xl text-sm leading-6 text-slate-600 lg:block">
             Tích hợp dữ liệu Tuyển sinh, Đào tạo và Nhân sự trên kiến trúc Bronze – Silver – Gold,
             có quản trị chất lượng và truy vết nguồn gốc.
           </p>
@@ -110,7 +118,7 @@ export function LoginView() {
             {['Tuyển sinh', 'Đào tạo', 'Nhân sự'].map((domain) => (
               <li
                 key={domain}
-                className="rounded-full border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-200"
+                className="rounded-full border border-white/90 bg-white/60 px-3 py-1.5 text-xs font-bold text-slate-700 shadow-sm"
               >
                 {domain}
               </li>
@@ -122,10 +130,10 @@ export function LoginView() {
           >
             {['Nguồn', 'Bronze', 'Silver', 'Gold'].map((layer, index) => (
               <li key={layer} className="flex items-center gap-2">
-                {index > 0 && <ArrowRight className="size-3.5 text-slate-500" aria-hidden="true" />}
+                {index > 0 && <ArrowRight className="size-3.5 text-slate-400" aria-hidden="true" />}
                 <span
-                  className={`rounded-md bg-slate-800 px-2.5 py-1 font-mono text-[11px] font-bold ${
-                    layer === 'Bronze' || layer === 'Gold' ? 'text-amber-500' : 'text-slate-300'
+                  className={`rounded-xl border border-white/80 bg-white/50 px-2.5 py-1 text-[10px] font-bold ${
+                    layer === 'Bronze' || layer === 'Gold' ? 'text-amber-700' : 'text-slate-600'
                   }`}
                 >
                   {layer}
@@ -135,18 +143,32 @@ export function LoginView() {
           </ol>
         </div>
 
-        <p className="hidden font-mono text-[10px] font-medium text-slate-500 lg:block">
-          Phiên bản 1.0 · Capstone C1SE.11 · Đại học Duy Tân
+        <div className="hidden items-center gap-3 lg:flex">
+          <Image
+            src="/assets/ui/ai-spark-sticker.png"
+            alt=""
+            width={58}
+            height={58}
+            className="size-14 object-contain"
+          />
+          <p className="max-w-sm text-[11px] leading-5 text-slate-500">
+            Trợ lý dữ liệu giúp mỗi vai trò tìm insight nhanh hơn, vẫn tuân thủ phạm vi RBAC.
+          </p>
+        </div>
+        <p className="hidden text-[9px] font-bold uppercase tracking-widest text-slate-400 lg:block">
+          Capstone C1SE.11 · Đại học Duy Tân
         </p>
       </section>
 
-      <section className="flex flex-1 items-start justify-center px-6 py-8 lg:items-center">
-        <div className="w-full max-w-[400px] space-y-4">
-          <p className="font-mono text-[10px] font-medium uppercase tracking-widest text-indigo-600">
+      <section className="relative flex flex-1 items-start justify-center px-3 py-5 lg:items-center lg:px-8">
+        <div className="glass-panel w-full max-w-[440px] space-y-5 rounded-[2rem] p-6 md:p-8">
+          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-indigo-600">
             Cổng truy cập
           </p>
           <header className="space-y-1">
-            <h2 className="text-[26px] font-bold leading-8 text-slate-900">Đăng nhập</h2>
+            <h2 className="text-[30px] font-extrabold leading-9 tracking-[-0.04em] text-slate-950">
+              Đăng nhập
+            </h2>
             <p className="text-[13px] leading-5 text-slate-500">
               Dùng tài khoản của trường để truy cập hệ thống.
             </p>
@@ -155,7 +177,7 @@ export function LoginView() {
           {sessionExpired && !serverError && (
             <div
               role="status"
-              className="flex items-start gap-2.5 rounded-lg border border-amber-200 bg-amber-50 p-3"
+              className="flex items-start gap-2.5 rounded-2xl border border-amber-200/80 bg-amber-50/75 p-3 backdrop-blur-xl"
             >
               <Clock className="mt-0.5 size-4 shrink-0 text-amber-700" aria-hidden="true" />
               <div className="space-y-0.5">
@@ -170,7 +192,7 @@ export function LoginView() {
           {serverError && (
             <div
               role="alert"
-              className="flex items-start gap-2.5 rounded-lg border border-rose-200 bg-rose-50 p-3"
+              className="flex items-start gap-2.5 rounded-2xl border border-rose-200/80 bg-rose-50/75 p-3 backdrop-blur-xl"
             >
               <CircleAlert className="mt-0.5 size-4 shrink-0 text-rose-700" aria-hidden="true" />
               <div className="flex-1 space-y-0.5">
@@ -264,7 +286,7 @@ export function LoginView() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex h-10 w-full items-center justify-center gap-2 rounded-md bg-indigo-600 text-sm font-semibold text-white transition-colors hover:bg-indigo-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-indigo-600/70"
+              className="flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 text-sm font-bold text-white shadow-[0_12px_30px_rgba(15,23,42,.2)] transition-all hover:-translate-y-0.5 hover:bg-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-slate-600"
             >
               {isSubmitting && <LoaderCircle className="size-4 animate-spin" aria-hidden="true" />}
               {isSubmitting ? 'Đang xác thực…' : 'Đăng nhập'}

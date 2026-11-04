@@ -394,7 +394,7 @@ function SourceForm({ initial }: { initial?: DataSourceItem }) {
           </Card>
           <Card title="Phân quyền">
             <p className="text-xs leading-5 text-slate-600">
-              Chỉ DATA_ADMIN và ADMIN được thêm / sửa. ANALYST và VIEWER chỉ xem.
+              Chỉ DATA_ADMIN và ADMIN được thêm / sửa. Các vai trò nghiệp vụ và VIEWER chỉ xem.
             </p>
           </Card>
         </div>

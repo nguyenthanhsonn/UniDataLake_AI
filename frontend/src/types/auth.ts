@@ -1,4 +1,13 @@
-export type RoleCode = 'ADMIN' | 'DATA_ADMIN' | 'ANALYST' | 'MANAGER' | 'VIEWER'
+export type RoleCode =
+  | 'ADMIN'
+  | 'DATA_ADMIN'
+  | 'VIEWER'
+  | 'ADMISSIONS_MANAGER'
+  | 'ADMISSIONS_STAFF'
+  | 'ACADEMIC_MANAGER'
+  | 'ACADEMIC_STAFF'
+  | 'HR_MANAGER'
+  | 'HR_STAFF'
 
 export interface AuthUser {
   id?: string | number
@@ -13,6 +22,9 @@ export interface RoleDefinition {
   name: string
   homePath: string
   description: string
+  workspaceLabel: string
+  sampleUser: string
+  domain?: 'admissions' | 'academic' | 'hr'
   badgeVariant?: 'default' | 'secondary' | 'outline' | 'destructive'
 }
 

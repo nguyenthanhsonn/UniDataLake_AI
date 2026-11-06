@@ -1,6 +1,7 @@
 import { http } from '@/api/http'
 import type {
   CatalogEntry,
+  CleaningResult,
   DataSourceCreatePayload,
   DataSourceFilter,
   DataSourceItem,
@@ -46,10 +47,26 @@ export async function API_ListIngestionJobs(params: {
   return res.data
 }
 
+export async function API_GetIngestionJob(id: number): Promise<IngestionJob> {
+  const res = await http.get<IngestionJob>(`/ingestion/jobs/${id}`)
+  return res.data
+}
+
 export async function API_CreateIngestionJob(
   payload: IngestionJobCreatePayload
 ): Promise<IngestionJob> {
   const res = await http.post<IngestionJob>('/ingestion/jobs', payload)
+  return res.data
+}
+
+export async function API_RunCleaningJob(
+  ingestionJobId: number,
+  payload: { session?: string; base_snapshot?: string | null } = {}
+): Promise<CleaningResult> {
+  const res = await http.post<CleaningResult>(
+    `/pipeline/cleaning/ingestion-jobs/${ingestionJobId}`,
+    payload
+  )
   return res.data
 }
 

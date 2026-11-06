@@ -19,6 +19,7 @@ export interface ConfigField {
   options?: string[]
   defaultValue: string
   hint?: string
+  sensitive?: boolean
 }
 
 /** Khoá cấu hình theo loại nguồn, khớp `REQUIRED_CONFIG` trong `backend/app/repositories/datasource_repo.py`. */
@@ -111,6 +112,46 @@ export const SOURCE_TYPE_CONFIG: Record<
       },
     ],
   },
+  POSTGRESQL: {
+    label: 'PostgreSQL',
+    connectionType: 'RDBMS',
+    locationHint: 'postgresql://db.internal:5432/university',
+    fields: [
+      { key: 'host', label: 'host', kind: 'text', required: true, defaultValue: '' },
+      { key: 'port', label: 'port', kind: 'number', required: true, defaultValue: '5432' },
+      { key: 'database', label: 'database', kind: 'text', required: true, defaultValue: '' },
+      { key: 'username', label: 'username', kind: 'text', required: true, defaultValue: '' },
+      {
+        key: 'password',
+        label: 'password',
+        kind: 'text',
+        required: true,
+        defaultValue: '',
+        sensitive: true,
+        hint: 'Thông tin nhạy cảm; backend không trả lại trường này.',
+      },
+    ],
+  },
+  RDBMS: {
+    label: 'RDBMS',
+    connectionType: 'RDBMS',
+    locationHint: 'db.internal:5432/university',
+    fields: [
+      { key: 'host', label: 'host', kind: 'text', required: true, defaultValue: '' },
+      { key: 'port', label: 'port', kind: 'number', required: true, defaultValue: '5432' },
+      { key: 'database', label: 'database', kind: 'text', required: true, defaultValue: '' },
+      { key: 'username', label: 'username', kind: 'text', required: true, defaultValue: '' },
+      {
+        key: 'password',
+        label: 'password',
+        kind: 'text',
+        required: true,
+        defaultValue: '',
+        sensitive: true,
+        hint: 'Thông tin nhạy cảm; backend không trả lại trường này.',
+      },
+    ],
+  },
 }
 
 export const SOURCE_TYPES = Object.keys(SOURCE_TYPE_CONFIG) as SourceType[]
@@ -141,8 +182,10 @@ export function buildConfiguration(
           errors[field.key] = `${field.key} phải là số nguyên.`
         } else if (field.key === 'header_row' && value < 1) {
           errors[field.key] = 'header_row phải lớn hơn hoặc bằng 1.'
-        } else if (field.key === 'timeout_seconds' && value <= 0) {
-          errors[field.key] = 'timeout_seconds phải lớn hơn 0.'
+        } else if ((field.key === 'timeout_seconds' || field.key === 'port') && value <= 0) {
+          errors[field.key] = `${field.key} phải lớn hơn 0.`
+        } else if (field.key === 'port' && value > 65535) {
+          errors[field.key] = 'port phải nhỏ hơn hoặc bằng 65535.'
         } else if (value < 0) {
           errors[field.key] = `${field.key} không được âm.`
         } else {

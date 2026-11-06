@@ -40,6 +40,13 @@ export const ROLE_MENUS: Record<RoleCode, MenuGroup[]> = {
         { title: 'Nhật ký hệ thống', href: '/admin/system-logs', iconName: 'ScrollText' },
       ],
     },
+    {
+      groupTitle: 'Vận hành dữ liệu',
+      items: [
+        { title: 'Nguồn dữ liệu', href: '/admin/data-sources', iconName: 'Database' },
+        { title: 'Nạp dữ liệu', href: '/admin/ingestion', iconName: 'Upload' },
+      ],
+    },
   ],
   DATA_ADMIN: [
     {
@@ -59,6 +66,8 @@ export const ROLE_MENUS: Record<RoleCode, MenuGroup[]> = {
       groupTitle: 'Điều hành',
       items: [
         { title: 'Tổng quan điều hành', href: '/viewer', iconName: 'LayoutDashboard' },
+        { title: 'Nguồn dữ liệu (chỉ xem)', href: '/viewer/data-sources', iconName: 'Database' },
+        { title: 'Job nạp dữ liệu (chỉ xem)', href: '/viewer/ingestion', iconName: 'Upload' },
         { title: 'Dashboard phân hệ', href: '/viewer/dashboards', iconName: 'BarChart3' },
         { title: 'Hỏi UniLake AI', href: '/viewer/ask', iconName: 'Sparkles', badge: 'AI' },
         { title: 'Lịch sử truy vấn', href: '/viewer/history', iconName: 'History' },

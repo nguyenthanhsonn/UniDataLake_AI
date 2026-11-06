@@ -1,6 +1,6 @@
 /** Kiểu dữ liệu khớp với các schema Pydantic của backend (thư mục backend/app/modules). */
 
-export type SourceType = 'CSV' | 'EXCEL' | 'JSON' | 'REST_API'
+export type SourceType = 'CSV' | 'EXCEL' | 'JSON' | 'REST_API' | 'POSTGRESQL' | 'RDBMS'
 
 export interface DataSourceItem {
   data_source_id: number
@@ -68,6 +68,22 @@ export interface IngestionJobCreatePayload {
   data_source_id: number
   dataset_id: number
   source_table: string
+}
+
+export interface CleaningResult {
+  status: string
+  ingestion_job_id: number
+  requested_by: string
+  domain: string
+  entity: string
+  input_version: string
+  records_read: number
+  records_passed: number
+  records_quarantined: number
+  records_collapsed: number
+  issues: Record<string, unknown>[]
+  publication: Record<string, unknown> | null
+  quarantine_report?: Record<string, unknown> | null
 }
 
 export interface CatalogField {

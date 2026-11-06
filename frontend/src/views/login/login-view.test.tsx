@@ -148,14 +148,23 @@ describe('LoginView', () => {
     expect(Cookies.get('access_token')).toBeUndefined()
   })
 
-  it('dùng thông báo mặc định khi backend không gửi nội dung lỗi', async () => {
+  it('không lộ lỗi kỹ thuật khi backend gặp lỗi máy chủ', async () => {
     signIn.mockRejectedValueOnce(axiosError(500, {}))
     render(<LoginView />)
     await fillAndSubmit('admin', 'Password@123')
 
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      'Tên đăng nhập hoặc mật khẩu chưa đúng'
+    expect(await screen.findByRole('alert')).toHaveTextContent('Máy chủ đang gặp sự cố')
+  })
+
+  it('báo mất kết nối thay vì báo sai mật khẩu khi backend không chạy', async () => {
+    signIn.mockRejectedValueOnce(
+      new AxiosError('Network Error', 'ERR_NETWORK', { headers: new AxiosHeaders() })
     )
+    render(<LoginView />)
+    await fillAndSubmit('admin', 'Password@123')
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Không thể kết nối đến máy chủ')
+    expect(screen.queryByText('Tên đăng nhập hoặc mật khẩu chưa đúng')).not.toBeInTheDocument()
   })
 
   it('báo không kết nối được khi lỗi không đến từ HTTP', async () => {

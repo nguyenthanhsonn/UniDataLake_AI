@@ -62,4 +62,34 @@ describe('buildConfiguration', () => {
     })
     expect(Object.keys(bad.errors).sort()).toEqual(['headers', 'pagination', 'timeout_seconds'])
   })
+
+  it('tạo cấu hình PostgreSQL và kiểm tra port hợp lệ', () => {
+    const ok = buildConfiguration('POSTGRESQL', {
+      host: 'db.internal',
+      port: '5432',
+      database: 'university',
+      username: 'reader',
+      password: 'secret-ref',
+    })
+    expect(ok).toEqual({
+      configuration: {
+        host: 'db.internal',
+        port: 5432,
+        database: 'university',
+        username: 'reader',
+        password: 'secret-ref',
+      },
+      errors: {},
+    })
+
+    expect(
+      buildConfiguration('RDBMS', {
+        host: 'db.internal',
+        port: '70000',
+        database: 'university',
+        username: 'reader',
+        password: 'secret-ref',
+      }).errors.port
+    ).toBe('port phải nhỏ hơn hoặc bằng 65535.')
+  })
 })

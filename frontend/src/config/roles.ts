@@ -1,5 +1,15 @@
 import type { RoleCode, RoleDefinition } from '@/types/auth'
 
+export type RoleCapability =
+  | 'session.manage'
+  | 'datasource.read'
+  | 'datasource.write'
+  | 'ingestion.read'
+  | 'ingestion.write'
+  | 'cleaning.run'
+  | 'catalog.manage'
+  | 'nlq.ask'
+
 export const ROLE_CODES: Record<RoleCode, RoleCode> = {
   ADMIN: 'ADMIN',
   DATA_ADMIN: 'DATA_ADMIN',
@@ -114,6 +124,40 @@ export const ROLE_PRIORITY: RoleCode[] = [
   'VIEWER',
 ]
 
+/** Quyền giao diện bám theo fe-handoff 05/11/2026; backend vẫn là lớp kiểm tra cuối. */
+export const ROLE_CAPABILITIES: Record<RoleCode, RoleCapability[]> = {
+  ADMIN: [
+    'session.manage',
+    'datasource.read',
+    'datasource.write',
+    'ingestion.read',
+    'ingestion.write',
+    'cleaning.run',
+    'nlq.ask',
+  ],
+  DATA_ADMIN: [
+    'session.manage',
+    'datasource.read',
+    'datasource.write',
+    'ingestion.read',
+    'ingestion.write',
+    'cleaning.run',
+    'catalog.manage',
+    'nlq.ask',
+  ],
+  VIEWER: ['session.manage', 'datasource.read', 'ingestion.read', 'nlq.ask'],
+  ADMISSIONS_MANAGER: ['session.manage', 'nlq.ask'],
+  ADMISSIONS_STAFF: ['session.manage', 'nlq.ask'],
+  ACADEMIC_MANAGER: ['session.manage', 'nlq.ask'],
+  ACADEMIC_STAFF: ['session.manage', 'nlq.ask'],
+  HR_MANAGER: ['session.manage', 'nlq.ask'],
+  HR_STAFF: ['session.manage', 'nlq.ask'],
+}
+
+export function hasCapability(roles: RoleCode[], capability: RoleCapability): boolean {
+  return roles.some((role) => ROLE_CAPABILITIES[role].includes(capability))
+}
+
 export const ROLE_ROUTE_PREFIXES: Record<RoleCode, string> = Object.fromEntries(
   Object.entries(ROLE_DEFINITIONS).map(([role, definition]) => [role, definition.homePath])
 ) as Record<RoleCode, string>
@@ -149,7 +193,6 @@ export function getRoleFromPrefix(pathname: string): RoleCode | null {
 }
 
 export function hasAccessToRoute(pathname: string, userRoles: RoleCode[]): boolean {
-  if (userRoles.includes('ADMIN')) return true
   const requiredRole = getRoleFromPrefix(pathname)
   return requiredRole ? userRoles.includes(requiredRole) : true
 }

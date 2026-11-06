@@ -33,7 +33,17 @@ const selectClass =
 
 type StatusFilter = 'all' | 'active' | 'inactive'
 
-export function SourcesView() {
+interface SourcesViewProps {
+  canManage?: boolean
+  basePath?: string
+  workspaceLabel?: string
+}
+
+export function SourcesView({
+  canManage = true,
+  basePath = '/data/sources',
+  workspaceLabel = 'Quản trị dữ liệu',
+}: SourcesViewProps = {}) {
   const queryClient = useQueryClient()
   const [systemId, setSystemId] = useState('')
   const [sourceType, setSourceType] = useState('')
@@ -89,17 +99,25 @@ export function SourcesView() {
   return (
     <div className="space-y-5">
       <PageHeader
-        breadcrumb={['Quản trị dữ liệu', 'Nguồn dữ liệu']}
-        title="Quản lý nguồn dữ liệu"
-        description="Đăng ký và cấu hình các nguồn dữ liệu đầu vào của Data Lake. Không xoá cứng, chỉ bật/tắt để giữ Lineage."
+        breadcrumb={[workspaceLabel, 'Nguồn dữ liệu']}
+        title={canManage ? 'Quản lý nguồn dữ liệu' : 'Nguồn dữ liệu'}
+        description={
+          canManage
+            ? 'Đăng ký và cấu hình các nguồn dữ liệu đầu vào của Data Lake. Không xoá cứng, chỉ bật/tắt để giữ Lineage.'
+            : 'Theo dõi các nguồn dữ liệu và trạng thái nạp gần nhất. Vai trò hiện tại chỉ có quyền xem.'
+        }
         actions={
-          <Link
-            href="/data/sources/new"
-            className="inline-flex h-8 items-center gap-1.5 rounded-md bg-indigo-600 px-3 text-xs font-semibold text-white hover:bg-indigo-700"
-          >
-            <Plus className="size-3.5" aria-hidden="true" />
-            Thêm nguồn dữ liệu
-          </Link>
+          canManage ? (
+            <Link
+              href={`${basePath}/new`}
+              className="inline-flex h-8 items-center gap-1.5 rounded-md bg-indigo-600 px-3 text-xs font-semibold text-white hover:bg-indigo-700"
+            >
+              <Plus className="size-3.5" aria-hidden="true" />
+              Thêm nguồn dữ liệu
+            </Link>
+          ) : (
+            <Tag tone="slate">Chỉ xem</Tag>
+          )
         }
       />
 
@@ -200,7 +218,11 @@ export function SourcesView() {
         ) : list.data.items.length === 0 ? (
           <EmptyState
             title="Chưa có nguồn dữ liệu phù hợp"
-            description="Đổi bộ lọc hoặc thêm nguồn dữ liệu mới."
+            description={
+              canManage
+                ? 'Đổi bộ lọc hoặc thêm nguồn dữ liệu mới.'
+                : 'Đổi bộ lọc để xem nguồn dữ liệu khác.'
+            }
           />
         ) : (
           <div className="overflow-x-auto">
@@ -217,7 +239,7 @@ export function SourcesView() {
                     'Kết quả',
                     'Số lần',
                     'Trạng thái',
-                    '',
+                    ...(canManage ? [''] : []),
                   ].map((head) => (
                     <th key={head} scope="col" className="px-3 py-2 font-medium">
                       {head}
@@ -268,30 +290,32 @@ export function SourcesView() {
                         {source.is_active ? 'ACTIVE' : 'INACTIVE'}
                       </Tag>
                     </td>
-                    <td className="whitespace-nowrap px-3 py-2.5 text-right">
-                      <Link
-                        href={`/data/sources/${source.data_source_id}`}
-                        className="inline-flex h-8 items-center rounded-md px-3 text-xs font-semibold text-indigo-700 hover:bg-indigo-50"
-                        aria-label={`Sửa nguồn ${source.source_name}`}
-                      >
-                        Sửa
-                      </Link>
-                      <Button
-                        variant="ghost"
-                        disabled={toggle.isPending}
-                        onClick={() => toggle.mutate(source)}
-                        aria-label={`${source.is_active ? 'Tắt' : 'Bật'} nguồn ${source.source_name}`}
-                      >
-                        {source.is_active ? 'Tắt' : 'Bật'}
-                      </Button>
-                    </td>
+                    {canManage && (
+                      <td className="whitespace-nowrap px-3 py-2.5 text-right">
+                        <Link
+                          href={`${basePath}/${source.data_source_id}`}
+                          className="inline-flex h-8 items-center rounded-md px-3 text-xs font-semibold text-indigo-700 hover:bg-indigo-50"
+                          aria-label={`Sửa nguồn ${source.source_name}`}
+                        >
+                          Sửa
+                        </Link>
+                        <Button
+                          variant="ghost"
+                          disabled={toggle.isPending}
+                          onClick={() => toggle.mutate(source)}
+                          aria-label={`${source.is_active ? 'Tắt' : 'Bật'} nguồn ${source.source_name}`}
+                        >
+                          {source.is_active ? 'Tắt' : 'Bật'}
+                        </Button>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         )}
-        {toggle.isError && (
+        {canManage && toggle.isError && (
           <p role="alert" className="border-t border-slate-200 px-4 py-2 text-xs text-rose-600">
             {getApiErrorMessage(toggle.error, 'Không đổi được trạng thái nguồn dữ liệu.')}
           </p>

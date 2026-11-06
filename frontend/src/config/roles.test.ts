@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   ROLE_DEFINITIONS,
+  hasCapability,
   getDefaultHomeForRoles,
   getRoleFromPrefix,
   hasAccessToRoute,
@@ -32,7 +33,15 @@ describe('9-role RBAC', () => {
   it('does not allow one domain role to enter another workspace', () => {
     expect(hasAccessToRoute('/workspaces/hr/staff', ['ADMISSIONS_STAFF'])).toBe(false)
     expect(hasAccessToRoute('/workspaces/admissions/staff', ['ADMISSIONS_STAFF'])).toBe(true)
-    expect(hasAccessToRoute('/workspaces/hr/staff', ['ADMIN'])).toBe(true)
+    expect(hasAccessToRoute('/workspaces/hr/staff', ['ADMIN'])).toBe(false)
+  })
+
+  it('matches the capability matrix in the latest backend handoff', () => {
+    expect(hasCapability(['VIEWER'], 'datasource.read')).toBe(true)
+    expect(hasCapability(['VIEWER'], 'datasource.write')).toBe(false)
+    expect(hasCapability(['ADMIN'], 'catalog.manage')).toBe(false)
+    expect(hasCapability(['DATA_ADMIN'], 'catalog.manage')).toBe(true)
+    expect(hasCapability(['ADMISSIONS_MANAGER'], 'datasource.read')).toBe(false)
   })
 
   it('keeps old backend roles compatible without granting elevated access', () => {

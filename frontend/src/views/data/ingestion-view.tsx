@@ -4,9 +4,15 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { CircleAlert, Play, RefreshCw, X } from 'lucide-react'
+import { CircleAlert, Eye, Play, RefreshCw, ShieldCheck, X } from 'lucide-react'
 
-import { API_CreateIngestionJob, API_ListDataSources, API_ListIngestionJobs } from '@/api/api_data'
+import {
+  API_CreateIngestionJob,
+  API_GetIngestionJob,
+  API_ListDataSources,
+  API_ListIngestionJobs,
+  API_RunCleaningJob,
+} from '@/api/api_data'
 import { getApiErrorMessage, getApiRequestId } from '@/api/http'
 import {
   Button,
@@ -21,6 +27,13 @@ import {
   formatNumber,
   statusTone,
 } from '@/components/page/page-parts'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import type { IngestionJob } from '@/types/data'
 
 const ACTIVE_STATUSES = new Set(['QUEUED', 'RUNNING'])
@@ -149,14 +162,35 @@ function RunJobPanel({ onClose }: { onClose: () => void }) {
   )
 }
 
-export function IngestionView() {
+interface IngestionViewProps {
+  canCreate?: boolean
+  workspaceLabel?: string
+}
+
+export function IngestionView({
+  canCreate = true,
+  workspaceLabel = 'Quản trị dữ liệu',
+}: IngestionViewProps = {}) {
   const [showRun, setShowRun] = useState(false)
+  const [selectedJobId, setSelectedJobId] = useState<number | null>(null)
 
   const jobs = useQuery({
     queryKey: ['ingestion-jobs'],
     queryFn: () => API_ListIngestionJobs({ limit: 50 }),
     // Job chạy nền: còn job QUEUED/RUNNING thì tự hỏi lại trạng thái.
     refetchInterval: (query) => (query.state.data?.some(isJobActive) ? POLL_INTERVAL_MS : false),
+  })
+
+  const selectedJob = useQuery({
+    queryKey: ['ingestion-job', selectedJobId],
+    queryFn: () => API_GetIngestionJob(selectedJobId as number),
+    enabled: selectedJobId !== null,
+    refetchInterval: (query) =>
+      query.state.data && isJobActive(query.state.data) ? POLL_INTERVAL_MS : false,
+  })
+
+  const cleaning = useMutation({
+    mutationFn: (ingestionJobId: number) => API_RunCleaningJob(ingestionJobId),
   })
 
   const list = jobs.data ?? []
@@ -172,7 +206,7 @@ export function IngestionView() {
   return (
     <div className="space-y-5">
       <PageHeader
-        breadcrumb={['Quản trị dữ liệu', 'Nạp dữ liệu']}
+        breadcrumb={[workspaceLabel, 'Nạp dữ liệu']}
         title="Giám sát nạp dữ liệu"
         description="Theo dõi từng lần nạp từ nguồn vào Bronze. Tác vụ dài: tạo job trả về mã job, giao diện tự hỏi lại trạng thái."
         actions={
@@ -189,18 +223,22 @@ export function IngestionView() {
             >
               Làm mới
             </Button>
-            <Button
-              variant="primary"
-              onClick={() => setShowRun(true)}
-              icon={<Play className="size-3.5" aria-hidden="true" />}
-            >
-              Chạy nạp dữ liệu
-            </Button>
+            {canCreate ? (
+              <Button
+                variant="primary"
+                onClick={() => setShowRun(true)}
+                icon={<Play className="size-3.5" aria-hidden="true" />}
+              >
+                Chạy nạp dữ liệu
+              </Button>
+            ) : (
+              <Tag tone="slate">Chỉ xem</Tag>
+            )}
           </>
         }
       />
 
-      {showRun && <RunJobPanel onClose={() => setShowRun(false)} />}
+      {canCreate && showRun && <RunJobPanel onClose={() => setShowRun(false)} />}
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <KpiCard label="Job gần đây" value={show(list.length)} hint="50 job mới nhất" />
@@ -247,7 +285,11 @@ export function IngestionView() {
         ) : list.length === 0 ? (
           <EmptyState
             title="Chưa có job nạp dữ liệu"
-            description="Bấm “Chạy nạp dữ liệu” để tạo job đầu tiên."
+            description={
+              canCreate
+                ? 'Bấm “Chạy nạp dữ liệu” để tạo job đầu tiên.'
+                : 'Chưa có job nào để hiển thị.'
+            }
           />
         ) : (
           <div className="overflow-x-auto">
@@ -265,6 +307,7 @@ export function IngestionView() {
                     'Đọc',
                     'Ghi',
                     'Loại',
+                    'Chi tiết',
                   ].map((head) => (
                     <th key={head} scope="col" className="px-3 py-2 font-medium">
                       {head}
@@ -306,6 +349,15 @@ export function IngestionView() {
                     <td className="px-3 py-2.5 font-mono text-slate-700">
                       {formatNumber(job.rows_rejected)}
                     </td>
+                    <td className="px-3 py-2.5">
+                      <Button
+                        variant="ghost"
+                        onClick={() => setSelectedJobId(job.ingestion_job_id)}
+                        icon={<Eye className="size-3.5" aria-hidden="true" />}
+                      >
+                        Xem
+                      </Button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -332,6 +384,104 @@ export function IngestionView() {
           </div>
         </div>
       )}
+
+      <Dialog
+        open={selectedJobId !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedJobId(null)
+            cleaning.reset()
+          }
+        }}
+      >
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Chi tiết job #{selectedJobId}</DialogTitle>
+            <DialogDescription>
+              Dữ liệu trực tiếp từ GET /api/v1/ingestion/jobs/{selectedJobId ?? '{job_id}'}.
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedJob.isPending ? (
+            <LoadingState />
+          ) : selectedJob.isError ? (
+            <ErrorState
+              requestId={getApiRequestId(selectedJob.error)}
+              message={getApiErrorMessage(selectedJob.error, 'Không tải được chi tiết job.')}
+              onRetry={() => void selectedJob.refetch()}
+            />
+          ) : selectedJob.data ? (
+            <div className="space-y-4">
+              <div className="grid gap-3 text-xs sm:grid-cols-2">
+                {[
+                  ['Trạng thái', selectedJob.data.status],
+                  ['Giai đoạn', selectedJob.data.stage ?? '—'],
+                  ['Nguồn dữ liệu', `#${selectedJob.data.data_source_id}`],
+                  ['Dataset', `#${selectedJob.data.dataset_id}`],
+                  ['File / bảng', selectedJob.data.source_table ?? '—'],
+                  ['Người chạy', selectedJob.data.requested_by ?? '—'],
+                  [
+                    'Bắt đầu',
+                    formatDateTime(selectedJob.data.started_at ?? selectedJob.data.created_at),
+                  ],
+                  ['Kết thúc', formatDateTime(selectedJob.data.finished_at)],
+                  ['Dòng đọc', formatNumber(selectedJob.data.rows_read)],
+                  ['Dòng ghi', formatNumber(selectedJob.data.rows_written)],
+                  ['Dòng loại', formatNumber(selectedJob.data.rows_rejected)],
+                  ['Lỗi', selectedJob.data.error_message ?? 'Không có'],
+                ].map(([label, value]) => (
+                  <div
+                    key={label}
+                    className="rounded-2xl border border-white/80 bg-white/55 px-3.5 py-3"
+                  >
+                    <p className="text-[9px] font-bold uppercase tracking-wider text-slate-400">
+                      {label}
+                    </p>
+                    <p className="mt-1 break-words font-mono text-[11px] font-semibold text-slate-800">
+                      {value}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              {canCreate && (
+                <div className="rounded-2xl border border-indigo-100 bg-indigo-50/55 p-3.5">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-bold text-slate-800">Cleaning Bronze → Silver</p>
+                      <p className="mt-0.5 text-[10px] text-slate-500">
+                        Chỉ chạy được với job Bronze thành công thuộc profile demo.
+                      </p>
+                    </div>
+                    <Button
+                      variant="primary"
+                      disabled={
+                        cleaning.isPending || selectedJob.data.status.toUpperCase() !== 'SUCCESS'
+                      }
+                      onClick={() => cleaning.mutate(selectedJob.data.ingestion_job_id)}
+                      icon={<ShieldCheck className="size-3.5" aria-hidden="true" />}
+                    >
+                      {cleaning.isPending ? 'Đang cleaning…' : 'Chạy cleaning'}
+                    </Button>
+                  </div>
+                  {cleaning.isError && (
+                    <p role="alert" className="mt-2 text-xs font-medium text-rose-600">
+                      {getApiErrorMessage(cleaning.error, 'Không chạy được Cleaning Pipeline.')}
+                    </p>
+                  )}
+                  {cleaning.data && (
+                    <p className="mt-2 text-xs font-medium text-emerald-700">
+                      {cleaning.data.status}: đọc {formatNumber(cleaning.data.records_read)}, đạt{' '}
+                      {formatNumber(cleaning.data.records_passed)}, cách ly{' '}
+                      {formatNumber(cleaning.data.records_quarantined)} bản ghi.
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

@@ -49,6 +49,20 @@ export function middleware(request: NextRequest) {
   const userRoles = extractRolesFromToken(token)
   const defaultHome = getDefaultHomeForRoles(userRoles)
 
+  // Các route của mô hình role cũ chỉ được giữ để chuyển tiếp bookmark cũ.
+  if (pathname === '/analyst' || pathname === '/manager') {
+    return NextResponse.redirect(new URL('/viewer', request.url))
+  }
+  if (pathname.startsWith('/analyst/ask') || pathname.startsWith('/manager/ask')) {
+    return NextResponse.redirect(new URL('/viewer/ask', request.url))
+  }
+  if (pathname.startsWith('/analyst/history') || pathname.startsWith('/manager/history')) {
+    return NextResponse.redirect(new URL('/viewer/history', request.url))
+  }
+  if (pathname.startsWith('/analyst/') || pathname.startsWith('/manager/')) {
+    return NextResponse.redirect(new URL('/viewer/dashboards', request.url))
+  }
+
   // Nếu truy cập /login hoặc đường dẫn gốc /, chuyển đến trang chủ theo vai trò người dùng
   if (pathname === '/login' || pathname === '/') {
     return NextResponse.redirect(new URL(defaultHome, request.url))

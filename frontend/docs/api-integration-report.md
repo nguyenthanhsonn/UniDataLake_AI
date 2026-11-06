@@ -1,84 +1,136 @@
 # Báo cáo kiểm thử kết nối Frontend với REST API (UDL-192)
 
-Ngày kiểm thử: 29/10/2026. Người thực hiện: Trương Đình Đạt.
+Cập nhật: 06/11/2026. Người thực hiện: Trương Đình Đạt.
 
-Môi trường: backend, PostgreSQL, MinIO, Redis chạy bằng `docker compose up -d` (nhánh `developer`,
-commit `3627993`); frontend chạy ở `http://localhost:3001` và trong container ở `http://localhost:3000`.
-Frontend gọi thẳng `http://localhost:8000/api/v1` bằng client trong `src/api/http.ts`.
+Tài liệu đối chiếu chính: **UniLake — Handoff API cho frontend**, bản cập nhật
+05/11/2026 (19 endpoint nghiệp vụ, 2 endpoint hệ thống) và acceptance criteria
+của Jira UDL-192.
 
-## 1. Tóm tắt
+## 1. Kết luận
 
-| Hạng mục | Kết quả |
-|---|---|
-| CORS | ✅ Cho phép `localhost:3000/3001`, chặn origin lạ |
-| Xác thực (login, gửi token, refresh, logout) | ✅ Hoạt động end-to-end |
-| Endpoint frontend đang gọi | 9 / 9 trả đúng như frontend mong đợi |
-| Xử lý lỗi | ✅ Xem `error-checklist.md` (UDL-189) |
-| Lệch so với API Contract | 4 điểm, ghi ở mục 5 |
+| Hạng mục                            | Kết quả                                                                                     |
+| ----------------------------------- | ------------------------------------------------------------------------------------------- |
+| CORS                                | ✅ Frontend dùng được từ `localhost:3000/3001`; origin lạ bị chặn                           |
+| Login, refresh, logout              | ✅ Đã tích hợp và có kiểm thử tự động                                                       |
+| Danh sách / thu hồi phiên đăng nhập | ✅ Đã nối `GET /auth/sessions`, `POST /auth/revoke-session/{id}`                            |
+| Nguồn dữ liệu                       | ✅ ADMIN, DATA_ADMIN quản lý; VIEWER có giao diện chỉ xem                                   |
+| Ingestion                           | ✅ Danh sách, tạo job, xem chi tiết; tự poll job đang chạy                                  |
+| Cleaning Bronze → Silver            | ✅ Có thao tác từ chi tiết job cho ADMIN / DATA_ADMIN                                       |
+| Catalog                             | ⚠️ Frontend mới dùng endpoint danh sách; backend checkout hiện tại chưa có 4 route CRUD mới |
+| 9 role                              | ⚠️ Frontend đã nhận đủ 9 role; backend/seed checkout hiện tại vẫn là bộ role cũ             |
+| Kiểm tra mã frontend                | ✅ Type-check, lint, 85/85 test và production build đều đạt                                 |
 
-## 2. CORS
+Frontend hiện tích hợp **15/19 endpoint nghiệp vụ** trong handoff. Bốn endpoint
+chưa thể nối hoàn chỉnh đều thuộc Catalog CRUD và chưa tồn tại trong backend
+đang checkout.
 
-| Kiểm tra | Kết quả |
-|---|---|
-| Preflight `OPTIONS /datasources` từ `http://localhost:3000` | 200, `access-control-allow-origin: http://localhost:3000`, cho phép header `authorization` |
-| Preflight từ `http://evil.example` | 400, không có header cho phép |
-| Request thật từ trình duyệt (GET, POST, PATCH) | Không lỗi CORS |
+## 2. Endpoint đã nối
 
-Danh sách origin lấy từ `CORS_ORIGINS` (`backend/app/core/config.py`). Khi deploy cần thêm domain thật.
+| Nhóm        | Endpoint                                          | Nơi dùng                                   | Trạng thái                      |
+| ----------- | ------------------------------------------------- | ------------------------------------------ | ------------------------------- |
+| Auth        | `POST /auth/login`                                | Trang đăng nhập                            | ✅                              |
+| Auth        | `POST /auth/refresh`                              | Axios interceptor khi access token hết hạn | ✅                              |
+| Auth        | `POST /auth/logout`                               | Menu người dùng                            | ✅                              |
+| Auth        | `GET /auth/sessions`                              | Dialog “Phiên đăng nhập”                   | ✅ Mới                          |
+| Auth        | `POST /auth/revoke-session/{session_id}`          | Dialog “Phiên đăng nhập”                   | ✅ Mới                          |
+| Data source | `GET /datasources`                                | ADMIN, DATA_ADMIN, VIEWER                  | ✅                              |
+| Data source | `GET /datasources/{id}`                           | Form sửa                                   | ✅                              |
+| Data source | `POST /datasources/create`                        | Form thêm                                  | ✅                              |
+| Data source | `PATCH /datasources/{id}`                         | Form sửa, bật/tắt                          | ✅                              |
+| Ingestion   | `GET /ingestion/jobs`                             | Danh sách, KPI, poll                       | ✅                              |
+| Ingestion   | `GET /ingestion/jobs/{job_id}`                    | Dialog chi tiết, poll                      | ✅ Mới                          |
+| Ingestion   | `POST /ingestion/jobs`                            | Form tạo job                               | ✅                              |
+| Cleaning    | `POST /pipeline/cleaning/ingestion-jobs/{job_id}` | Dialog chi tiết job                        | ✅ Mới                          |
+| Catalog     | `GET /governance/catalog`                         | Data Catalog / Explore                     | ✅                              |
+| NLQ demo    | `POST /nlq/ask`                                   | Hỏi UniLake AI                             | ✅ Backend vẫn trả dữ liệu demo |
 
-## 3. Xác thực
+Chưa nối vì backend checkout hiện tại chưa đăng ký route:
 
-| Luồng | Request | Kết quả |
-|---|---|---|
-| Đăng nhập | `POST /auth/login` `{username, password}` | 200, trả `access_token`, `refresh_token`, `user.role`; frontend chuyển đúng trang theo vai trò |
-| Gửi token | Header `Authorization: Bearer <access_token>` | Backend chấp nhận ở mọi endpoint cần đăng nhập |
-| Làm mới token | `POST /auth/refresh` `{refresh_token}` khi gặp 401 | 200, frontend lưu token mới và gửi lại request |
-| Đăng xuất | `POST /auth/logout` `{refresh_token}` | 200; dùng lại refresh token cũ bị từ chối `SESSION_EXPIRED` |
-| Không có / sai token | — | 401 `UNAUTHORIZED` / `INVALID_TOKEN` |
+- `GET /governance/catalog/{domain_id}/{dataset}`
+- `POST /governance/catalog`
+- `PATCH /governance/catalog/{domain_id}/{dataset}`
+- `DELETE /governance/catalog/{domain_id}/{dataset}`
 
-## 4. Kết quả theo endpoint
+## 3. Ma trận quyền frontend theo handoff 05/11
 
-| Endpoint | Màn hình | Thành công | Lỗi đã kiểm | Kết quả |
-|---|---|---|---|---|
-| `POST /auth/login` | Đăng nhập | 200 | 401 sai mật khẩu, 422 thiếu trường | ✅ |
-| `POST /auth/refresh` | (tự động) | 200 | 401 token không hợp lệ | ✅ |
-| `POST /auth/logout` | Menu người dùng | 200 | — | ✅ |
-| `GET /datasources` | Nguồn dữ liệu | 200, lọc và phân trang | 401, 403 (manager) | ✅ |
-| `GET /datasources/{id}` | Chỉnh sửa nguồn | 200 | 404 `DATA_SOURCE_NOT_FOUND` | ✅ |
-| `POST /datasources/create` | Thêm nguồn | 200, có thông báo và quay về danh sách | 403 (viewer), 422 `CONFIGURATION_INVALID` | ✅ |
-| `PATCH /datasources/{id}` | Sửa, bật/tắt nguồn | 200 | — | ✅ |
-| `GET /ingestion/jobs` | Nạp dữ liệu | 200, tự hỏi lại khi có job đang chạy | 401 → refresh | ✅ |
-| `POST /ingestion/jobs` | Nạp dữ liệu | Chưa kiểm được (database chưa có dataset) | 404 `INGESTION_NOT_FOUND`, 422 sai kiểu | ⚠️ Một phần |
-| `GET /governance/catalog` | Data Catalog, Khám phá dữ liệu | 200 (2 dataset domain `demo`) | timeout, mất kết nối | ✅ |
-| `POST /nlq/ask` | Hỏi AI | 200 | — | ⚠️ Backend trả dữ liệu giả |
+| Role                 | Phiên   | Nguồn dữ liệu | Ingestion | Cleaning | Catalog    | NLQ  |
+| -------------------- | ------- | ------------- | --------- | -------- | ---------- | ---- |
+| `ADMIN`              | Quản lý | Đọc / ghi     | Đọc / tạo | Chạy     | Không hiện | Dùng |
+| `DATA_ADMIN`         | Quản lý | Đọc / ghi     | Đọc / tạo | Chạy     | Quản lý    | Dùng |
+| `VIEWER`             | Quản lý | Chỉ xem       | Chỉ xem   | Không    | Không      | Dùng |
+| `ADMISSIONS_MANAGER` | Quản lý | Không         | Không     | Không    | Không      | Dùng |
+| `ADMISSIONS_STAFF`   | Quản lý | Không         | Không     | Không    | Không      | Dùng |
+| `ACADEMIC_MANAGER`   | Quản lý | Không         | Không     | Không    | Không      | Dùng |
+| `ACADEMIC_STAFF`     | Quản lý | Không         | Không     | Không    | Không      | Dùng |
+| `HR_MANAGER`         | Quản lý | Không         | Không     | Không    | Không      | Dùng |
+| `HR_STAFF`           | Quản lý | Không         | Không     | Không    | Không      | Dùng |
 
-### Quyền theo vai trò (tài khoản mẫu)
+`ADMIN` không còn được frontend tự động cho vào mọi workspace. Route được kiểm
+tra theo đúng role; backend vẫn là lớp phân quyền cuối cùng. Hai role cũ
+`ANALYST`, `MANAGER` chỉ còn alias chuyển tiếp về VIEWER để tài khoản seed cũ
+không rơi vào trang lỗi trong giai đoạn backend chuyển đổi.
 
-| Vai trò | `GET /datasources` | `GET /ingestion/jobs` | `GET /governance/catalog` | `POST /nlq/ask` |
-|---|---|---|---|---|
-| ADMIN | 200 | 200 | 200 | 200 |
-| DATA_ADMIN | 200 | 200 | 200 | 200 |
-| ANALYST | 200 | 200 | 200 | 200 |
-| MANAGER | 403 | 403 | 200 | 200 |
-| VIEWER | 200 | 200 | 200 | 200 |
+## 4. Sai khác giữa handoff mới và backend checkout hiện tại
 
-Chỉ ADMIN và DATA_ADMIN được ghi nguồn dữ liệu (đã kiểm `viewer` bị 403). Ma trận quyền chính thức
-thuộc UDL-166.
+| Handoff 05/11                                      | Backend / seed hiện tại                                                          | Ảnh hưởng                                         |
+| -------------------------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------- |
+| 9 role chính thức                                  | Seed vẫn có `ADMIN`, `SUPER_ADMIN`, `DATA_ADMIN`, `ANALYST`, `MANAGER`, `VIEWER` | Chưa thể login E2E bằng 6 role domain mới         |
+| 9 tài khoản mẫu tương ứng                          | Seed chỉ có `admin`, `dataadmin`, `analyst`, `manager`, `viewer`                 | Sáu tài khoản mới chưa tồn tại                    |
+| Catalog chỉ `DATA_ADMIN` quản lý; `ADMIN` nhận 403 | Router catalog hiện chỉ có GET danh sách và chưa gắn dependency role             | Chưa kiểm được Catalog CRUD / quyền đúng contract |
+| Catalog có detail + CRUD                           | Backend hiện chỉ có `GET /governance/catalog`                                    | Frontend chưa bật form quản lý Catalog            |
 
-## 5. Lệch giữa API Contract (Drive) và backend hiện tại
+Kết luận: frontend đã sẵn cấu hình 9 role và không cần sửa backend trong nhánh
+này, nhưng acceptance test đầy đủ 9 tài khoản chỉ chạy được sau khi backend
+merge role/seed và Catalog API theo handoff.
 
-Frontend đang theo **backend hiện tại**. Cần nhóm chốt (UDL-190) trước khi đổi:
+## 5. Kiểm thử tự động 06/11
 
-| API Contract | Backend hiện tại | Ảnh hưởng frontend |
-|---|---|---|
-| `/data-sources`, tạo bằng `POST /data-sources` | `/datasources`, tạo bằng `POST /datasources/create` | Đổi đường dẫn trong `src/api/api_data.ts` |
-| Login bằng `email` | Login bằng `username` | Form đã nhận cả hai |
-| Response bọc `{success, data, meta, request_id}` | Response trả thẳng dữ liệu; lỗi đã theo envelope trừ 422 của FastAPI | Nếu đổi, cần sửa các hàm trong `src/api/` |
-| `GET /auth/me`, `/ai/queries`, `/governance/catalog/datasets`, `/governance/quality/*`, `/governance/lineage/*`, `/dashboard/*` | Chưa có | Các trang tương ứng đang dùng dữ liệu mẫu |
+Chạy trong `frontend/`:
 
-## 6. Việc cần làm tiếp
+```text
+tsc --noEmit                         PASS
+eslint . --max-warnings=0            PASS
+vitest run --passWithNoTests         13 files, 85 tests PASS
+next build                           PASS, 38 routes generated
+```
 
-1. Backend: bổ sung API Lineage (UDL-177), Quality, Dashboard, `/auth/me`, lịch sử truy vấn.
-2. Backend: đưa lỗi 422 về envelope chuẩn (UDL-187); hoàn thiện `/nlq/ask`.
-3. Seed dataset Bronze để kiểm được job ingestion thành công từ giao diện.
-4. Sau khi nhóm chốt API Contract: đổi đường dẫn trong `src/api/api_data.ts` và chạy lại báo cáo này.
+Các test mới kiểm tra thêm:
+
+- capability và route của 9 role;
+- ADMIN không tự động truy cập workspace role khác;
+- lỗi login khi mất kết nối / lỗi 5xx không bị báo nhầm “sai mật khẩu”;
+- client danh sách / thu hồi phiên;
+- mở quản lý phiên từ menu người dùng.
+- cấu hình đủ 6 loại nguồn, gồm PostgreSQL / RDBMS và kiểm tra port.
+
+## 6. Smoke test Docker và UI 06/11
+
+Môi trường `docker compose up -d --build` chạy đủ frontend, backend, PostgreSQL,
+Redis, MinIO và ingestion worker. Kết quả live:
+
+| Kiểm tra                                                               | Kết quả                                                  |
+| ---------------------------------------------------------------------- | -------------------------------------------------------- |
+| `GET http://localhost:3000/login` / `GET http://localhost:8000/health` | 200 / 200                                                |
+| Login `admin`, `dataadmin`, `analyst`, `manager`, `viewer`             | 200; UI chuyển lần lượt về ADMIN, DATA_ADMIN hoặc VIEWER |
+| Login 6 username domain mới                                            | 401 vì backend chưa seed; UI hiện đúng lỗi đăng nhập     |
+| ADMIN mở trang nguồn dữ liệu và dialog phiên                           | ✅                                                       |
+| VIEWER mở nguồn dữ liệu chỉ xem                                        | ✅                                                       |
+| List / revoke session                                                  | 200; danh sách giảm đúng 1 phiên sau revoke              |
+| Route guard ADMIN → workspace role khác                                | Chuyển về `/admin`                                       |
+| Route guard VIEWER → `/admin`                                          | Chuyển về `/viewer`                                      |
+| CORS origin `localhost:3000`                                           | Preflight 200, có allow-origin                           |
+| CORS origin lạ                                                         | Preflight 400, không có allow-origin                     |
+
+Phát hiện backend live: `GET /governance/catalog` trả 200 cho ADMIN, DATA_ADMIN,
+VIEWER **và cả request không có token**. Đây là bằng chứng route Catalog hiện
+chưa áp xác thực/phân quyền như handoff.
+
+## 7. Việc backend cần bàn giao để đóng hoàn toàn UDL-192
+
+1. Merge role và seed 9 tài khoản đúng danh sách trong handoff.
+2. Đăng ký đủ 4 endpoint Catalog detail / create / update / delete và quyền
+   `DATA_ADMIN`.
+3. Cung cấp dataset Bronze hợp lệ để chạy happy path ingestion → cleaning →
+   Silver.
+4. Sau khi backend mới có mặt trên `developer`, chạy lại ma trận 9 tài khoản và
+   cập nhật phần live E2E trong báo cáo này.

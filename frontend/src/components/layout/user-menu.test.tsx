@@ -6,6 +6,11 @@ import { getInitials, UserMenu } from './user-menu'
 
 const logout = vi.fn()
 
+vi.mock('@/api/api_sessions', () => ({
+  API_ListSessions: vi.fn().mockResolvedValue([]),
+  API_RevokeSession: vi.fn().mockResolvedValue(undefined),
+}))
+
 vi.mock('@/hooks/use-auth', () => ({
   useAuth: () => ({
     user: {
@@ -63,5 +68,16 @@ describe('UserMenu', () => {
 
     await user.click(screen.getByRole('menuitem', { name: 'Đăng xuất' }))
     expect(logout).toHaveBeenCalledTimes(1)
+  })
+
+  it('opens session management from the user menu', async () => {
+    const user = userEvent.setup()
+    render(<UserMenu role="ACADEMIC_MANAGER" />)
+
+    await user.click(screen.getByRole('button', { name: 'Mở menu người dùng' }))
+    await user.click(screen.getByRole('menuitem', { name: 'Phiên đăng nhập' }))
+
+    expect(await screen.findByRole('heading', { name: 'Phiên đăng nhập' })).toBeInTheDocument()
+    expect(screen.getByText('Không có phiên hoạt động nào khác.')).toBeInTheDocument()
   })
 })

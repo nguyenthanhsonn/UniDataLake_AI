@@ -61,8 +61,18 @@ function isSourceType(value: string): value is SourceType {
   return SOURCE_TYPES.includes(value as SourceType)
 }
 
+interface SourceFormProps {
+  initial?: DataSourceItem
+  returnPath?: string
+  workspaceLabel?: string
+}
+
 /** Form dùng chung cho thêm mới (không có `initial`) và chỉnh sửa nguồn dữ liệu. */
-function SourceForm({ initial }: { initial?: DataSourceItem }) {
+function SourceForm({
+  initial,
+  returnPath = '/data',
+  workspaceLabel = 'Quản trị dữ liệu',
+}: SourceFormProps) {
   const router = useRouter()
   const queryClient = useQueryClient()
   const isEdit = initial !== undefined
@@ -104,7 +114,7 @@ function SourceForm({ initial }: { initial?: DataSourceItem }) {
           ? `Đã cập nhật nguồn “${saved.source_name}”.`
           : `Đã thêm nguồn “${saved.source_name}”.`
       )
-      router.push('/data')
+      router.push(returnPath)
     },
   })
 
@@ -154,7 +164,7 @@ function SourceForm({ initial }: { initial?: DataSourceItem }) {
   return (
     <form className="space-y-5" onSubmit={onSubmit} noValidate>
       <PageHeader
-        breadcrumb={['Quản trị dữ liệu', 'Nguồn dữ liệu', isEdit ? 'Chỉnh sửa' : 'Thêm mới']}
+        breadcrumb={[workspaceLabel, 'Nguồn dữ liệu', isEdit ? 'Chỉnh sửa' : 'Thêm mới']}
         title={isEdit ? `Chỉnh sửa: ${initial.source_name}` : 'Thêm nguồn dữ liệu'}
         description={
           isEdit
@@ -164,7 +174,7 @@ function SourceForm({ initial }: { initial?: DataSourceItem }) {
         actions={
           <>
             <Link
-              href="/data"
+              href={returnPath}
               className="inline-flex h-8 items-center rounded-md border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 hover:bg-slate-50"
             >
               Huỷ
@@ -369,6 +379,8 @@ function SourceForm({ initial }: { initial?: DataSourceItem }) {
                         ) : (
                           <input
                             {...common}
+                            type={field.sensitive ? 'password' : 'text'}
+                            autoComplete={field.sensitive ? 'new-password' : undefined}
                             inputMode={field.kind === 'number' ? 'numeric' : undefined}
                             className={className}
                           />
@@ -403,11 +415,14 @@ function SourceForm({ initial }: { initial?: DataSourceItem }) {
   )
 }
 
-export function SourceFormView() {
-  return <SourceForm />
+export function SourceFormView(props: Omit<SourceFormProps, 'initial'> = {}) {
+  return <SourceForm {...props} />
 }
 
-export function SourceEditView({ id }: { id: number }) {
+export function SourceEditView({
+  id,
+  ...props
+}: { id: number } & Omit<SourceFormProps, 'initial'>) {
   const detail = useQuery({
     queryKey: ['datasources', 'detail', id],
     queryFn: () => API_GetDataSource(id),
@@ -425,5 +440,5 @@ export function SourceEditView({ id }: { id: number }) {
       />
     )
   }
-  return <SourceForm key={detail.data.data_source_id} initial={detail.data} />
+  return <SourceForm key={detail.data.data_source_id} initial={detail.data} {...props} />
 }

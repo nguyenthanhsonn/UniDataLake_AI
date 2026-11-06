@@ -72,6 +72,18 @@ export function LoginView() {
       router.refresh()
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
+        if (!err.response) {
+          setServerError(
+            err.code === 'ECONNABORTED' || err.code === 'ETIMEDOUT'
+              ? 'Máy chủ phản hồi quá lâu. Vui lòng thử lại sau.'
+              : 'Không thể kết nối đến máy chủ. Vui lòng thử lại sau.'
+          )
+          return
+        }
+        if (err.response.status >= 500) {
+          setServerError('Máy chủ đang gặp sự cố. Vui lòng thử lại sau.')
+          return
+        }
         const body = err.response?.data as ApiErrorBody | undefined
         setServerError(body?.error?.message ?? body?.detail ?? body?.message ?? DEFAULT_LOGIN_ERROR)
       } else {
